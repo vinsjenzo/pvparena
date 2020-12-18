@@ -1,0 +1,24 @@
+debug: none
+server_log: false
+stats: true
+language: en
+onlyPVPinArena: false
+safeadmin: true
+x-offset: 0.5
+y-offset: 0.5
+z-offset: 0.5
+whitelist:
+- ungod
+whitelist_wildcard: false
+use_shortcuts: false
+only_shortcuts: false
+shortcut_shuffle: false
+allow_ungrouped: false
+consoleoffduty: false
+update:
+  plugin: announce
+  modules: announce
+materialprefixes:
+- minecraft
+- bukkit
+globalPrefix: 'PVP Arena'
