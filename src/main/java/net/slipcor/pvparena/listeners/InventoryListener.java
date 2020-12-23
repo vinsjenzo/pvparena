@@ -4,7 +4,6 @@ import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.loadables.ArenaGoalManager;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionProtection;
 import org.bukkit.entity.Player;
@@ -14,6 +13,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Inventory Listener class</pre>
  *
@@ -22,10 +23,9 @@ import org.bukkit.event.inventory.InventoryType;
  */
 
 public class InventoryListener implements Listener {
-    private final static Debug DEBUG = new Debug(22);
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onInventoryClick(final InventoryClickEvent event) {
+    public static void onInventoryClick(final InventoryClickEvent event) {
         final Player player = (Player) event.getWhoClicked();
 
         final Arena arena = ArenaPlayer.parsePlayer(player.getName()).getArena();
@@ -34,7 +34,7 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        arena.getDebugger().i("InventoryClick: arena player", player);
+        debug(arena, player, "InventoryClick: arena player");
 
         if (!arena.getArenaConfig().getBoolean(CFG.PLAYER_MAYCHANGEARMOR)) {
             if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
@@ -58,7 +58,7 @@ public class InventoryListener implements Listener {
         PACheck res = ArenaGoalManager.checkInventory(arena, event);
 
         if (res.hasError()) {
-            DEBUG.i("onInventoryClick cancelled by goal: " + res.getModName(), player);
+            debug(player, "onInventoryClick cancelled by goal: " + res.getModName());
             return;
         }
 
@@ -74,7 +74,7 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        arena.getDebugger().i("cancelling!", player);
+        debug(arena, player, "cancelling!");
         // player is carrying a flag
         event.setCancelled(true);
     }

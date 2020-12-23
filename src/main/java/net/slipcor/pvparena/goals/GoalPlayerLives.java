@@ -7,7 +7,6 @@ import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.core.StringParser;
@@ -28,6 +27,8 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Goal class "PlayerLives"
@@ -42,7 +43,6 @@ import java.util.*;
 public class GoalPlayerLives extends ArenaGoal {
     public GoalPlayerLives() {
         super("PlayerLives");
-        this.debug = new Debug(102);
     }
 
     private EndRunnable endRunner;
@@ -56,16 +56,16 @@ public class GoalPlayerLives extends ArenaGoal {
 
     @Override
     public PACheck checkEnd(final PACheck res) {
-        this.arena.getDebugger().i("checkEnd - " + this.arena.getName());
+        debug(this.arena, "checkEnd - " + this.arena.getName());
         if (res.getPriority() > PRIORITY) {
-            this.arena.getDebugger().i(res.getPriority() + ">" + PRIORITY);
+            debug(this.arena, res.getPriority() + ">" + PRIORITY);
             return res;
         }
 
         if (!this.arena.isFreeForAll()) {
-            this.arena.getDebugger().i("TEAMS!");
+            debug(this.arena, "TEAMS!");
             final int count = TeamManager.countActiveTeams(this.arena);
-            this.arena.getDebugger().i("count: " + count);
+            debug(this.arena, "count: " + count);
 
             if (count <= 1) {
                 res.setPriority(this, PRIORITY); // yep. only one team left. go!
@@ -75,7 +75,7 @@ public class GoalPlayerLives extends ArenaGoal {
 
         final int count = this.getLifeMap().size();
 
-        this.arena.getDebugger().i("lives: " + StringParser.joinSet(this.getLifeMap().keySet(), "|"));
+        debug(this.arena, "lives: " + StringParser.joinSet(this.getLifeMap().keySet(), "|"));
 
         if (count <= 1) {
             res.setPriority(this, PRIORITY); // yep. only one player left. go!
@@ -134,7 +134,7 @@ public class GoalPlayerLives extends ArenaGoal {
             res.setPriority(this, PRIORITY);
 
             final int pos = this.getLifeMap().get(player.getName());
-            this.arena.getDebugger().i("lives before death: " + pos, player);
+            debug(this.arena, player, "lives before death: " + pos);
             if (pos <= 1) {
                 res.setError(this, "0");
             }
@@ -148,7 +148,7 @@ public class GoalPlayerLives extends ArenaGoal {
             return;
         }
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[LIVES] already ending");
+            debug(this.arena, "[LIVES] already ending");
             return;
         }
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "");
@@ -212,12 +212,12 @@ public class GoalPlayerLives extends ArenaGoal {
             Bukkit.getPluginManager().callEvent(gEvent);
         }
         int pos = this.getLifeMap().get(player.getName());
-        this.arena.getDebugger().i("lives before death: " + pos, player);
+        debug(this.arena, player, "lives before death: " + pos);
         if (pos <= 1) {
             this.getLifeMap().remove(player.getName());
             ArenaPlayer.parsePlayer(player.getName()).setStatus(Status.LOST);
             if (this.arena.getArenaConfig().getBoolean(CFG.PLAYER_PREVENTDEATH)) {
-                this.arena.getDebugger().i("faking player death", player);
+                debug(this.arena, player, "faking player death");
                 PlayerListener.finallyKillPlayer(this.arena, player, event);
             }
             // player died => commit death!
@@ -366,13 +366,13 @@ public class GoalPlayerLives extends ArenaGoal {
             config.set("teams", null);
         }
         if (config.get("teams") == null) {
-            this.arena.getDebugger().i("no teams defined, adding custom red and blue!");
+            debug(this.arena, "no teams defined, adding custom red and blue!");
             config.addDefault("teams.red", ChatColor.RED.name());
             config.addDefault("teams.blue", ChatColor.BLUE.name());
         }
         if (this.arena.getArenaConfig().getBoolean(CFG.GOAL_FLAGS_WOOLFLAGHEAD)
                 && config.get("flagColors") == null) {
-            this.arena.getDebugger().i("no flagheads defined, adding white and black!");
+            debug(this.arena, "no flagheads defined, adding white and black!");
             config.addDefault("flagColors.red", "WHITE");
             config.addDefault("flagColors.blue", "BLACK");
         }

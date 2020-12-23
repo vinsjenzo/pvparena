@@ -9,7 +9,6 @@ import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.PAA_Region;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
@@ -36,6 +35,7 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 import static java.util.Optional.ofNullable;
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>
@@ -52,7 +52,6 @@ import static java.util.Optional.ofNullable;
 public class GoalLiberation extends ArenaGoal {
     public GoalLiberation() {
         super("Liberation");
-        this.debug = new Debug(102);
     }
 
     private EndRunnable endRunner;
@@ -95,16 +94,16 @@ public class GoalLiberation extends ArenaGoal {
 
     @Override
     public PACheck checkEnd(final PACheck res) {
-        this.arena.getDebugger().i("checkEnd - " + this.arena.getName());
+        debug(this.arena, "checkEnd - " + this.arena.getName());
         if (res.getPriority() > PRIORITY) {
-            this.arena.getDebugger().i(res.getPriority() + ">" + PRIORITY);
+            debug(this.arena, res.getPriority() + ">" + PRIORITY);
             return res;
         }
 
         if (!this.arena.isFreeForAll()) {
-            this.arena.getDebugger().i("TEAMS!");
+            debug(this.arena, "TEAMS!");
             final int count = TeamManager.countActiveTeams(this.arena);
-            this.arena.getDebugger().i("count: " + count);
+            debug(this.arena, "count: " + count);
 
             if (count <= 1) {
                 res.setPriority(this, PRIORITY); // yep. only one team left. go!
@@ -144,13 +143,13 @@ public class GoalLiberation extends ArenaGoal {
         if (block == null || res.getPriority() > PRIORITY) {
             return res;
         }
-        this.arena.getDebugger().i("checking interact", player);
+        debug(this.arena, player, "checking interact");
 
         if (block.getType() != Material.STONE_BUTTON) {
-            this.arena.getDebugger().i("block, but not button", player);
+            debug(this.arena, player, "block, but not button");
             return res;
         }
-        this.arena.getDebugger().i("button click!", player);
+        debug(this.arena, player, "button click!");
 
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
 
@@ -169,16 +168,16 @@ public class GoalLiberation extends ArenaGoal {
             final String aTeam = team.getName();
 
             if (aTeam.equals(pTeam.getName())) {
-                this.arena.getDebugger().i("equals!OUT! ", player);
+                debug(this.arena, player, "equals!OUT! ");
                 continue;
             }
             if (team.getTeamMembers().size() < 1) {
-                this.arena.getDebugger().i("size!OUT! ", player);
+                debug(this.arena, player, "size!OUT! ");
                 continue; // dont check for inactive teams
             }
-            this.arena.getDebugger().i("checking for flag of team " + aTeam, player);
+            debug(this.arena, player, "checking for flag of team " + aTeam);
             Vector vLoc = block.getLocation().toVector();
-            this.arena.getDebugger().i("block: " + vLoc, player);
+            debug(this.arena, player, "block: " + vLoc);
             if (!SpawnManager.getBlocksStartingWith(this.arena, aTeam + "button").isEmpty()) {
                 vFlag = SpawnManager
                         .getBlockNearest(
@@ -188,8 +187,8 @@ public class GoalLiberation extends ArenaGoal {
                         .toLocation().toVector();
             }
             if (vFlag != null && vLoc.distance(vFlag) < 2) {
-                this.arena.getDebugger().i("button found!", player);
-                this.arena.getDebugger().i("vFlag: " + vFlag, player);
+                debug(this.arena, player, "button found!");
+                debug(this.arena, player, "vFlag: " + vFlag);
 
                 boolean success = false;
 
@@ -289,7 +288,7 @@ public class GoalLiberation extends ArenaGoal {
         if (res.getPriority() <= PRIORITY) {
             res.setPriority(this, PRIORITY);
             final int pos = this.getLifeMap().get(player.getName());
-            this.arena.getDebugger().i("lives before death: " + pos, player);
+            debug(this.arena, player, "lives before death: " + pos);
             if (pos <= 1) {
                 this.getLifeMap().put(player.getName(), 1);
 
@@ -337,7 +336,7 @@ public class GoalLiberation extends ArenaGoal {
             return;
         }
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[LIBERATION] already ending");
+            debug(this.arena, "[LIBERATION] already ending");
             return;
         }
 
@@ -386,13 +385,13 @@ public class GoalLiberation extends ArenaGoal {
                                   final String error, final PlayerDeathEvent event) {
 
         if (!this.getLifeMap().containsKey(player.getName())) {
-            this.arena.getDebugger().i("cmd: not in life map!", player);
+            debug(this.arena, player, "cmd: not in life map!");
             return;
         }
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "playerDeath:" + player.getName());
         Bukkit.getPluginManager().callEvent(gEvent);
         int lives = this.getLifeMap().get(player.getName());
-        this.arena.getDebugger().i("lives before death: " + lives, player);
+        debug(this.arena, player, "lives before death: " + lives);
         if (lives <= 1) {
             this.getLifeMap().put(player.getName(), 1);
 
@@ -493,7 +492,7 @@ public class GoalLiberation extends ArenaGoal {
     @Override
     public boolean commitSetFlag(final Player player, final Block block) {
 
-        this.arena.getDebugger().i("trying to set a button", player);
+        debug(this.arena, player, "trying to set a button");
 
         // command : /pa redbutton1
         // location: redbutton1:
@@ -608,7 +607,7 @@ public class GoalLiberation extends ArenaGoal {
             config.set("teams", null);
         }
         if (config.get("teams") == null) {
-            this.arena.getDebugger().i("no teams defined, adding custom red and blue!");
+            debug(this.arena, "no teams defined, adding custom red and blue!");
             config.addDefault("teams.red", ChatColor.RED.name());
             config.addDefault("teams.blue", ChatColor.BLUE.name());
         }

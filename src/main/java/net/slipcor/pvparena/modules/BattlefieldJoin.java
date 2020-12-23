@@ -9,7 +9,6 @@ import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.classes.PALocation;
 import net.slipcor.pvparena.classes.PASpawn;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.loadables.ArenaModule;
@@ -22,6 +21,8 @@ import org.bukkit.entity.Player;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>
@@ -41,7 +42,6 @@ public class BattlefieldJoin extends ArenaModule {
 
     public BattlefieldJoin() {
         super("BattlefieldJoin");
-        debug = new Debug(300);
     }
 
     @Override
@@ -76,7 +76,7 @@ public class BattlefieldJoin extends ArenaModule {
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(sender.getName());
 
         if (aPlayer.getArena() != null) {
-            aPlayer.getArena().getDebugger().i(this.getName(), sender);
+            debug(aPlayer.getArena(), sender, this.getName());
             result.setError(this, Language.parse(this.arena,
                     MSG.ERROR_ARENA_ALREADY_PART_OF, ArenaManager.getIndirectArenaName(aPlayer.getArena())));
             return result;

@@ -4,7 +4,7 @@ import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.classes.PAStatMap;
-import net.slipcor.pvparena.core.Debug;
+import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PADeathEvent;
@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.reverseOrder;
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>Statistics Manager class</pre>
@@ -32,7 +33,6 @@ import static java.util.Comparator.reverseOrder;
  */
 
 public final class StatisticsManager {
-    private static final Debug DEBUG = new Debug(28);
     private static File playersFile;
     private static YamlConfiguration config;
 
@@ -124,14 +124,14 @@ public final class StatisticsManager {
      */
     public static void damage(final Arena arena, final Entity entity, final Player defender, final double dmg) {
 
-        arena.getDebugger().i("adding damage to player " + defender.getName(), defender);
+        debug(arena, defender, "adding damage to player " + defender.getName());
 
 
         if (entity instanceof Player) {
             final Player attacker = (Player) entity;
-            arena.getDebugger().i("attacker is player: " + attacker.getName(), defender);
+            debug(arena, defender, "attacker is player: " + attacker.getName());
             if (arena.hasPlayer(attacker)) {
-                arena.getDebugger().i("attacker is in the arena, adding damage!", defender);
+                debug(arena, defender, "attacker is in the arena, adding damage!");
                 final ArenaPlayer apAttacker = ArenaPlayer.parsePlayer(attacker.getName());
                 final int maxdamage = apAttacker.getStatistics(arena).getStat(Type.MAXDAMAGE);
                 apAttacker.getStatistics(arena).incStat(Type.DAMAGE, (int) dmg);
@@ -157,7 +157,7 @@ public final class StatisticsManager {
      * @return an array of stats values
      */
     public static String[] getStatsValuesForBoard(final Arena arena, final Type statType) {
-        DEBUG.i("getting stats values: " + (arena == null ? "global" : arena.getName()) + " sorted by " + statType);
+        debug("getting stats values: {} sorted by {}", (arena == null ? "global" : arena.getName()), statType);
 
         if (arena == null) {
             return ArenaPlayer.getAllArenaPlayers().stream()
@@ -181,7 +181,7 @@ public final class StatisticsManager {
      * @return A map with player name and stat value
      */
     public static Map<String, Integer> getStats(final Arena arena, final Type statType) {
-        DEBUG.i("getting stats: " + (arena == null ? "global" : arena.getName()) + " sorted by " + statType);
+        debug("getting stats: {} sorted by {}", (arena == null ? "global" : arena.getName()), statType);
 
         if (arena == null) {
             return ArenaPlayer.getAllArenaPlayers().stream()
@@ -282,7 +282,7 @@ public final class StatisticsManager {
             return;
         }
 
-        arena.getDebugger().i("loading statistics!");
+        debug(arena, "loading statistics!");
         boolean foundBroken = false;
         for (final String playerID : config.getConfigurationSection(arena.getName()).getKeys(false)) {
 
@@ -293,7 +293,7 @@ public final class StatisticsManager {
                 playerName = config.getConfigurationSection(arena.getName()).getString(playerID+".name");
             }
 
-            arena.getDebugger().i("loading stats: " + playerName);
+            debug(arena, "loading stats: " + playerName);
 
             final ArenaPlayer aPlayer;
 

@@ -339,10 +339,10 @@ public class SphericRegion extends ArenaRegionShape {
                 center.getY(),
                 center.getZ()+radius)); // == 5
 /*
-        getRegion().getArena().getDebugger().i("SPHERIC blockCheckList");
+        getRegion().getArena().debug("SPHERIC blockCheckList");
 
         for (PABlockLocation block : result) {
-            getRegion().getArena().getDebugger().i(block.toString());
+            getRegion().getArena().debug(block.toString());
         }*/
 
         return result;

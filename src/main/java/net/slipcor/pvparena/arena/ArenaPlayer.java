@@ -7,7 +7,6 @@ import net.slipcor.pvparena.classes.PAStatMap;
 import net.slipcor.pvparena.core.ColorUtils;
 import net.slipcor.pvparena.core.Config;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.events.PAPlayerClassChangeEvent;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.managers.ArenaManager;
@@ -29,6 +28,7 @@ import java.io.File;
 import java.util.*;
 
 import static java.util.Optional.ofNullable;
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>
@@ -42,7 +42,6 @@ import static java.util.Optional.ofNullable;
  */
 
 public class ArenaPlayer {
-    private static final Debug debug = new Debug(5);
     private static final Map<String, ArenaPlayer> totalPlayers = new HashMap<>();
 
     private final String name;
@@ -130,13 +129,9 @@ public class ArenaPlayer {
      * @return the player instance if found, null otherwise
      */
     public static Player getLastDamagingPlayer(final Event eEvent, final Player damagee) {
-
-        final Debug debug = ArenaPlayer.parsePlayer(damagee.getName()).arena == null ?
-                ArenaPlayer.debug : ArenaPlayer.parsePlayer(damagee.getName()).arena.getDebugger();
-
-        debug.i("trying to get the last damaging player", damagee);
+        debug(damagee, "trying to get the last damaging player");
         if (eEvent instanceof EntityDamageByEntityEvent) {
-            debug.i("there was an EDBEE", damagee);
+            debug(damagee, "there was an EDBEE");
             final EntityDamageByEntityEvent event = (EntityDamageByEntityEvent) eEvent;
 
             Entity eDamager = event.getDamager();
@@ -151,7 +146,7 @@ public class ArenaPlayer {
                     eDamager = (LivingEntity) p;
 
 
-                    debug.i("killed by projectile, shooter is found", damagee);
+                    debug(damagee, "killed by projectile, shooter is found");
                 }
             }
 
@@ -159,18 +154,17 @@ public class ArenaPlayer {
                 final Wolf wolf = (Wolf) event.getEntity();
                 if (wolf.getOwner() != null) {
                     eDamager = (Entity) wolf.getOwner();
-                    debug.i("tamed wolf is found", damagee);
+                    debug(damagee, "tamed wolf is found");
                 }
             }
 
             if (eDamager instanceof Player) {
-                debug.i("it was a player!", damagee);
+                debug(damagee, "it was a player!");
                 return (Player) eDamager;
             }
         }
-        debug.i("last damaging player is null", damagee);
-        debug.i("last damaging event: " + ofNullable(eEvent).map(Event::getEventName)
-                .orElse("unknown cause"), damagee);
+        debug(damagee, "last damaging player is null");
+        debug(damagee, "last damaging event: {}", ofNullable(eEvent).map(Event::getEventName).orElse("unknown cause"));
         return null;
     }
 
@@ -186,18 +180,15 @@ public class ArenaPlayer {
         if (playerClass == null) {
             return;
         }
-        arena.getDebugger().i("giving items to player '" + player.getName()
-                + "', class '" + playerClass.getName() + '\'', player);
+        debug(player, "giving items to player '{}', class '{}'", player, playerClass);
 
         playerClass.equip(player);
 
         if (arena.getArenaConfig().getBoolean(CFG.USES_WOOLHEAD)) {
             final ArenaTeam aTeam = aPlayer.getArenaTeam();
             final ChatColor color = aTeam.getColor();
-            arena.getDebugger().i("forcing woolhead: " + aTeam.getName() + '/'
-                    + color.name(), player);
-            player.getInventory().setHelmet(
-                    new ItemStack(ColorUtils.getWoolMaterialFromChatColor(color)));
+            debug(player, "forcing woolhead: {}/{}", aTeam.getName(), color);
+            player.getInventory().setHelmet(new ItemStack(ColorUtils.getWoolMaterialFromChatColor(color)));
         }
     }
 
@@ -244,8 +235,7 @@ public class ArenaPlayer {
      * @param player the player to save
      */
     public static void backupAndClearInventory(final Arena arena, final Player player) {
-        arena.getDebugger().i("saving player inventory: " + player.getName(),
-                player);
+        debug(player, "saving player inventory: {}", player);
 
         final ArenaPlayer aPlayer = parsePlayer(player.getName());
         aPlayer.savedInventory = player.getInventory().getContents().clone();
@@ -257,12 +247,8 @@ public class ArenaPlayer {
         if (player == null) {
             return;
         }
-        final Debug debug = arena.getDebugger();
-        debug.i("resetting inventory: " + player.getName(), player);
-        if (player.getInventory() == null) {
-            debug.i("inventory null!", player);
-            return;
-        }
+
+        debug(player, "resetting inventory");
 
         final ArenaPlayer aPlayer = parsePlayer(player.getName());
 
@@ -307,14 +293,14 @@ public class ArenaPlayer {
         InventoryManager.clearInventory(player);
 
         if (aPlayer.savedInventory == null) {
-            debug.i("saved inventory null!", player);
+            debug(player, "saved inventory null!");
             return;
         }
         // AIR AIR AIR AIR instead of contents !!!!
 
         if (instant) {
 
-            debug.i("adding saved inventory", player);
+            debug(player, "adding saved inventory");
             player.getInventory().setContents(aPlayer.savedInventory);
         } else {
             class GiveLater implements Runnable {
@@ -326,8 +312,7 @@ public class ArenaPlayer {
 
                 @Override
                 public void run() {
-                    debug.i("adding saved inventory",
-                            player);
+                    debug(player, "adding saved inventory");
                     player.getInventory().setContents(this.inv);
                 }
             }
@@ -366,7 +351,7 @@ public class ArenaPlayer {
     }
 
     private void clearDump() {
-        debug.i("clearing dump of " + this.name, this.name);
+        debug(this.get(), "clearing dump of {}", this.name);
         this.debugPrint();
         final File file = new File(PVPArena.getInstance().getDataFolder().getPath()
                 + "/dumps/" + this.name + ".yml");
@@ -396,32 +381,30 @@ public class ArenaPlayer {
 
     public void debugPrint() {
         if (this.status == null || this.location == null) {
-            debug.i("DEBUG PRINT OUT:", this.name);
-            debug.i(this.name, this.name);
-            debug.i(String.valueOf(this.status), this.name);
-            debug.i(String.valueOf(this.location), this.name);
-            debug.i(String.valueOf(this.selection[0]), this.name);
-            debug.i(String.valueOf(this.selection[1]), this.name);
+            debug(this.get(), "DEBUG PRINT OUT:");
+            debug(this.get(), this.name);
+            debug(this.get(), String.valueOf(this.status));
+            debug(this.get(), String.valueOf(this.location));
+            debug(this.get(), String.valueOf(this.selection[0]));
+            debug(this.get(), String.valueOf(this.selection[1]));
             return;
         }
-        debug.i("------------------", this.name);
-        debug.i("Player: " + this.name, this.name);
-        debug.i("telepass: " + this.telePass + " | mayDropInv: " + this.mayDropInventory + " | chatting: "
-                + this.publicChatting, this.name);
-        debug.i("arena: " + (this.arena == null ? "null" : this.arena.getName()), this.name);
-        debug.i("aClass: " + (this.aClass == null ? "null" : this.aClass.getName()),
-                this.name);
-        debug.i("location: " + this.location, this.name);
-        debug.i("status: " + this.status.name(), this.name);
-        debug.i("tempPermissions:", this.name);
+        debug(this.get(), "------------------");
+        debug(this.get(), "Player: {}", this.name);
+        debug(this.get(), "telepass: {} | mayDropInv: {} | chatting: {}", this.telePass, this.mayDropInventory, this.publicChatting);
+        debug(this.get(), "arena: {}", (this.arena == null ? "null" : this.arena.getName()));
+        debug(this.get(), "aClass: {}", (this.aClass == null ? "null" : this.aClass.getName()));
+        debug(this.get(), "location: {}", this.location);
+        debug(this.get(), "status: {}", this.status.name());
+        debug(this.get(), "tempPermissions:");
         for (final PermissionAttachment pa : this.tempPermissions) {
-            debug.i("> " + pa, this.name);
+            debug(this.get(), "> {}", pa);
         }
-        debug.i("------------------", this.name);
+        debug(this.get(), "------------------");
     }
 
     public void dump() {
-        debug.i("dumping...", this.name);
+        debug(this.get(), "dumping...");
         this.debugPrint();
         final File file = new File(PVPArena.getInstance().getDataFolder().getPath()
                 + "/dumps/" + this.name + ".yml");
@@ -500,9 +483,9 @@ public class ArenaPlayer {
     }
 
     public PALocation getSavedLocation() {
-        debug.i("reading loc!", this.name);
+        debug(this.get(), "reading loc!");
         if (this.location != null) {
-            debug.i(": " + this.location, this.name);
+            debug(this.get(), ": {}", this.location);
         }
         return this.location;
     }
@@ -599,12 +582,12 @@ public class ArenaPlayer {
     }
 
     public void readDump() {
-        debug.i("reading dump: " + this.name, this.name);
+        debug(this.get(), "reading dump: {}", this.name);
         this.debugPrint();
         final File file = new File(PVPArena.getInstance().getDataFolder().getPath()
                 + "/dumps/" + this.name + ".yml");
         if (!file.exists()) {
-            debug.i("no dump!", this.name);
+            debug(this.get(), "no dump!");
             return;
         }
 
@@ -629,7 +612,7 @@ public class ArenaPlayer {
             }
 
             if (Bukkit.getPlayer(this.name) == null) {
-                debug.i("player offline, OUT!", this.name);
+                debug(this.get(), "player offline, OUT!");
                 return;
             }
             this.state = PlayerState.undump(cfg, this.name);
@@ -643,7 +626,7 @@ public class ArenaPlayer {
      * save and reset a player instance
      */
     public void reset() {
-        debug.i("destroying arena player " + this.name, this.name);
+        debug(this.get(), "destroying arena player {}", this.name);
         this.debugPrint();
         final YamlConfiguration cfg = new YamlConfiguration();
         try {
@@ -693,7 +676,7 @@ public class ArenaPlayer {
         }
 
         if (this.get() == null) {
-            debug.i("reset() ; out! null", this.name);
+            debug(this.get(), "reset() ; out! null");
             return;
         }
 
@@ -824,7 +807,7 @@ public class ArenaPlayer {
     }
 
     public void setStatus(final Status status) {
-        debug.i(this.name + '>' + status.name(), this.name);
+        debug(this.get(),"{}>{}", this.name, status.name());
         this.status = status;
     }
 
@@ -835,7 +818,7 @@ public class ArenaPlayer {
      */
     public void setTelePass(final boolean canTeleport) {
         if (this.arena != null) {
-            this.arena.getDebugger().i("TelePass := " + canTeleport);
+            debug(this.arena, "TelePass := {}", canTeleport);
         }
         this.telePass = canTeleport;
     }

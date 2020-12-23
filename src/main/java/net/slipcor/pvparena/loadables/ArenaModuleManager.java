@@ -4,7 +4,6 @@ import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaClass;
 import net.slipcor.pvparena.arena.ArenaTeam;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.modules.*;
 import net.slipcor.pvparena.ncloader.NCBLoader;
 import org.bukkit.Material;
@@ -24,6 +23,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Arena Module Manager class</pre>
  * <p/>
@@ -36,7 +37,6 @@ import java.util.Set;
 public class ArenaModuleManager {
     private List<ArenaModule> mods;
     private final NCBLoader<ArenaModule> loader;
-    private static final Debug DEBUG = new Debug(33);
 
     /**
      * create an arena module manager instance
@@ -63,8 +63,7 @@ public class ArenaModuleManager {
 
         for (final ArenaModule mod : this.mods) {
             mod.onThisLoad();
-            DEBUG.i("module ArenaModule loaded: "
-                    + mod.getName() + " (version " + mod.version() + ')');
+            debug("ArenaModule loaded: {} (version {})", mod.getName(), mod.version());
         }
     }
 

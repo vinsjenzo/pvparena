@@ -7,7 +7,6 @@ import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
@@ -25,6 +24,8 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Goal class "PlayerDeathMatch"
@@ -39,7 +40,6 @@ import java.util.*;
 public class GoalPlayerDeathMatch extends ArenaGoal {
     public GoalPlayerDeathMatch() {
         super("PlayerDeathMatch");
-        this.debug = new Debug(101);
     }
 
     private EndRunnable endRunner;
@@ -131,7 +131,7 @@ public class GoalPlayerDeathMatch extends ArenaGoal {
             return;
         }
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[PDM] already ending");
+            debug(this.arena, "[PDM] already ending");
             return;
         }
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "");
@@ -229,7 +229,7 @@ public class GoalPlayerDeathMatch extends ArenaGoal {
 
     private boolean increaseScore(Player killer, Player killed) {
         int iLives = this.getLifeMap().get(killer.getName());
-        this.arena.getDebugger().i("kills to go: " + iLives, killer);
+        debug(this.arena, killer, "kills to go: " + iLives);
         if (iLives <= 1) {
             // player has won!
             final Set<ArenaPlayer> plrs = new HashSet<>();
@@ -246,7 +246,7 @@ public class GoalPlayerDeathMatch extends ArenaGoal {
                 ap.addLosses();
 
                 if (this.arena.getArenaConfig().getBoolean(CFG.PLAYER_PREVENTDEATH)) {
-                    this.arena.getDebugger().i("faking player death", ap.get());
+                    debug(this.arena, ap.get(), "faking player death");
                     PlayerListener.finallyKillPlayer(this.arena, ap.get(), killed.getLastDamageCause());
                 }
 
@@ -258,7 +258,7 @@ public class GoalPlayerDeathMatch extends ArenaGoal {
             }
 
             if (this.arena.getArenaConfig().getBoolean(CFG.PLAYER_PREVENTDEATH)) {
-                this.arena.getDebugger().i("faking player death", killed);
+                debug(this.arena, killed, "faking player death");
                 PlayerListener.finallyKillPlayer(this.arena, killed, killed.getLastDamageCause());
             }
 

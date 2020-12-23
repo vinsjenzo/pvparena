@@ -10,9 +10,13 @@ import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.CommandTree;
 import net.slipcor.pvparena.commands.PAA_Region;
-import net.slipcor.pvparena.core.*;
+import net.slipcor.pvparena.config.Debugger;
+import net.slipcor.pvparena.core.ColorUtils;
+import net.slipcor.pvparena.core.Config;
 import net.slipcor.pvparena.core.Config.CFG;
+import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
+import net.slipcor.pvparena.core.StringParser;
 import net.slipcor.pvparena.events.PAGoalEvent;
 import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
@@ -45,6 +49,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Goal class "Flags"
@@ -66,7 +72,6 @@ public class GoalFlags extends ArenaGoal implements Listener {
 
     public GoalFlags() {
         super("Flags");
-        this.debug = new Debug(100);
     }
 
     @Override
@@ -130,7 +135,7 @@ public class GoalFlags extends ArenaGoal implements Listener {
         if (count == 1) {
             res.setPriority(this, PRIORITY); // yep. only one team left. go!
         } else if (count == 0) {
-            this.arena.getDebugger().i("No teams playing!");
+            debug(this.arena, "No teams playing!");
         }
 
         return res;
@@ -159,28 +164,28 @@ public class GoalFlags extends ArenaGoal implements Listener {
         if (block == null || res.getPriority() > PRIORITY) {
             return res;
         }
-        this.arena.getDebugger().i("checking interact", player);
+        debug(this.arena, player, "checking interact");
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[CTF] already ending!!");
+            debug(this.arena, "[CTF] already ending!!");
             return res;
         }
 
         Material flagType = this.arena.getArenaConfig().getMaterial(CFG.GOAL_FLAGS_FLAGTYPE);
         if (!ColorUtils.isSubType(block.getType(), flagType)) {
-            this.arena.getDebugger().i("block, but not flag", player);
+            debug(this.arena, player, "block, but not flag");
             return res;
         }
-        this.arena.getDebugger().i("flag click!", player);
+        debug(this.arena, player, "flag click!");
 
         Vector vLoc;
         Vector vFlag = null;
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
 
         if (this.getFlagMap().containsValue(player.getName())) {
-            this.arena.getDebugger().i("player " + player.getName() + " has got a flag", player);
+            debug(this.arena, player, "player " + player.getName() + " has got a flag");
             vLoc = block.getLocation().toVector();
             final String sTeam = aPlayer.getArenaTeam().getName();
-            this.arena.getDebugger().i("block: " + vLoc, player);
+            debug(this.arena, player, "block: " + vLoc);
             if (!SpawnManager.getBlocksStartingWith(this.arena, sTeam + "flag").isEmpty()) {
                 vFlag = SpawnManager
                         .getBlockNearest(
@@ -188,21 +193,21 @@ public class GoalFlags extends ArenaGoal implements Listener {
                                 new PABlockLocation(player.getLocation()))
                         .toLocation().toVector();
             } else {
-                this.arena.getDebugger().i(sTeam + "flag = null", player);
+                debug(this.arena, player, sTeam + "flag = null");
             }
 
-            this.arena.getDebugger().i("player is in the team " + sTeam, player);
+            debug(this.arena, player, "player is in the team " + sTeam);
             if (vFlag != null && vLoc.distance(vFlag) < 2) {
 
-                this.arena.getDebugger().i("player is at his flag", player);
+                debug(this.arena, player, "player is at his flag");
 
                 if (this.getFlagMap().containsKey(sTeam) || this.getFlagMap().containsKey(TOUCHDOWN)) {
-                    this.arena.getDebugger().i("the flag of the own team is taken!", player);
+                    debug(this.arena, player, "the flag of the own team is taken!");
 
                     if (this.arena.getArenaConfig().getBoolean(
                             CFG.GOAL_FLAGS_MUSTBESAFE)
                             && !this.getFlagMap().containsKey(TOUCHDOWN)) {
-                        this.arena.getDebugger().i("cancelling", player);
+                        debug(this.arena, player, "cancelling");
 
                         this.arena.msg(player,
                                 Language.parse(this.arena, MSG.GOAL_FLAGS_NOTSAFE));
@@ -210,9 +215,9 @@ public class GoalFlags extends ArenaGoal implements Listener {
                     }
                 }
 
-                String flagTeam = this.getHeldFlagTeam(player.getName());
+                String flagTeam = this.getHeldFlagTeam(player);
 
-                this.arena.getDebugger().i("the flag belongs to team " + flagTeam, player);
+                debug(this.arena, player, "the flag belongs to team " + flagTeam);
 
                 try {
                     if (TOUCHDOWN.equals(flagTeam)) {
@@ -277,23 +282,23 @@ public class GoalFlags extends ArenaGoal implements Listener {
                 final String aTeam = team.getName();
 
                 if (aTeam.equals(pTeam.getName())) {
-                    this.arena.getDebugger().i("equals!OUT! ", player);
+                    debug(this.arena, player, "equals!OUT! ");
                     continue;
                 }
 
                 if (team.getTeamMembers().size() < 1 && !TOUCHDOWN.equals(team.getName())) {
-                    this.arena.getDebugger().i("size!OUT! ", player);
+                    debug(this.arena, player, "size!OUT! ");
                     continue; // dont check for inactive teams
                 }
 
                 if (this.getFlagMap() != null && this.getFlagMap().containsKey(aTeam)) {
-                    this.arena.getDebugger().i("taken!OUT! ", player);
+                    debug(this.arena, player, "taken!OUT! ");
                     continue; // already taken
                 }
 
-                this.arena.getDebugger().i("checking for flag of team " + aTeam, player);
+                debug(this.arena, player, "checking for flag of team " + aTeam);
                 vLoc = block.getLocation().toVector();
-                this.arena.getDebugger().i("block: " + vLoc, player);
+                debug(this.arena, player, "block: " + vLoc);
 
                 if (!SpawnManager.getBlocksStartingWith(this.arena, aTeam + "flag").isEmpty()) {
                     vFlag = SpawnManager
@@ -305,8 +310,8 @@ public class GoalFlags extends ArenaGoal implements Listener {
                 }
 
                 if (vFlag != null && vLoc.distance(vFlag) < 2) {
-                    this.arena.getDebugger().i("flag found!", player);
-                    this.arena.getDebugger().i("vFlag: " + vFlag, player);
+                    debug(this.arena, player, "flag found!");
+                    debug(this.arena, player, "vFlag: " + vFlag);
 
                     if (TOUCHDOWN.equals(team.getName())) {
 
@@ -438,11 +443,11 @@ public class GoalFlags extends ArenaGoal implements Listener {
 
     private void commit(final Arena arena, final String sTeam, final boolean win) {
         if (arena.realEndRunner != null) {
-            arena.getDebugger().i("[CTF] already ending");
+            debug(arena, "[CTF] already ending");
             return;
         }
-        arena.getDebugger().i("[CTF] committing end: " + sTeam);
-        arena.getDebugger().i("win: " + win);
+        debug(arena, "[CTF] committing end: " + sTeam);
+        debug(arena, "win: " + win);
 
         String winteam = sTeam;
 
@@ -596,10 +601,10 @@ public class GoalFlags extends ArenaGoal implements Listener {
     @Override
     public void commitEnd(final boolean force) {
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[FLAGS] already ending");
+            debug(this.arena, "[FLAGS] already ending");
             return;
         }
-        this.arena.getDebugger().i("[FLAGS]");
+        debug(this.arena, "[FLAGS]");
 
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "");
         Bukkit.getPluginManager().callEvent(gEvent);
@@ -638,7 +643,7 @@ public class GoalFlags extends ArenaGoal implements Listener {
     @Override
     public boolean commitSetFlag(final Player player, final Block block) {
 
-        this.arena.getDebugger().i("trying to set a flag", player);
+        debug(this.arena, player, "trying to set a flag");
 
         // command : /pa redflag1
         // location: red1flag:
@@ -671,7 +676,7 @@ public class GoalFlags extends ArenaGoal implements Listener {
         if (this.getFlagMap() == null) {
             return;
         }
-        final String sTeam = this.getHeldFlagTeam(aPlayer.getName());
+        final String sTeam = this.getHeldFlagTeam(aPlayer.get());
         final ArenaTeam flagTeam = this.arena.getTeam(sTeam);
 
         if (flagTeam == null) {
@@ -765,16 +770,15 @@ public class GoalFlags extends ArenaGoal implements Listener {
      * @param player the player to check
      * @return a team name
      */
-    private String getHeldFlagTeam(final String player) {
+    private String getHeldFlagTeam(final Player player) {
         if (this.getFlagMap().size() < 1) {
             return null;
         }
 
-        this.arena.getDebugger().i("getting held FLAG of player " + player, player);
+        debug(player, "getting held FLAG of player {}", player);
         for (final String sTeam : this.getFlagMap().keySet()) {
-            this.arena.getDebugger().i("team " + sTeam + " is in " + this.getFlagMap().get(sTeam)
-                    + "s hands", player);
-            if (player.equals(this.getFlagMap().get(sTeam))) {
+            debug(player, "team {} is in {}s hands", sTeam, this.getFlagMap().get(sTeam));
+            if (player.getName().equals(this.getFlagMap().get(sTeam))) {
                 return sTeam;
             }
         }
@@ -824,10 +828,10 @@ public class GoalFlags extends ArenaGoal implements Listener {
                                  final EntityDamageEvent lastDamageCause) {
 
         if (this.getFlagMap() == null) {
-            this.arena.getDebugger().i("no flags set!!", player);
+            debug(this.arena, player, "no flags set!!");
             return;
         }
-        final String sTeam = this.getHeldFlagTeam(player.getName());
+        final String sTeam = this.getHeldFlagTeam(player);
         final ArenaTeam flagTeam = this.arena.getTeam(sTeam);
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
 
@@ -869,7 +873,7 @@ public class GoalFlags extends ArenaGoal implements Listener {
         this.getLifeMap().clear();
         for (final ArenaTeam team : this.arena.getTeams()) {
             if (!team.getTeamMembers().isEmpty()) {
-                this.arena.getDebugger().i("adding team " + team.getName());
+                debug(this.arena, "adding team " + team.getName());
                 // team is active
                 this.getLifeMap().put(team.getName(),
                         this.arena.getArenaConfig().getInt(CFG.GOAL_FLAGS_LIVES, 3));
@@ -881,7 +885,7 @@ public class GoalFlags extends ArenaGoal implements Listener {
 
     private void reduceLivesCheckEndAndCommit(final Arena arena, final String team) {
 
-        arena.getDebugger().i("reducing lives of team " + team);
+        debug(arena, "reducing lives of team " + team);
 
         if (this.getLifeMap().get(team) == null) {
             if (team.contains(":")) {
@@ -953,12 +957,12 @@ public class GoalFlags extends ArenaGoal implements Listener {
             config.set("teams", null);
         }
         if (config.get("teams") == null) {
-            this.arena.getDebugger().i("no teams defined, adding custom red and blue!");
+            debug(this.arena, "no teams defined, adding custom red and blue!");
             config.addDefault("teams.red", ChatColor.RED.name());
             config.addDefault("teams.blue", ChatColor.BLUE.name());
         }
         if (this.arena.getArenaConfig().getBoolean(CFG.GOAL_FLAGS_WOOLFLAGHEAD) && config.get("flagColors") == null) {
-            this.arena.getDebugger().i("no flagheads defined, adding white and black!");
+            debug(this.arena, "no flagheads defined, adding white and black!");
             config.addDefault("flagColors.red", ChatColor.WHITE.name());
             config.addDefault("flagColors.blue", ChatColor.BLACK.name());
         }
@@ -1055,7 +1059,7 @@ public class GoalFlags extends ArenaGoal implements Listener {
             return;
         }
 
-        if (event.isCancelled() || this.getHeldFlagTeam(player.getName()) == null) {
+        if (event.isCancelled() || this.getHeldFlagTeam(player) == null) {
             return;
         }
 

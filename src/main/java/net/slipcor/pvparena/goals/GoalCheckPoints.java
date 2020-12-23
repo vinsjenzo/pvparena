@@ -11,7 +11,6 @@ import net.slipcor.pvparena.classes.PALocation;
 import net.slipcor.pvparena.classes.PASpawn;
 import net.slipcor.pvparena.commands.AbstractArenaCommand;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.core.StringParser;
@@ -28,6 +27,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Goal class "Domination"
@@ -40,7 +41,6 @@ public class GoalCheckPoints extends ArenaGoal {
 
     public GoalCheckPoints() {
         super("CheckPoints");
-        this.debug = new Debug(99);
     }
 
     @Override
@@ -131,9 +131,9 @@ public class GoalCheckPoints extends ArenaGoal {
 
     private void checkMove() {
 
-        this.arena.getDebugger().i("------------------");
-        this.arena.getDebugger().i("  GCP checkMove();");
-        this.arena.getDebugger().i("------------------");
+        debug(this.arena, "------------------");
+        debug(this.arena, "  GCP checkMove();");
+        debug(this.arena, "------------------");
 
         final int checkDistance = this.arena.getArenaConfig().getInt(CFG.GOAL_CHECKPOINTS_CLAIMRANGE);
 
@@ -142,7 +142,7 @@ public class GoalCheckPoints extends ArenaGoal {
             final Set<String> players = this.checkLocationPresentPlayers(paLoc.toLocation(),
                     checkDistance);
 
-            this.arena.getDebugger().i("players: " + StringParser.joinSet(players, ", "));
+            debug(this.arena, "players: " + StringParser.joinSet(players, ", "));
 
             // players now contains all players near the checkpoint
 
@@ -181,10 +181,10 @@ public class GoalCheckPoints extends ArenaGoal {
 
     private void commitWin(final Arena arena, final String playerName) {
         if (arena.realEndRunner != null) {
-            arena.getDebugger().i("[CP] already ending");
+            debug(arena, "[CP] already ending");
             return;
         }
-        arena.getDebugger().i("[CP] committing end: " + playerName);
+        debug(arena, "[CP] committing end: " + playerName);
         ArenaPlayer winner = null;
         for (final ArenaPlayer player : arena.getFighters()) {
             if (player.getName().equals("playerName")) {
@@ -259,10 +259,10 @@ public class GoalCheckPoints extends ArenaGoal {
     @Override
     public void commitEnd(final boolean force) {
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[CP] already ending");
+            debug(this.arena, "[CP] already ending");
             return;
         }
-        this.arena.getDebugger().i("[CP]");
+        debug(this.arena, "[CP]");
 
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "");
         Bukkit.getPluginManager().callEvent(gEvent);
@@ -352,7 +352,7 @@ public class GoalCheckPoints extends ArenaGoal {
     public void parseStart() {
         this.getLifeMap().clear();
         for (final ArenaPlayer player : this.arena.getFighters()) {
-            this.arena.getDebugger().i("adding player " + player.getName());
+            debug(this.arena, "adding player " + player.getName());
             this.getLifeMap().put(player.getName(),
                     this.arena.getArenaConfig().getInt(CFG.GOAL_CHECKPOINTS_LIVES, 3));
         }
@@ -364,7 +364,7 @@ public class GoalCheckPoints extends ArenaGoal {
 
     private void reduceLivesCheckEndAndCommit(final Arena arena, final String player) {
 
-        arena.getDebugger().i("reducing lives of player " + player);
+        debug(arena, "reducing lives of player " + player);
         if (this.getLifeMap().get(player) != null) {
             final int iLives = this.getLifeMap().get(player) - 1;
             if (iLives > 0) {
@@ -398,13 +398,13 @@ public class GoalCheckPoints extends ArenaGoal {
 
     private class CheckPointsMainRunnable extends BukkitRunnable {
         private final Arena arena;
-        //private final Debug debug = new Debug(39);
+        //private final Debugger debug = Debugger.getInstance();
         private final GoalCheckPoints goal;
 
         public CheckPointsMainRunnable(final Arena arena, final GoalCheckPoints goal) {
             this.arena = arena;
             this.goal = goal;
-            arena.getDebugger().i("CheckPointsMainRunnable constructor");
+            debug(arena, "CheckPointsMainRunnable constructor");
         }
 
         /**

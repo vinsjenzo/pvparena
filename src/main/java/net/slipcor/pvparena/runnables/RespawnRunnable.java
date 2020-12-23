@@ -12,6 +12,8 @@ import org.apache.commons.lang.Validate;
 import java.util.HashSet;
 import java.util.Set;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 public class RespawnRunnable implements Runnable {
 
     private final Arena arena;
@@ -20,7 +22,7 @@ public class RespawnRunnable implements Runnable {
 
     public RespawnRunnable(final Arena arena, final ArenaPlayer player, final String coord) {
         Validate.notNull(arena, "Arena cannot be null!");
-        arena.getDebugger().i("RespawnRunnable constructor to spawn " + coord, player.get());
+        debug(arena, player.get(), "RespawnRunnable constructor to spawn " + coord);
         this.arena = arena;
         this.player = player;
         this.coordName = coord;
@@ -32,7 +34,7 @@ public class RespawnRunnable implements Runnable {
             PVPArena.getInstance().getLogger().warning("player null!");
             return;
         }
-        this.arena.getDebugger().i("respawning " + this.player.getName() + " to " + this.coordName);
+        debug(this.arena, "respawning " + this.player.getName() + " to " + this.coordName);
 
         final PALocation loc = SpawnManager.getSpawnByExactName(this.arena, this.coordName);
 

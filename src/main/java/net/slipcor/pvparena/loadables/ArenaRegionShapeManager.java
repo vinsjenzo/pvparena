@@ -1,7 +1,6 @@
 package net.slipcor.pvparena.loadables;
 
 import net.slipcor.pvparena.PVPArena;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.ncloader.NCBLoader;
 import net.slipcor.pvparena.regions.CuboidRegion;
 import net.slipcor.pvparena.regions.CylindricRegion;
@@ -9,6 +8,8 @@ import net.slipcor.pvparena.regions.SphericRegion;
 
 import java.io.File;
 import java.util.List;
+
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>Arena Region Shape Manager class</pre>
@@ -22,7 +23,6 @@ import java.util.List;
 public class ArenaRegionShapeManager {
     private static List<ArenaRegionShape> regions;
     private final NCBLoader<ArenaRegionShape> loader;
-    private static final Debug DEBUG = new Debug(35);
 
     /**
      * create an arena region manager instance
@@ -39,15 +39,14 @@ public class ArenaRegionShapeManager {
         this.fill();
     }
 
-    private void fill() {
+    private static void fill() {
         regions.add(new CuboidRegion());
         regions.add(new CylindricRegion());
         regions.add(new SphericRegion());
 
         for (final ArenaRegionShape mod : regions) {
             mod.onThisLoad();
-            DEBUG.i("module ArenaRegionShape loaded: "
-                    + mod.getName() + " (version " + mod.getVersion() + ')');
+            debug("ArenaRegionShape loaded: {} (version {})", mod.getName(), mod.version());
         }
     }
 

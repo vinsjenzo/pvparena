@@ -6,8 +6,8 @@ import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PABlockLocation;
+import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionFlag;
@@ -29,6 +29,8 @@ import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Entity Listener class
@@ -39,7 +41,6 @@ import java.util.*;
  */
 
 public class EntityListener implements Listener {
-    private static final Debug DEBUG = new Debug(21);
     private static final Map<PotionEffectType, Boolean> TEAMEFFECT = new HashMap<>();
 
     static {
@@ -63,8 +64,8 @@ public class EntityListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onCreatureSpawn(final CreatureSpawnEvent event) {
-        DEBUG.i("onCreatureSpawn: " + event.getSpawnReason().name());
+    public static void onCreatureSpawn(final CreatureSpawnEvent event) {
+        debug("onCreatureSpawn: {}", event.getSpawnReason().name());
         final Set<SpawnReason> naturals = new HashSet<>();
         naturals.add(SpawnReason.CHUNK_GEN);
         naturals.add(SpawnReason.DEFAULT);
@@ -75,7 +76,7 @@ public class EntityListener implements Listener {
 
         if (!naturals.contains(event.getSpawnReason())) {
             // custom generation, this is not our business!
-            DEBUG.i(">not natural");
+            debug(">not natural");
             return;
         }
 
@@ -84,16 +85,16 @@ public class EntityListener implements Listener {
                         new PABlockLocation(event.getLocation()),
                         RegionProtection.MOBS);
         if (arena == null) {
-            DEBUG.i("not part of an arena");
+            debug("not part of an arena");
             return; // no arena => out
         }
-        arena.getDebugger().i("cancel CreatureSpawnEvent!");
+        debug(arena, "cancel CreatureSpawnEvent!");
         event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onEntityExplode(final EntityExplodeEvent event) {
-        DEBUG.i("explosion");
+    public static void onEntityExplode(final EntityExplodeEvent event) {
+        debug("explosion");
 
         Arena arena = ArenaManager.getArenaByProtectedRegionLocation(
                 new PABlockLocation(event.getLocation()), RegionProtection.TNT);
@@ -111,7 +112,7 @@ public class EntityListener implements Listener {
                 return; // no arena => out
             }
         }
-        arena.getDebugger().i("explosion inside an arena, TNT should be blocked");
+        debug(arena, "explosion inside an arena, TNT should be blocked");
         if (!arena.getArenaConfig().getBoolean(CFG.PROTECT_ENABLED)
                 || !(event.getEntity() instanceof TNTPrimed)
                 && !(event.getEntity() instanceof Creeper)) {
@@ -135,8 +136,8 @@ public class EntityListener implements Listener {
             return;
         }
         final Player player = (Player) entity;
-        arena.getDebugger().i("onEntityRegainHealth => fighing player", player);
-        arena.getDebugger().i("reason: " + event.getRegainReason());
+        debug(arena, player, "onEntityRegainHealth => fighing player");
+        debug(arena, "reason: " + event.getRegainReason());
         if (!arena.isFightInProgress()) {
             return;
         }
@@ -158,17 +159,17 @@ public class EntityListener implements Listener {
      * @param event the triggering event
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onEntityDamageByEntity(final EntityDamageByEntityEvent event) {
+    public static void onEntityDamageByEntity(final EntityDamageByEntityEvent event) {
         Entity eDamager = event.getDamager();
         final Entity eDamagee = event.getEntity();
 
-        DEBUG.i("onEntityDamageByEntity: cause: " + event.getCause().name()
+        debug("onEntityDamageByEntity: cause: {}", event.getCause().name()
                 + " : " + event.getDamager().toString() + " => "
                 + event.getEntity().toString());
-        DEBUG.i("damage: " + event.getDamage());
+        debug("damage: {}", event.getDamage());
 
         if (eDamager instanceof Projectile) {
-            DEBUG.i("parsing projectile");
+            debug("parsing projectile");
 
             ProjectileSource p = ((Projectile) eDamager).getShooter();
 
@@ -177,7 +178,7 @@ public class EntityListener implements Listener {
                 eDamager = (LivingEntity) p;
 
             }
-            DEBUG.i("=> " + eDamager);
+            debug("=> {}", eDamager);
         }
 
         if (eDamager instanceof Player && ArenaPlayer.parsePlayer(eDamager.getName()).getStatus() == Status.LOST) {
@@ -212,7 +213,7 @@ public class EntityListener implements Listener {
             // defender no arena player => out
             return;
         }
-        arena.getDebugger().i("onEntityDamageByEntity: fighting player");
+        debug(arena, "onEntityDamageByEntity: fighting player");
 
         if ((!(eDamager instanceof Player))) {
             // attacker no player => out!
@@ -222,7 +223,7 @@ public class EntityListener implements Listener {
             return;
         }
 
-        arena.getDebugger().i("both entities are players", eDamager);
+        debug(arena, eDamager, "both entities are players");
         final Player attacker = (Player) eDamager;
         final Player defender = (Player) eDamagee;
 
@@ -250,8 +251,8 @@ public class EntityListener implements Listener {
             return;
         }
 
-        arena.getDebugger().i("both players part of the arena", attacker);
-        arena.getDebugger().i("both players part of the arena", defender);
+        debug(arena, attacker, "both players part of the arena");
+        debug(arena, defender, "both players part of the arena");
 
         if (PVPArena.getInstance().getConfig().getBoolean("onlyPVPinArena")) {
             event.setCancelled(false); // uncancel events for regular no PVP
@@ -262,8 +263,8 @@ public class EntityListener implements Listener {
                 && (apAttacker.getArenaTeam())
                 .equals(apDefender.getArenaTeam())) {
             // no team fights!
-            arena.getDebugger().i("team hit, cancel!", attacker);
-            arena.getDebugger().i("team hit, cancel!", defender);
+            debug(arena, attacker, "team hit, cancel!");
+            debug(arena, defender, "team hit, cancel!");
             if (!(event.getDamager() instanceof Snowball)) {
                 event.setCancelled(true);
             }
@@ -271,16 +272,16 @@ public class EntityListener implements Listener {
         }
 
         if (!arena.isFightInProgress() || (arena.pvpRunner != null)) {
-            arena.getDebugger().i("fight not started, cancel!", attacker);
-            arena.getDebugger().i("fight not started, cancel!", defender);
+            debug(arena, attacker, "fight not started, cancel!");
+            debug(arena, defender, "fight not started, cancel!");
             event.setCancelled(true);
             return;
         }
 
         // cancel if defender or attacker are not fighting
         if (apAttacker.getStatus() != Status.FIGHT || apDefender.getStatus() != Status.FIGHT ) {
-            arena.getDebugger().i("player or target is not fighting, cancel!", attacker);
-            arena.getDebugger().i("player or target is not fighting, cancel!", defender);
+            debug(arena, attacker, "player or target is not fighting, cancel!");
+            debug(arena, defender, "player or target is not fighting, cancel!");
             event.setCancelled(true);
             return;
         }
@@ -292,16 +293,16 @@ public class EntityListener implements Listener {
                 && SpawnManager.isNearSpawn(arena, defender, arena
                 .getArenaConfig().getInt(CFG.PROTECT_SPAWN))) {
             // spawn protection!
-            arena.getDebugger().i("spawn protection! damage cancelled!", attacker);
-            arena.getDebugger().i("spawn protection! damage cancelled!", defender);
+            debug(arena, attacker, "spawn protection! damage cancelled!");
+            debug(arena, defender, "spawn protection! damage cancelled!");
             event.setCancelled(true);
             return;
         }
 
         // here it comes, process the damage!
 
-        arena.getDebugger().i("processing damage!", attacker);
-        arena.getDebugger().i("processing damage!", defender);
+        debug(arena, attacker, "processing damage!");
+        debug(arena, defender, "processing damage!");
 
         ArenaModuleManager.onEntityDamageByEntity(arena, attacker, defender,
                 event);
@@ -334,17 +335,17 @@ public class EntityListener implements Listener {
                 return;
             }
 
-            arena.getDebugger().i("onProjectileHitEvent: fighting player");
+            debug(arena, "onProjectileHitEvent: fighting player");
             ArenaModuleManager.onProjectileHit(arena, attacker, defender, event);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onEntityDamage(final EntityDamageEvent event) {
+    public static void onEntityDamage(final EntityDamageEvent event) {
         final Entity entity = event.getEntity();
 
-        DEBUG.i("onEntityDamage: cause: " + event.getCause().name() + " : "
-                + event.getEntity().toString() + " => " + event.getEntity().getLocation());
+        debug("onEntityDamage: cause: {} : {} => {}", event.getCause().name(), event.getEntity().toString(),
+                event.getEntity().getLocation());
 
         if (!(entity instanceof Player)) {
             return;
@@ -431,17 +432,17 @@ public class EntityListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPotionSplash(final PotionSplashEvent event) {
+    public static void onPotionSplash(final PotionSplashEvent event) {
 
-        DEBUG.i("onPotionSplash");
+        debug("onPotionSplash");
         boolean affectTeam = true;
 
         final Collection<PotionEffect> pot = event.getPotion().getEffects();
         for (PotionEffect eff : pot) {
-            DEBUG.i('>' + eff.getType().getName());
+            debug(">{}", eff.getType().getName());
             if (TEAMEFFECT.containsKey(eff.getType())) {
                 affectTeam = TEAMEFFECT.get(eff.getType());
-                DEBUG.i(">" + affectTeam);
+                debug(">{}", affectTeam);
                 break;
             }
         }
@@ -455,11 +456,11 @@ public class EntityListener implements Listener {
             return;
         }
 
-        DEBUG.i("legit player: " + shooter, shooter.getName());
+        debug(shooter.get(), "legit player");
 
         if (shooter.getArena() == null
                 || !shooter.getStatus().equals(Status.FIGHT)) {
-            DEBUG.i("something is null!", shooter.getName());
+            debug(shooter.get(), "something is null!");
             return;
         }
 
@@ -470,7 +471,7 @@ public class EntityListener implements Listener {
         final Collection<LivingEntity> entities = event.getAffectedEntities();
         for (LivingEntity e : entities) {
             if (!(e instanceof Player)) {
-                DEBUG.i("skipping non-player "+e.getName());
+                debug("skipping non-player {}", e.getName());
                 continue;
             }
             final ArenaPlayer damagee = ArenaPlayer.parsePlayer(e.getName());
@@ -483,7 +484,7 @@ public class EntityListener implements Listener {
 
                   this check should cover any of the entities not being in the same arena, or not arena at all
                  */
-                DEBUG.i("skipping "+e.getName());
+                debug("skipping {}", e.getName());
                 continue;
             }
 
@@ -495,7 +496,7 @@ public class EntityListener implements Listener {
                 // same team and the other team should be affected
                 // ==> cancel!
                 event.setIntensity(e, 0);
-                DEBUG.i("setting intensity to 0 for "+e.getName());
+                debug("setting intensity to 0 for {}", e.getName());
                 break;
             }
         }

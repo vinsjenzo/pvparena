@@ -62,7 +62,7 @@ public class PAG_Chat extends AbstractArenaCommand {
             return;
         }
 
-        if (StringParser.positive.contains(args[0].toLowerCase())) {
+        if (StringParser.isPositiveValue(args[0])) {
             aPlayer.setPublicChatting(true);
             if (arena.getArenaConfig().getBoolean(CFG.CHAT_ONLYPRIVATE)) {
                 arena.msg(sender, Language.parse(arena, MSG.MESSAGES_TOARENA));
@@ -72,7 +72,7 @@ public class PAG_Chat extends AbstractArenaCommand {
             return;
         }
 
-        if (StringParser.negative.contains(args[0].toLowerCase())) {
+        if (StringParser.isNegativeValue(args[0])) {
             aPlayer.setPublicChatting(false);
             arena.msg(sender, Language.parse(arena, MSG.MESSAGES_TOTEAM));
             return;

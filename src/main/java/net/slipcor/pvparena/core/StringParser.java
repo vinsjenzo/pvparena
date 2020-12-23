@@ -4,10 +4,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.block.BlockFace;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * <pre>
@@ -21,8 +20,6 @@ import java.util.Set;
  */
 
 public final class StringParser {
-
-    private static final Debug DEBUG = new Debug(17);
 
     private StringParser() {
     }
@@ -205,5 +202,13 @@ public final class StringParser {
             }
         }
         return buff.substring(2);
+    }
+
+    public static boolean isPositiveValue(String string) {
+        return ofNullable(string).map(str -> positive.contains(str.toLowerCase())).orElse(false);
+    }
+
+    public static boolean isNegativeValue(String string) {
+        return ofNullable(string).map(str -> negative.contains(str.toLowerCase())).orElse(false);
     }
 }

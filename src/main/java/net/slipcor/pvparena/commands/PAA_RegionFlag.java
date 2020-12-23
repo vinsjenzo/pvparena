@@ -65,14 +65,14 @@ public class PAA_RegionFlag extends AbstractArenaCommand {
             return;
         }
 
-        if (StringParser.positive.contains(args[2].toLowerCase())) {
+        if (StringParser.isPositiveValue(args[2])) {
             region.flagAdd(regionFlag);
             region.saveToConfig();
             arena.msg(sender, Language.parse(arena, MSG.REGION_FLAG_ADDED, args[1]));
             return;
         }
 
-        if (StringParser.negative.contains(args[2].toLowerCase())) {
+        if (StringParser.isNegativeValue(args[2])) {
             region.flagRemove(regionFlag);
             region.saveToConfig();
             arena.msg(sender, Language.parse(arena, MSG.REGION_FLAG_REMOVED, args[1]));

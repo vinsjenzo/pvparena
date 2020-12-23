@@ -2,12 +2,13 @@ package net.slipcor.pvparena.arena;
 
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.core.ColorUtils;
-import net.slipcor.pvparena.core.Debug;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>Arena Team class</pre>
@@ -19,8 +20,6 @@ import java.util.Set;
  */
 
 public class ArenaTeam {
-
-    private static final Debug debug = new Debug(6);
 
     private final Set<ArenaPlayer> players;
     private final ChatColor color;
@@ -45,7 +44,7 @@ public class ArenaTeam {
      */
     public void add(final ArenaPlayer player) {
         this.players.add(player);
-        debug.i("Added player " + player.getName() + " to team " + this.name, player.get());
+        debug(player.get(), "Added player " + player.getName() + " to team " + this.name);
         player.getArena().increasePlayerCount();
     }
 
@@ -124,5 +123,10 @@ public class ArenaTeam {
      */
     public void remove(final ArenaPlayer player) {
         this.players.remove(player);
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
     }
 }

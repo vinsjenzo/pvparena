@@ -18,6 +18,8 @@ import org.bukkit.entity.Player;
 import java.util.Collections;
 import java.util.List;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>PVP Arena JOIN Command class</pre>
  * <p/>
@@ -29,7 +31,7 @@ import java.util.List;
 
 public class PAG_Join extends AbstractArenaCommand {
 
-    //private final Debug debug = new Debug(200);
+    //private final Debugger debug = Debugger.getInstance();
 
     public PAG_Join() {
         super(new String[]{"pvparena.user", "pvparena.cmds.join"});
@@ -83,14 +85,14 @@ public class PAG_Join extends AbstractArenaCommand {
             if (!arena.getArenaConfig().getBoolean(CFG.PERMS_ALWAYSJOININBATTLE) &&
                     !arena.getArenaConfig().getBoolean(CFG.JOIN_ONLYIFHASPLAYED) &&
                     arena.hasAlreadyPlayed(aPlayer.getName())) {
-                arena.getDebugger().i("Join_2", sender);
+                debug(arena, sender, "Join_2");
                 arena.msg(sender, Language.parse(arena, MSG.ERROR_ARENA_ALREADY_PART_OF, ArenaManager.getIndirectArenaName(arena)));
             } else {
                 PACheck.handleJoin(arena, sender, args);
             }
         } else {
             final Arena pArena = aPlayer.getArena();
-            arena.getDebugger().i("Join_1", sender);
+            debug(arena, sender, "Join_1");
             pArena.msg(sender, Language.parse(arena, MSG.ERROR_ARENA_ALREADY_PART_OF, ArenaManager.getIndirectArenaName(pArena)));
         }
 

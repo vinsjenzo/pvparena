@@ -8,7 +8,6 @@ import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.CommandTree;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.ncloader.NCBLoadable;
 import org.bukkit.ChatColor;
@@ -40,7 +39,6 @@ import static java.util.Optional.ofNullable;
  */
 
 public class ArenaGoal extends NCBLoadable implements IArenaCommandHandler {
-    protected Debug debug = new Debug(30);
     protected Arena arena;
     Map<String, Integer> lifeMap;
 

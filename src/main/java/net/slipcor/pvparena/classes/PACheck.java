@@ -8,7 +8,6 @@ import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.arena.PlayerState;
 import net.slipcor.pvparena.commands.PAA_Region;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAJoinEvent;
@@ -39,6 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * PVP Arena Check class
@@ -58,7 +59,6 @@ public class PACheck {
     private int priority;
     private String error;
     private String modName;
-    private static final Debug DEBUG = new Debug(9);
 
     /**
      * @return the error message
@@ -98,7 +98,7 @@ public class PACheck {
         try {
             Integer.parseInt(error);
         } catch (Exception e) {
-            DEBUG.i(this.modName + " is setting error to: " + error);
+            debug("{} is setting error to: {}", this.modName, error);
         }
         this.error = error;
         this.priority += 1000;
@@ -111,7 +111,7 @@ public class PACheck {
      */
     public void setPriority(final NCBLoadable loadable, final int priority) {
         this.modName = loadable.getName();
-        DEBUG.i(this.modName + " is setting priority to: " + priority);
+        debug("{} is setting priority to: {}", this.modName, priority);
         this.priority = priority;
     }
 
@@ -156,22 +156,21 @@ public class PACheck {
     }
 
     public static boolean handleEnd(final Arena arena, final boolean force) {
-        arena.getDebugger().i(
-                "handleEnd: " + arena.getName() + "; force: " + force);
+        debug(arena, "handleEnd: " + arena.getName() + "; force: " + force);
         int priority = 0;
         PACheck res = new PACheck();
 
         ArenaGoal commit = null;
 
         for (final ArenaGoal mod : arena.getGoals()) {
-            arena.getDebugger().i("checking " + mod.getName());
+            debug(arena, "checking " + mod.getName());
             res = mod.checkEnd(res);
             if (res.priority > priority && priority >= 0) {
-                arena.getDebugger().i("> success and higher priority");
+                debug(arena, "> success and higher priority");
                 priority = res.priority;
                 commit = mod;
             } else if (res.priority < 0 || priority < 0) {
-                arena.getDebugger().i("> fail");
+                debug(arena, "> fail");
                 priority = res.priority;
                 commit = null;
             }
@@ -183,21 +182,20 @@ public class PACheck {
                         Language.parse(arena, MSG.ERROR_ERROR, res.error));
             }
             if (commit != null) {
-                arena.getDebugger().i(
-                        "error; committing end: " + commit.getName());
+                debug(arena, "error; committing end: " + commit.getName());
                 commit.commitEnd(force);
                 return true;
             }
-            arena.getDebugger().i("error; FALSE!");
+            debug(arena, "error; FALSE!");
             return false;
         }
 
         if (commit == null) {
-            arena.getDebugger().i("FALSE");
+            debug(arena, "FALSE");
             return false;
         }
 
-        arena.getDebugger().i("committing end: " + commit.getName());
+        debug(arena, "committing end: " + commit.getName());
         commit.commitEnd(force);
         return true;
     }
@@ -267,7 +265,7 @@ public class PACheck {
 
     public static boolean handleJoin(final Arena arena,
                                   final CommandSender sender, final String[] args) {
-        arena.getDebugger().i("handleJoin!");
+        debug(arena, "handleJoin!");
         int priority = 0;
         PACheck res = new PACheck();
 
@@ -277,7 +275,7 @@ public class PACheck {
             res = mod.checkJoin(sender, res, true);
             if (res.priority > priority && priority >= 0) {
                 // success and higher priority
-                arena.getDebugger().i("higher priority, commModule := "+mod.getName());
+                debug(arena, "higher priority, commModule := "+mod.getName());
                 priority = res.priority;
                 commModule = mod;
             } else if (res.priority < 0 || priority < 0) {
@@ -311,7 +309,7 @@ public class PACheck {
             res = mod.checkJoin(sender, res, args);
             if (res.priority > priority && priority >= 0) {
                 // success and higher priority
-                arena.getDebugger().i("higher priority, commGoal := "+mod.getName());
+                debug(arena, "higher priority, commGoal := "+mod.getName());
                 priority = res.priority;
                 commGoal = mod;
             } else if (res.priority < 0 || priority < 0) {
@@ -375,12 +373,12 @@ public class PACheck {
         if (commModule == null || commGoal == null) {
 
             if (commModule != null) {
-                arena.getDebugger().i("calling event #1");
+                debug(arena, "calling event #1");
 
                 final PAJoinEvent event = new PAJoinEvent(arena, (Player) sender, false);
                 Bukkit.getPluginManager().callEvent(event);
                 if (event.isCancelled()) {
-                    arena.getDebugger().i("! Join event cancelled by plugin !");
+                    debug(arena, "! Join event cancelled by plugin !");
                     return false;
                 }
                 commModule.commitJoin((Player) sender, team);
@@ -394,12 +392,12 @@ public class PACheck {
             }
             // both null, just put the joiner to some spawn
 
-            arena.getDebugger().i("calling event #2");
+            debug(arena, "calling event #2");
 
             final PAJoinEvent event = new PAJoinEvent(arena, (Player) sender, false);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
-                arena.getDebugger().i("! Join event cancelled by plugin !");
+                debug(arena, "! Join event cancelled by plugin !");
                 return false;
             }
 
@@ -458,12 +456,12 @@ public class PACheck {
             return true;
         }
 
-        arena.getDebugger().i("calling event #3");
+        debug(arena, "calling event #3");
 
         final PAJoinEvent event = new PAJoinEvent(arena, (Player) sender, false);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) {
-            arena.getDebugger().i("! Join event cancelled by plugin !");
+            debug(arena, "! Join event cancelled by plugin !");
             return false;
         }
 
@@ -488,22 +486,22 @@ public class PACheck {
         for (final ArenaGoal mod : arena.getGoals()) {
             res = mod.checkPlayerDeath(res, player);
             if (res.priority > priority && priority >= 0) {
-                arena.getDebugger().i("success and higher priority", player);
+                debug(arena, player, "success and higher priority");
                 priority = res.priority;
                 commit = mod;
             } else if (res.priority < 0 || priority < 0) {
-                arena.getDebugger().i("fail", player);
+                debug(arena, player, "fail");
                 // fail
                 priority = res.priority;
                 commit = null;
             } else {
-                arena.getDebugger().i("else", player);
+                debug(arena, player, "else");
             }
         }
 
         boolean doesRespawn = true;
         if (res.hasError()) {
-            arena.getDebugger().i("has error: " + res.error, player);
+            debug(arena, player, "has error: " + res.error);
             if ("0".equals(res.error)) {
                 doesRespawn = false;
             }
@@ -541,7 +539,7 @@ public class PACheck {
         }
 
         if (commit == null) {
-            arena.getDebugger().i("no mod handles player deaths", player);
+            debug(arena, player, "no mod handles player deaths");
 
 
             List<ItemStack> returned = null;
@@ -556,7 +554,7 @@ public class PACheck {
                     InventoryManager.dropExp(player, exp);
                 } else if (arena.getArenaConfig().getBoolean(
                         CFG.PLAYER_DROPSEXP)) {
-                    arena.getDebugger().i("exp: " + exp, player);
+                    debug(arena, player, "exp: " + exp);
                     event.setDroppedExp(exp);
                 }
             }
@@ -596,12 +594,12 @@ public class PACheck {
             return;
         }
 
-        arena.getDebugger().i("handled by: " + commit.getName(), player);
+        debug(arena, player, "handled by: " + commit.getName());
         final int exp = event.getDroppedExp();
 
         commit.commitPlayerDeath(player, doesRespawn, res.error, event);
         for (final ArenaGoal g : arena.getGoals()) {
-            arena.getDebugger().i("parsing death: " + g.getName(), player);
+            debug(arena, player, "parsing death: " + g.getName());
             g.parsePlayerDeath(player, player.getLastDamageCause());
         }
 
@@ -616,7 +614,7 @@ public class PACheck {
             InventoryManager.dropExp(player, exp);
         } else if (arena.getArenaConfig().getBoolean(CFG.PLAYER_DROPSEXP)) {
             event.setDroppedExp(exp);
-            arena.getDebugger().i("exp: " + exp, player);
+            debug(arena, player, "exp: " + exp);
         }
     }
 
@@ -628,7 +626,7 @@ public class PACheck {
                 return;
             }
         }
-        arena.getDebugger().i("handleRespawn!", aPlayer.getName());
+        debug(arena, aPlayer.get(), "handleRespawn!");
         new InventoryRefillRunnable(arena, aPlayer.get(), drops);
         SpawnManager.respawn(arena, aPlayer, null);
         arena.unKillPlayer(aPlayer.get(),
@@ -688,7 +686,7 @@ public class PACheck {
                                       final CommandSender sender) {
         PACheck res = new PACheck();
 
-        arena.getDebugger().i("handling spectator", sender);
+        debug(arena, sender, "handling spectator");
 
         // priority will be set by flags, the max priority will be called
 
@@ -698,11 +696,11 @@ public class PACheck {
         for (final ArenaModule mod : arena.getMods()) {
             res = mod.checkJoin(sender, res, false);
             if (res.priority > priority && priority >= 0) {
-                arena.getDebugger().i("success and higher priority", sender);
+                debug(arena, sender, "success and higher priority");
                 priority = res.priority;
                 commit = mod;
             } else if (res.priority < 0 || priority < 0) {
-                arena.getDebugger().i("fail", sender);
+                debug(arena, sender, "fail");
                 priority = res.priority;
                 commit = null;
             }
@@ -715,14 +713,14 @@ public class PACheck {
         }
 
         if (commit == null) {
-            arena.getDebugger().i("commit null", sender);
+            debug(arena, sender, "commit null");
             return false;
         }
 
         final PAJoinEvent event = new PAJoinEvent(arena, (Player) sender, true);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) {
-            arena.getDebugger().i("! Spectate event cancelled by plugin !");
+            debug(arena, "! Spectate event cancelled by plugin !");
             return false;
         }
 
@@ -739,7 +737,7 @@ public class PACheck {
                                       final CommandSender sender, final boolean force) {
         PACheck res = new PACheck();
 
-        arena.getDebugger().i("handling start!");
+        debug(arena, "handling start!");
 
         ArenaGoal commit = null;
         int priority = 0;
@@ -758,7 +756,7 @@ public class PACheck {
         }
 
         if (!force && res.hasError()) {
-            arena.getDebugger().i("not forcing and we have error: " + res.error);
+            debug(arena, "not forcing and we have error: " + res.error);
             if (sender == null) {
                 arena.msg(Bukkit.getConsoleSender(),
                         Language.parse(arena, MSG.ERROR_ERROR, res.error));
@@ -772,19 +770,18 @@ public class PACheck {
         if (!force && arena.getFighters().size() < 2
                 || arena.getFighters().size() < arena.getArenaConfig().getInt(
                 CFG.READY_MINPLAYERS)) {
-            arena.getDebugger().i("not forcing and we have less than minplayers");
+            debug(arena, "not forcing and we have less than minplayers");
             return null;
         }
 
         final PAStartEvent event = new PAStartEvent(arena);
         Bukkit.getPluginManager().callEvent(event);
         if (!force && event.isCancelled()) {
-            arena.getDebugger().i("not forcing and cancelled by other plugin");
+            debug(arena, "not forcing and cancelled by other plugin");
             return false;
         }
 
-        arena.getDebugger()
-                .i("teleporting all players to their spawns", sender);
+        debug(arena, sender, "teleporting all players to their spawns");
 
         if (commit == null) {
             for (final ArenaTeam team : arena.getTeams()) {
@@ -794,7 +791,7 @@ public class PACheck {
             commit.commitStart(); // override spawning
         }
 
-        arena.getDebugger().i("teleported everyone!", sender);
+        debug(arena, sender, "teleported everyone!");
 
         arena.broadcast(Language.parse(arena, MSG.FIGHT_BEGINS));
         arena.setFightInProgress(true);

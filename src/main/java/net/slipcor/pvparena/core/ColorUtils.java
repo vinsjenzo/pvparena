@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class ColorUtils {
+import static net.slipcor.pvparena.config.Debugger.debug;
 
-    private static final Debug DEBUG = new Debug(18);
+public final class ColorUtils {
 
     private ColorUtils() {
     }
@@ -50,7 +50,7 @@ public final class ColorUtils {
         try {
             return DyeColor.valueOf(parseDyeColorToChatColor(color.name(), false));
         } catch (IllegalArgumentException e) {
-            DEBUG.i("ChatColor " + color.name() + " can't be cast to DyeColor => set BROWN");
+            debug("ChatColor {} can't be cast to DyeColor => set BROWN", color);
             return DyeColor.BROWN;
         }
     }

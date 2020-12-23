@@ -1,5 +1,7 @@
-debug: none
-server_log: false
+debug:
+  enable: false
+  output: BOTH
+  level: FINE
 stats: true
 language: en
 onlyPVPinArena: false

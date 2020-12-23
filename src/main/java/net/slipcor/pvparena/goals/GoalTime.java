@@ -5,7 +5,6 @@ import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.StringParser;
 import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.runnables.TimedEndRunnable;
@@ -16,6 +15,8 @@ import org.bukkit.plugin.IllegalPluginAccessException;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>Arena Goal class "Time"</pre>
@@ -31,7 +32,6 @@ public class GoalTime extends ArenaGoal {
 
     public GoalTime() {
         super("Time");
-        this.debug = new Debug(106);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class GoalTime extends ArenaGoal {
     public void parseStart() {
         final int timed = this.arena.getArenaConfig().getInt(CFG.GOAL_TIME_END);
         if (timed > 0) {
-            this.arena.getDebugger().i("arena timing!");
+            debug(this.arena, "arena timing!");
             // initiate autosave timer
             this.ter = new TimedEndRunnable(this.arena, timed, this);
         }

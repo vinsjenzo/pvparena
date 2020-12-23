@@ -9,9 +9,9 @@ import net.slipcor.pvparena.classes.PABlock;
 import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.classes.PALocation;
 import net.slipcor.pvparena.classes.PASpawn;
+import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.StringParser;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
@@ -26,6 +26,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Spawn Manager class</pre>
  * <p/>
@@ -36,7 +38,6 @@ import java.util.*;
  */
 
 public final class SpawnManager {
-    private static final Debug DEBUG = new Debug(27);
 
     private SpawnManager() {
     }
@@ -44,19 +45,19 @@ public final class SpawnManager {
     private static String calculateFarSpawn(final String[] taken,
                                             final Set<PASpawn> available,
                                             final Set<PASpawn> total) {
-        DEBUG.i("--------------------");
-        DEBUG.i("calculating a spawn!");
-        DEBUG.i("--------------------");
+        debug("--------------------");
+        debug("calculating a spawn!");
+        debug("--------------------");
         String far = null;
         for (final PASpawn s : available) {
             far = s.getName();
             break;
         }
-        DEBUG.i("last resort: " + far);
+        debug("last resort: {}", far);
 
         double diff = 0;
         for (final PASpawn s : available) {
-            DEBUG.i("> checking " + s.getName());
+            debug("> checking {}", s.getName());
             double tempDiff = 0;
             for (int i = 0; i < taken.length && taken[i] != null; i++) {
                 for (final PASpawn tt : total) {
@@ -64,7 +65,7 @@ public final class SpawnManager {
                         if (tt.getName().equals(taken[i])
                                 && aa.getName().equals(s.getName())) {
                             tempDiff += tt.getLocation().getDistanceSquared(aa.getLocation());
-                            DEBUG.i(">> tempDiff: " + tempDiff);
+                            debug(">> tempDiff: {}", tempDiff);
                         }
                     }
                 }
@@ -72,7 +73,7 @@ public final class SpawnManager {
             }
 
             if (tempDiff > diff) {
-                DEBUG.i("-> diff");
+                debug("-> diff");
                 diff = tempDiff;
                 far = s.getName();
             }
@@ -118,11 +119,11 @@ public final class SpawnManager {
                         } else {
                             spawns.addAll(SpawnManager.getPASpawnsStartingWith(arena, team.getName() + "spawn"));
                         }
-                        arena.getDebugger().i("read spawns for '" + team.getName() + "'; size: " + spawns.size());
+                        debug(arena, "read spawns for '" + team.getName() + "'; size: " + spawns.size());
                         this.locations = new PASpawn[spawns.size()];
                         int pos = 0;
                         for (final PASpawn spawn : spawns) {
-                            arena.getDebugger().i("- " + spawn.getName());
+                            debug(arena, "- " + spawn.getName());
                             this.locations[pos++] = spawn;
                         }
                     }
@@ -167,7 +168,7 @@ public final class SpawnManager {
 
     private static void distributeByOrder(final Arena arena,
                                           final Set<ArenaPlayer> set, final String string) {
-        arena.getDebugger().i("distributeByOrder: " + string);
+        debug(arena, "distributeByOrder: " + string);
         if (set == null || set.size() < 1) {
             return;
         }
@@ -236,7 +237,7 @@ public final class SpawnManager {
 
     public static void distributeSmart(final Arena arena,
                                        final Set<ArenaPlayer> set, final String teamNName) {
-        arena.getDebugger().i("distributing smart-ish");
+        debug(arena, "distributing smart-ish");
         if (set == null || set.size() < 1) {
             return;
         }
@@ -258,7 +259,7 @@ public final class SpawnManager {
         }
 
         if (locations == null || locations.size() < 1) {
-            arena.getDebugger().i("null or less than 1! -> OUT!");
+            debug(arena, "null or less than 1! -> OUT!");
             return;
         }
 
@@ -513,7 +514,7 @@ public final class SpawnManager {
                     bLoc = bLoc.add(0, 1, 0);
                 }
 
-                arena.getDebugger().i("bLoc: " + bLoc.toString());
+                debug(arena, "bLoc: " + bLoc.toString());
                 aPlayer.setLocation(new PALocation(bLoc));
 
                 aPlayer.setStatus(Status.FIGHT);
@@ -523,7 +524,7 @@ public final class SpawnManager {
                             @Override
                             public void run() {
                                 aPlayer.setLocation(temp);
-                                arena.getDebugger().i("temp: " + temp.toString());
+                                debug(arena, "temp: " + temp.toString());
                             }
                 }, 6L);
 
@@ -586,7 +587,7 @@ public final class SpawnManager {
      */
     public static boolean isNearSpawn(final Arena arena, final Player player, final int diff) {
 
-        arena.getDebugger().i("checking if arena is near a spawn", player);
+        debug(arena, player, "checking if arena is near a spawn");
         if (!arena.hasPlayer(player)) {
             return false;
         }
@@ -608,7 +609,7 @@ public final class SpawnManager {
 
         for (final PALocation loc : spawns) {
             if (loc.getDistanceSquared(new PALocation(player.getLocation())) <= diff * diff) {
-                arena.getDebugger().i("found near spawn: " + loc, player);
+                debug(arena, player, "found near spawn: " + loc);
                 return true;
             }
         }
@@ -688,7 +689,7 @@ public final class SpawnManager {
 
                 // we need a smart spawn
 
-                arena.getDebugger().i("we need smart!");
+                debug(arena, "we need smart!");
 
                 final Set<PASpawn> spawns = SpawnManager.getPASpawnsStartingWith(arena, "spawn");
 
@@ -699,9 +700,9 @@ public final class SpawnManager {
                         continue;
                     }
                     pLocs.add(new PALocation(app.get().getLocation()));
-                    arena.getDebugger().i("pos of " + app.getName() + new PALocation(app.get().getLocation()));
+                    debug(arena, "pos of " + app.getName() + new PALocation(app.get().getLocation()));
                 }
-                arena.getDebugger().i("pLocs.size: " + pLocs.size());
+                debug(arena, "pLocs.size: " + pLocs.size());
 
                 // pLocs now contains the other player's positions
 
@@ -718,9 +719,9 @@ public final class SpawnManager {
                     }
                     max = Math.max(sum, max);
                     diffs.put(spawnLoc.getLocation(), sum);
-                    arena.getDebugger().i("spawnLoc: " + spawnLoc.getName() + ':' + sum);
+                    debug(arena, "spawnLoc: " + spawnLoc.getName() + ':' + sum);
                 }
-                arena.getDebugger().i("max = " + max);
+                debug(arena, "max = " + max);
 
                 for (final Map.Entry<PALocation, Double> paLocationDoubleEntry : diffs.entrySet()) {
                     if (paLocationDoubleEntry.getValue() == max) {
@@ -765,7 +766,7 @@ public final class SpawnManager {
         // "x,y,z,yaw,pitch"
 
         final String spawnName = Config.parseToString(loc);
-        arena.getDebugger().i("setting spawn " + place + " to " + spawnName);
+        debug(arena, "setting spawn " + place + " to " + spawnName);
         arena.getArenaConfig().setManually("spawns." + place, spawnName);
         arena.getArenaConfig().save();
         arena.addBlock(new PABlock(loc, place));

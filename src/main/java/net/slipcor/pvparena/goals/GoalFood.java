@@ -11,7 +11,6 @@ import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.PAA_Region;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
@@ -42,6 +41,8 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Goal class "Food"
@@ -56,7 +57,6 @@ import java.util.*;
 public class GoalFood extends ArenaGoal implements Listener {
     public GoalFood() {
         super("Food");
-        this.debug = new Debug(105);
     }
 
     @Override
@@ -234,10 +234,10 @@ public class GoalFood extends ArenaGoal implements Listener {
     @Override
     public void commitEnd(final boolean force) {
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[FOOD] already ending");
+            debug(this.arena, "[FOOD] already ending");
             return;
         }
-        this.arena.getDebugger().i("[FOOD]");
+        debug(this.arena, "[FOOD]");
 
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "");
         Bukkit.getPluginManager().callEvent(gEvent);
@@ -298,7 +298,7 @@ public class GoalFood extends ArenaGoal implements Listener {
     @Override
     public boolean commitSetFlag(final Player player, final Block block) {
 
-        this.arena.getDebugger().i("trying to set a foodchest/furnace", player);
+        debug(this.arena, player, "trying to set a foodchest/furnace");
 
         // command : /pa redflag1
         // location: red1flag:
@@ -618,7 +618,7 @@ public class GoalFood extends ArenaGoal implements Listener {
             config.set("teams", null);
         }
         if (config.get("teams") == null) {
-            this.arena.getDebugger().i("no teams defined, adding custom red and blue!");
+            debug(this.arena, "no teams defined, adding custom red and blue!");
             config.addDefault("teams.red", ChatColor.RED.name());
             config.addDefault("teams.blue", ChatColor.BLUE.name());
         }

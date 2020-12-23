@@ -4,6 +4,8 @@ import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.core.Config.CFG;
 import org.bukkit.Bukkit;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Arena Runnable class "SpawnCamp"</pre>
  * <p/>
@@ -15,7 +17,7 @@ import org.bukkit.Bukkit;
 
 public class SpawnCampRunnable implements Runnable {
     private final Arena arena;
-    //	private final static Debug DEBUG = new Debug(44);
+    //	private final static Debugger debug = Debugger.getInstance();
     private int iID;
 
     /**
@@ -26,7 +28,7 @@ public class SpawnCampRunnable implements Runnable {
     public SpawnCampRunnable(final Arena arena) {
         this.iID = 0;
         this.arena = arena;
-        arena.getDebugger().i("SpawnCampRunnable constructor");
+        debug(arena, "SpawnCampRunnable constructor");
     }
 
     /**
@@ -34,7 +36,7 @@ public class SpawnCampRunnable implements Runnable {
      */
     @Override
     public void run() {
-        this.arena.getDebugger().i("SpawnCampRunnable commiting");
+        debug(this.arena, "SpawnCampRunnable commiting");
         if (this.arena.isFightInProgress() && this.arena.getArenaConfig().getBoolean(CFG.PROTECT_PUNISH)) {
             this.arena.spawnCampPunish();
         } else {

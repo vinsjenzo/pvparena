@@ -6,6 +6,8 @@ import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.core.Language.MSG;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Arena Runnable class "Start"</pre>
  * <p/>
@@ -16,7 +18,7 @@ import net.slipcor.pvparena.core.Language.MSG;
  */
 
 public class StartRunnable extends ArenaRunnable {
-//	private final static Debug DEBUG = new Debug(43);
+//	private final static Debugger debug = Debugger.getInstance();
 
     /**
      * create a timed arena start runnable
@@ -25,7 +27,7 @@ public class StartRunnable extends ArenaRunnable {
      */
     public StartRunnable(final Arena arena, final int seconds) {
         super(MSG.ARENA_STARTING_IN.getNode(), seconds, null, arena, false);
-        arena.getDebugger().i("StartRunnable constructor");
+        debug(arena, "StartRunnable constructor");
         arena.startRunner = this;
         for (final ArenaPlayer player : arena.getFighters()) {
             if (player.getStatus() != Status.READY) {
@@ -37,7 +39,7 @@ public class StartRunnable extends ArenaRunnable {
     @Override
     protected void commit() {
         this.arena.startRunner = null;
-        this.arena.getDebugger().i("StartRunnable commiting");
+        debug(this.arena, "StartRunnable commiting");
         this.arena.start();
     }
 

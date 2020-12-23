@@ -2,7 +2,6 @@ package net.slipcor.pvparena.arena;
 
 import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.classes.PABlockLocation;
-import net.slipcor.pvparena.core.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Chest;
@@ -16,9 +15,13 @@ import org.bukkit.plugin.IllegalPluginAccessException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
+import static net.slipcor.pvparena.config.Debugger.debug;
 import static net.slipcor.pvparena.core.ItemStackUtils.getItemStacksFromConfig;
 
 /**
@@ -31,8 +34,6 @@ import static net.slipcor.pvparena.core.ItemStackUtils.getItemStacksFromConfig;
  */
 
 public final class ArenaClass {
-
-    private static final Debug debug = new Debug(4);
 
     private final String name;
     private final ItemStack[] items;
@@ -165,7 +166,7 @@ public final class ArenaClass {
     }
 
     public void equip(final Player player) {
-        debug.i("Equipping player " + player.getName() + " with items!", player);
+        debug(player, "Equipping player " + player.getName() + " with items!");
         for (ItemStack item : this.armors) {
             if (item != null) {
                 equipArmor(item, player.getInventory());
@@ -251,5 +252,10 @@ public final class ArenaClass {
 
     private static boolean isArmorItem(Material material) {
         return isBootsItem(material) || isLeggingsItem(material) || isChestplateItem(material) || isHelmetItem(material);
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
     }
 }

@@ -6,7 +6,7 @@ import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.*;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
+import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Help;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Main Plugin class
@@ -49,7 +51,6 @@ import java.util.List;
 public class PVPArena extends JavaPlugin {
     private static PVPArena instance;
 
-    private static Debug debugger;
     private static final int BSTATS_PLUGIN_ID = 5067;
 
     private ArenaGoalManager agm;
@@ -147,16 +148,13 @@ public class PVPArena extends JavaPlugin {
      * otherwise
      */
     public static boolean hasPerms(final CommandSender sender, final Arena arena) {
-        arena.getDebugger().i("perm check.", sender);
+        debug(arena, sender, "perm check.");
         if (arena.getArenaConfig().getBoolean(CFG.PERMS_EXPLICITARENA)) {
-            arena.getDebugger().i(
-                    " - explicit: "
-                            + sender.hasPermission("pvparena.join."
-                            + arena.getName().toLowerCase()), sender);
+            debug(arena, sender, " - explicit: "
+                                + sender.hasPermission("pvparena.join."
+                                + arena.getName().toLowerCase()));
         } else {
-            arena.getDebugger().i(
-                    String.valueOf(sender.hasPermission("pvparena.user")),
-                    sender);
+            debug(arena, sender, sender.hasPermission("pvparena.user"));
         }
 
         return arena.getArenaConfig().getBoolean(CFG.PERMS_EXPLICITARENA) ? sender
@@ -267,7 +265,7 @@ public class PVPArena extends JavaPlugin {
         }
         final ArenaPlayer player = ArenaPlayer.parsePlayer(sender.getName());
         if (pacmd != null && !(player.getArena() != null && pacmd.hasVersionForArena())) {
-            debugger.i("committing: " + pacmd.getName(), sender);
+            debug(sender, "committing: " + pacmd.getName());
             pacmd.commit(sender, StringParser.shiftArrayBy(args, 1));
             return true;
         }
@@ -338,19 +336,18 @@ public class PVPArena extends JavaPlugin {
 
         if (paacmd == null && tempArena.getArenaConfig().getBoolean(CFG.CMDS_DEFAULTJOIN) && args.length == 1) {
             paacmd = new PAG_Join();
-            tempArena.getDebugger().i("committing: " + paacmd.getName(), sender);
+            debug(tempArena, sender, "committing: " + paacmd.getName());
             paacmd.commit(tempArena, sender, new String[0]);
             return true;
         }
 
         if (paacmd != null) {
-            tempArena.getDebugger()
-                    .i("committing: " + paacmd.getName(), sender);
+            debug(tempArena, sender, "committing: " + paacmd.getName());
             paacmd.commit(tempArena, sender,
                     StringParser.shiftArrayBy(newArgs, 1));
             return true;
         }
-        tempArena.getDebugger().i("cmd null", sender);
+        debug(tempArena, sender, "cmd null");
 
         return false;
     }
@@ -364,7 +361,7 @@ public class PVPArena extends JavaPlugin {
     public void onDisable() {
         this.shuttingDown = true;
         ArenaManager.reset(true);
-        Debug.destroy();
+        Debugger.destroy();
         this.getUpdateChecker().runOnDisable();
         Language.logInfo(MSG.LOG_PLUGIN_DISABLED, this.getDescription().getFullName());
     }
@@ -373,7 +370,6 @@ public class PVPArena extends JavaPlugin {
     public void onEnable() {
         this.shuttingDown = false;
         instance = this;
-        debugger = new Debug(1);
 
         // TODO: Enable bStats
         // Metrics metrics = new Metrics(this, BSTATS_PLUGIN_ID);
@@ -451,7 +447,7 @@ public class PVPArena extends JavaPlugin {
             this.saveConfig();
         }
 
-        Debug.load(this, Bukkit.getConsoleSender());
+        Debugger.load(this, Bukkit.getConsoleSender());
         ArenaClass.addGlobalClasses();
         ArenaManager.load_arenas();
 

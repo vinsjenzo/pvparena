@@ -6,8 +6,8 @@ import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
+import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.goals.*;
@@ -24,6 +24,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import java.io.File;
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Goal Manager class
@@ -38,7 +40,6 @@ import java.util.*;
 public class ArenaGoalManager {
     private List<ArenaGoal> types;
     private final NCBLoader<ArenaGoal> loader;
-    private static final Debug DEBUG = new Debug(31);
 
     /**
      * create an arena type instance
@@ -74,10 +75,9 @@ public class ArenaGoalManager {
         this.types.add(new GoalTeamLives());
         this.types.add(new GoalTime());
 
-        for (final ArenaGoal type : this.types) {
-            type.onThisLoad();
-            DEBUG.i("module ArenaType loaded: " + type.getName() + " (version "
-                    + type.version() + ')');
+        for (final ArenaGoal goal : this.types) {
+            goal.onThisLoad();
+            debug("ArenaGoal loaded: {} (version {})", goal.getName(), goal.version());
         }
     }
 
@@ -187,19 +187,19 @@ public class ArenaGoalManager {
     }
 
     public void initiate(final Arena arena, final Player player) {
-        arena.getDebugger().i("initiating " + player.getName(), player);
+        debug(arena, player, "initiating " + player.getName());
         for (final ArenaGoal type : arena.getGoals()) {
             type.initate(player);
         }
     }
 
     public String ready(final Arena arena) {
-        arena.getDebugger().i("AGM ready!?!");
+        debug(arena, "AGM ready!?!");
         for (final ArenaGoal type : arena.getGoals()) {
             String error = type.ready();
             if (error != null) {
 
-                arena.getDebugger().i("type error:" + type.getName());
+                debug(arena, "type error:" + type.getName());
                 return error;
             }
         }
@@ -253,12 +253,12 @@ public class ArenaGoalManager {
           handed over to each module
          */
 
-        arena.getDebugger().i("timed end!");
+        debug(arena, "timed end!");
 
         Map<String, Double> scores = new HashMap<>();
 
         for (final ArenaGoal type : arena.getGoals()) {
-            arena.getDebugger().i("scores: " + type.getName());
+            debug(arena, "scores: " + type.getName());
             scores = type.timedEnd(scores);
         }
 
@@ -266,7 +266,7 @@ public class ArenaGoalManager {
 
         if (arena.isFreeForAll() && arena.getTeams().size() <= 1) {
             winners.add("free");
-            arena.getDebugger().i("adding FREE");
+            debug(arena, "adding FREE");
         } else if ("none".equals(arena.getArenaConfig().getString(CFG.GOAL_TIME_WINNER))) {
             // check all teams
             double maxScore = 0;
@@ -281,10 +281,10 @@ public class ArenaGoalManager {
                         maxScore = teamScore;
                         winners.clear();
                         winners.add(team);
-                        arena.getDebugger().i("clear and add team " + team);
+                        debug(arena, "clear and add team " + team);
                     } else if (teamScore == maxScore) {
                         winners.add(team);
-                        arena.getDebugger().i("add team " + team);
+                        debug(arena, "add team " + team);
                     }
                 } else {
                     neededTeams -= 1;
@@ -294,25 +294,25 @@ public class ArenaGoalManager {
             // neededTeams should be the number of active teams
 
             if (neededTeams <= 2) {
-                arena.getDebugger().i("fixing neededTeams to be of size 2!");
+                debug(arena, "fixing neededTeams to be of size 2!");
                 neededTeams = 2;
             }
 
             if (winners.size() >= neededTeams) {
-                arena.getDebugger().i("team of winners is too big: "+winners.size()+"!");
+                debug(arena, "team of winners is too big: "+winners.size()+"!");
                 for (String s : winners) {
-                    arena.getDebugger().i("- "+s);
+                    debug(arena, "- "+s);
                 }
-                arena.getDebugger().i("clearing winners!");
+                debug(arena, "clearing winners!");
                 winners.clear(); // noone wins.
             }
         } else {
             winners.add(arena.getArenaConfig().getString(CFG.GOAL_TIME_WINNER));
-            arena.getDebugger().i("added winner!");
+            debug(arena, "added winner!");
         }
 
         if (winners.size() > 1) {
-            arena.getDebugger().i("more than 1");
+            debug(arena, "more than 1");
             final Set<String> preciseWinners = new HashSet<>();
 
             // several teams have max score!!
@@ -332,13 +332,12 @@ public class ArenaGoalManager {
 
                 if (sum == maxSum) {
                     preciseWinners.add(team.getName());
-                    arena.getDebugger().i("adddding " + team.getName());
+                    debug(arena, "adddding " + team.getName());
                 } else if (sum > maxSum) {
                     maxSum = sum;
                     preciseWinners.clear();
                     preciseWinners.add(team.getName());
-                    arena.getDebugger().i(
-                            "clearing and adddding + " + team.getName());
+                    debug(arena, "clearing and adddding + " + team.getName());
                 }
             }
 
@@ -349,7 +348,7 @@ public class ArenaGoalManager {
         }
 
         if (arena.isFreeForAll() && arena.getTeams().size() <= 1) {
-            arena.getDebugger().i("FFAAA");
+            debug(arena, "FFAAA");
             final Set<String> preciseWinners = new HashSet<>();
 
             for (final ArenaTeam team : arena.getTeams()) {
@@ -366,13 +365,12 @@ public class ArenaGoalManager {
                     }
                     if (sum == maxSum) {
                         preciseWinners.add(ap.getName());
-                        arena.getDebugger().i("ffa adding " + ap.getName());
+                        debug(arena, "ffa adding " + ap.getName());
                     } else if (sum > maxSum) {
                         maxSum = sum;
                         preciseWinners.clear();
                         preciseWinners.add(ap.getName());
-                        arena.getDebugger().i(
-                                "ffa clr & adding " + ap.getName());
+                        debug(arena, "ffa clr & adding " + ap.getName());
                     }
                 }
             }
@@ -386,7 +384,7 @@ public class ArenaGoalManager {
         ArenaModuleManager.timedEnd(arena, winners);
 
         if (arena.isFreeForAll() && arena.getTeams().size() <= 1) {
-            arena.getDebugger().i("FFA and <= 1!");
+            debug(arena, "FFA and <= 1!");
             for (final ArenaTeam team : arena.getTeams()) {
                 final Set<ArenaPlayer> apSet = new HashSet<>();
                 for (final ArenaPlayer p : team.getTeamMembers()) {
@@ -479,7 +477,7 @@ public class ArenaGoalManager {
 		 * (player.getStatus() == Status.FIGHT) { player.setStatus(Status.LOST);
 		 * } }
 		 */
-        arena.getDebugger().i("resetting arena!");
+        debug(arena, "resetting arena!");
 
         arena.reset(false); // TODO: try to establish round compatibility with
         // new EndRunnable();

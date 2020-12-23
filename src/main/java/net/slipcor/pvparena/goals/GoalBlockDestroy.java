@@ -13,7 +13,6 @@ import net.slipcor.pvparena.commands.CommandTree;
 import net.slipcor.pvparena.commands.PAA_Region;
 import net.slipcor.pvparena.core.ColorUtils;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
@@ -38,7 +37,12 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>
@@ -54,7 +58,6 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
 
     public GoalBlockDestroy() {
         super("BlockDestroy");
-        this.debug = new Debug(100);
     }
 
     private String blockTeamName = "";
@@ -123,7 +126,7 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
         if (count == 1) {
             res.setPriority(this, PRIORITY); // yep. only one team left. go!
         } else if (count == 0) {
-            this.arena.getDebugger().i("No teams playing!");
+            debug(this.arena, "No teams playing!");
         }
 
         return res;
@@ -197,8 +200,8 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
     }
 
     private void commit(final Arena arena, final String sTeam) {
-        arena.getDebugger().i("[BD] checking end: " + sTeam);
-        arena.getDebugger().i("win: " + false);
+        debug(arena, "[BD] checking end: " + sTeam);
+        debug(arena, "win: " + false);
 
         for (final ArenaTeam team : arena.getTeams()) {
             if (!team.getName().equals(sTeam)) {
@@ -299,10 +302,10 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
     @Override
     public void commitEnd(final boolean force) {
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[BD] already ending");
+            debug(this.arena, "[BD] already ending");
             return;
         }
-        this.arena.getDebugger().i("[BD]");
+        debug(this.arena, "[BD]");
 
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "");
         Bukkit.getPluginManager().callEvent(gEvent);
@@ -341,7 +344,7 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
     @Override
     public boolean commitSetFlag(final Player player, final Block block) {
 
-        this.arena.getDebugger().i("trying to set a block", player);
+        debug(this.arena, player, "trying to set a block");
 
         // command : /pa redblock1
         // location: red1block:
@@ -436,7 +439,7 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
         this.getLifeMap().clear();
         for (final ArenaTeam team : this.arena.getTeams()) {
             if (!team.getTeamMembers().isEmpty()) {
-                this.arena.getDebugger().i("adding team " + team.getName());
+                debug(this.arena, "adding team " + team.getName());
                 // team is active
                 this.getLifeMap().put(
                         team.getName(),
@@ -453,7 +456,7 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
 
     private void reduceLivesCheckEndAndCommit(final Arena arena, final String team) {
 
-        arena.getDebugger().i("reducing lives of team " + team);
+        debug(arena, "reducing lives of team " + team);
         if (!this.getLifeMap().containsKey(team)) {
             return;
         }
@@ -481,7 +484,7 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
             config.set("teams", null);
         }
         if (config.get("teams") == null) {
-            this.arena.getDebugger().i("no teams defined, adding custom red and blue!");
+            debug(this.arena, "no teams defined, adding custom red and blue!");
             config.addDefault("teams.red", ChatColor.RED.name());
             config.addDefault("teams.blue", ChatColor.BLUE.name());
         }
@@ -542,9 +545,9 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
         final Material blockToBreak = this.arena.getArenaConfig().getMaterial(CFG.GOAL_BLOCKDESTROY_BLOCKTYPE);
         final Material brokenBlock = event.getBlock().getType();
         if (!this.arena.hasPlayer(event.getPlayer()) || !ColorUtils.isSubType(brokenBlock, blockToBreak)) {
-            arena.getDebugger().i("block destroy, ignoring", player);
-            arena.getDebugger().i(String.valueOf(arena.hasPlayer(event.getPlayer())), player);
-            arena.getDebugger().i(brokenBlock.name(), player);
+            debug(this.arena, player, "block destroy, ignoring");
+            debug(this.arena, player, String.valueOf(this.arena.hasPlayer(event.getPlayer())));
+            debug(this.arena, player, event.getBlock().getType().name());
             return;
         }
 
@@ -555,7 +558,7 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
 
         final Block block = event.getBlock();
 
-        this.arena.getDebugger().i("block destroy!", player);
+        debug(this.arena, player, "block destroy!");
 
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
 
@@ -570,13 +573,13 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
 
             if (team.getTeamMembers().size() < 1
                     && !"touchdown".equals(team.getName())) {
-                this.arena.getDebugger().i("size!OUT! ", player);
+                debug(this.arena, player, "size!OUT! ");
                 continue; // dont check for inactive teams
             }
 
-            this.arena.getDebugger().i("checking for block of team " + blockTeam, player);
+            debug(this.arena, player, "checking for block of team " + blockTeam);
             Vector vLoc = block.getLocation().toVector();
-            this.arena.getDebugger().i("block: " + vLoc, player);
+            debug(this.arena, player, "block: " + vLoc);
             if (!SpawnManager.getBlocksStartingWith(this.arena, blockTeam + "block").isEmpty()) {
                 vBlock = SpawnManager
                         .getBlockNearest(
@@ -590,7 +593,7 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
                 // ///////
 
                 if (blockTeam.equals(pTeam.getName())) {
-                    this.arena.getDebugger().i("is own team! cancel and OUT! ", player);
+                    debug(this.arena, player, "is own team! cancel and OUT! ");
                     event.setCancelled(true);
                     break;
                 }

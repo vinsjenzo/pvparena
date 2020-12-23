@@ -10,7 +10,6 @@ import net.slipcor.pvparena.commands.PAA_Setup;
 import net.slipcor.pvparena.commands.PAG_Join;
 import net.slipcor.pvparena.core.Config;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.core.StringParser;
@@ -30,6 +29,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import java.io.File;
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Manager class
@@ -43,8 +44,6 @@ import java.util.*;
 
 public final class ArenaManager {
     private static final Map<String, Arena> ARENAS = new HashMap<>();
-    private static final Debug DEBUG = new Debug(24);
-
     private static final Map<String, Arena> DEF_VALUES = new HashMap<>();
     private static final Map<String, List<String>> DEF_LISTS = new HashMap<>();
 
@@ -60,9 +59,9 @@ public final class ArenaManager {
      * @return true if the arena ends
      */
     public static boolean checkAndCommit(final Arena arena, final boolean force) {
-        arena.getDebugger().i("checking for arena end");
+        debug(arena, "checking for arena end");
         if (!arena.isFightInProgress()) {
-            arena.getDebugger().i("no fight, no end ^^");
+            debug(arena, "no fight, no end ^^");
             return false;
         }
 
@@ -76,7 +75,7 @@ public final class ArenaManager {
      * @return the loaded module name if something is missing, null otherwise
      */
     private static String checkForMissingGoals(final String name) {
-        DEBUG.i("check for missing goals: " + name);
+        debug("check for missing goals: {}", name);
         final File file = new File(PVPArena.getInstance().getDataFolder() + "/arenas/"
                 + name + ".yml");
         if (!file.exists()) {
@@ -295,7 +294,7 @@ public final class ArenaManager {
      * load all configs in the PVP Arena folder
      */
     public static void load_arenas() {
-        DEBUG.i("loading arenas...");
+        debug("loading arenas...");
         try {
             final File path = new File(PVPArena.getInstance().getDataFolder().getPath(),
                     "arenas");
@@ -306,7 +305,7 @@ public final class ArenaManager {
                     sName = sName.replace(".yml", "");
                     final String error = checkForMissingGoals(sName);
                     if (error == null) {
-                        DEBUG.i("arena: " + sName);
+                        debug("arena: {}", sName);
                         if (!ARENAS.containsKey(sName.toLowerCase())) {
                             Arena arena = new Arena(sName);
                             loadArena(arena);
@@ -329,7 +328,7 @@ public final class ArenaManager {
      */
     @Deprecated
     public static void loadArena(final String configFile) {
-        DEBUG.i("loading arena " + configFile);
+        debug("loading arena {}", configFile);
         final Arena arena = new Arena(configFile);
         ARENAS.put(arena.getName().toLowerCase(), arena);
     }
@@ -344,7 +343,7 @@ public final class ArenaManager {
         if (arena == null) {
             return false;
         }
-        DEBUG.i("loading arena " + arena.getName());
+        debug("loading arena {}", arena);
 
         if (!arena.isValid()) {
             Arena.pmsg(Bukkit.getConsoleSender(), Language.parse(arena, MSG.ERROR_ARENACONFIG, arena.getName()));
@@ -368,7 +367,7 @@ public final class ArenaManager {
      */
     public static void reset(final boolean force) {
         for (final Arena arena : ARENAS.values()) {
-            DEBUG.i("resetting arena " + arena.getName());
+            debug("resetting arena {}", arena);
             arena.reset(force);
         }
     }
@@ -380,7 +379,7 @@ public final class ArenaManager {
      * @param player the player trying to join
      */
     public static void trySignJoin(final PlayerInteractEvent event, final Player player) {
-        DEBUG.i("onInteract: sign check", player);
+        debug(player, "onInteract: sign check");
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             final Block block = event.getClickedBlock();
             if (block.getState() instanceof Sign) {
@@ -426,27 +425,27 @@ public final class ArenaManager {
     }
 
     public static void readShortcuts(final ConfigurationSection cs) {
-        DEBUG.i("reading shortcuts!");
+        debug("reading shortcuts!");
         usingShortcuts = false;
         DEF_VALUES.clear();
         DEF_LISTS.clear();
         if (cs == null) {
             PVPArena.getInstance().getLogger().warning("'shortcuts' node is null!!");
-            DEBUG.i("'shortcuts' node is null!!");
+            debug("'shortcuts' node is null!!");
             return;
         }
 
         for (final String key : cs.getKeys(false)) {
-            DEBUG.i("key: " + key);
+            debug("key: {}", key);
             final List<String> strings = cs.getStringList(key);
 
             if (strings == null) {
                 PVPArena.getInstance().getLogger().warning("'shortcuts=>" + key + "' node is null!!");
-                DEBUG.i("'shortcuts=>\" + key + \"' node is null!!");
+                debug("'shortcuts=>\" + key + \"' node is null!!");
                 continue;
             }
             if (PVPArena.getInstance().getConfig().getBoolean("shortcut_shuffle")) {
-                DEBUG.i("shuffling shortcuts!");
+                debug("shuffling shortcuts!");
                 Collections.shuffle(strings);
             }
 
@@ -454,15 +453,15 @@ public final class ArenaManager {
             for (final String arena : strings) {
                 if (!ARENAS.containsKey(arena.toLowerCase())) {
                     PVPArena.getInstance().getLogger().warning("Arena not found: " + arena);
-                    DEBUG.i("Arena not found: " + arena);
+                    debug("Arena not found: {}", arena);
                     error = true;
                 } else {
-                    DEBUG.i("added "+key+">"+arena);
+                    debug("added {} > {}", key, arena);
                 }
             }
             if (error || strings.size() < 1) {
                 PVPArena.getInstance().getLogger().warning("shortcut '" + key + "' will be skipped!!");
-                DEBUG.i("shortcut '" + key + "' will be skipped!!");
+                debug("shortcut '{}' will be skipped!!", key);
                 continue;
             }
             usingShortcuts = true;
@@ -523,9 +522,9 @@ public final class ArenaManager {
     }
 
     public static Arena getIndirectArenaByName(final CommandSender sender, String string) {
-        DEBUG.i("getIndirect(" + sender.getName() + "): " + string);
+        debug("getIndirect({}): {}", sender.getName(), string);
         if (!usingShortcuts || PVPArena.hasOverridePerms(sender)) {
-            DEBUG.i("out1");
+            debug("out1");
             return getArenaByName(string);
         }
 
@@ -539,13 +538,13 @@ public final class ArenaManager {
                     if (a.isLocked()) {
                         continue;
                     }
-                    DEBUG.i("found exact CS " + temp);
+                    debug("found exact CS {}", temp);
                     string = temp;
                     break;
                 }
             }
         }
-        DEBUG.i("temporary #1 " + string);
+        debug("temporary #1 {}", string);
 
         boolean isUngrouped = true;
         String preciseArenaName = null;
@@ -579,7 +578,7 @@ public final class ArenaManager {
                 }
             }
         } // if ungrouped = false -> we have found the arena in a shortcut definition (CI)
-        DEBUG.i("temporary #2 " + string);
+        debug("temporary #2 {}", string);
 
         boolean foundExactCI = false;
 
@@ -602,7 +601,7 @@ public final class ArenaManager {
                 string = key; // partial match, continue to eventually find a better match
             }
         }
-        DEBUG.i("temporary #3 " + string);
+        debug("temporary #3 {}", string);
 
         if (!foundExactCI) {
             // not found via exact check, ignoring case
@@ -610,7 +609,7 @@ public final class ArenaManager {
                     !(isUngrouped && PVPArena.getInstance().getConfig().getBoolean("allow_ungrouped"))) {
                 // 1) only allowing shortcuts
                 // 2) it's either grouped and we thus don't show it, or it is ungrouped and we don't allow ungrouped
-                DEBUG.i("not a shortcut or allowed ungrouped");
+                debug("not a shortcut or allowed ungrouped");
 
                 return null;
             } else {
@@ -618,10 +617,10 @@ public final class ArenaManager {
                 // OR
                 // B: ungrouped and allowing ungrouped
                 if (preciseArenaName != null) {
-                    DEBUG.i("priorizing actual arena name "+ preciseArenaName + " over "+ string);
+                    debug("priorizing actual arena name {} over {}", preciseArenaName, string);
                     string = preciseArenaName;
                 }
-                DEBUG.i("out getArenaByName: " + string);
+                debug("out getArenaByName: {}", string);
                 return getArenaByName(string);
             }
         }
@@ -631,9 +630,9 @@ public final class ArenaManager {
         advance(string);
 */
         if (DEF_VALUES.get(string) == null) {
-            DEBUG.i("out null -.-");
+            debug("out null -.-");
         } else {
-            DEBUG.i("out : " + DEF_VALUES.get(string).getName());
+            debug("out : {}", DEF_VALUES.get(string).getName());
         }
 
         return DEF_VALUES.get(string);
@@ -693,16 +692,16 @@ public final class ArenaManager {
     }
 
     public static List<Arena> getArenasSorted() {
-        DEBUG.i("Sorting!");
+        debug("Sorting!");
         for (final String s : ARENAS.keySet()) {
-            DEBUG.i(s);
+            debug(s);
         }
         final Map<String, Arena> sorted = new TreeMap<>(ARENAS);
         final List<Arena> result = new ArrayList<>();
-        DEBUG.i("Sorted!");
+        debug("Sorted!");
         for (final Map.Entry<String, Arena> stringArenaEntry : sorted.entrySet()) {
             result.add(stringArenaEntry.getValue());
-            DEBUG.i(stringArenaEntry.getKey());
+            debug(stringArenaEntry.getKey());
         }
         return result;
     }

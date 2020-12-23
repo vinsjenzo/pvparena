@@ -8,6 +8,8 @@ import net.slipcor.pvparena.commands.PAG_Join;
 import net.slipcor.pvparena.commands.PAG_Spectate;
 import net.slipcor.pvparena.core.Language.MSG;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Arena Runnable class "Warmup"</pre>
  * <p/>
@@ -21,7 +23,7 @@ public class ArenaWarmupRunnable extends ArenaRunnable {
     private final ArenaPlayer player;
     private final String teamName;
     private final boolean spectator;
-//	private final static Debug DEBUG = new Debug(40);
+//	private final static Debugger debug = Debugger.getInstance();
 
     private final Arena wArena;
 
@@ -32,7 +34,7 @@ public class ArenaWarmupRunnable extends ArenaRunnable {
      */
     public ArenaWarmupRunnable(final Arena arena, final ArenaPlayer player, final String team, final boolean spectator, final int seconds) {
         super(MSG.TIMER_WARMINGUP.getNode(), seconds, player.get(), null, false);
-        arena.getDebugger().i("ArenaWarmupRunnable constructor", player.getName());
+        debug(arena, player.get(), "ArenaWarmupRunnable constructor");
         this.player = player;
         this.teamName = team;
         this.spectator = spectator;
@@ -41,7 +43,7 @@ public class ArenaWarmupRunnable extends ArenaRunnable {
 
     @Override
     protected void commit() {
-        this.wArena.getDebugger().i("ArenaWarmupRunnable commiting", this.player.getName());
+        debug(this.wArena, this.player.get(), "ArenaWarmupRunnable commiting");
         this.player.setStatus(Status.WARM);
         if (this.spectator) {
             this.wArena.hasNotPlayed(this.player);

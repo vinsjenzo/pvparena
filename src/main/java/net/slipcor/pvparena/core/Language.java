@@ -10,6 +10,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+import static net.slipcor.pvparena.config.Debugger.trace;
+
 /**
  * <pre>
  * Language class
@@ -24,7 +27,6 @@ public final class Language {
     private Language() {
     }
 
-    private static final Debug debugger = new Debug(17);
     private static FileConfiguration config;
 
     public enum MSG {
@@ -850,12 +852,12 @@ public final class Language {
     }
 
     public static String parse(final Arena arena, final CFG node) {
-        arena.getDebugger().i("CFG: " + node.getNode());
+        debug(arena, "CFG: " + node.getNode());
         return StringParser.colorize(arena.getArenaConfig().getString(node));
     }
 
     public static String parse(final Arena arena, final CFG node, final String... args) {
-        arena.getDebugger().i("CFG: " + node.getNode());
+        debug(arena, "CFG: " + node.getNode());
         String result = arena.getArenaConfig().getString(node);
 
         int i = 0;
@@ -875,7 +877,7 @@ public final class Language {
      */
     public static String parse(final Arena arena, final MSG message) {
         if (arena != null && arena.getLanguage().get(message.getNode()) != null) {
-            arena.getDebugger().i("MSG: " + message.name());
+            trace(arena, "MSG: {}", message.name());
             return StringParser.colorize((String) arena.getLanguage().get(message.getNode()));
         }
         return StringParser.colorize(message.toString());
@@ -890,7 +892,7 @@ public final class Language {
      */
     public static String parse(final Arena arena, final MSG message, final String... args) {
         if (arena != null) {
-            arena.getDebugger().i("MSG: " + message.name());
+            trace(arena, "MSG: {}", message.name());
         }
 
         String result = message.toString();
@@ -911,7 +913,7 @@ public final class Language {
      * @return the node string
      */
     public static String parse(final MSG message) {
-        debugger.i("MSG: " + message.name());
+        trace("MSG: {}", message.name());
         return StringParser.colorize(message.toString());
     }
 
@@ -923,7 +925,7 @@ public final class Language {
      * @return the replaced node string
      */
     public static String parse(final MSG message, final String... args) {
-        debugger.i("MSG: " + message.name());
+        trace("MSG: {}", message.name());
         String result = message.toString();
         int i = 0;
         for (final String word : args) {

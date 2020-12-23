@@ -7,6 +7,8 @@ import net.slipcor.pvparena.events.PAGoalEvent;
 import net.slipcor.pvparena.goals.GoalTime;
 import org.bukkit.Bukkit;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Arena Runnable class "TimedEnd"</pre>
  * <p/>
@@ -17,7 +19,7 @@ import org.bukkit.Bukkit;
  */
 
 public class TimedEndRunnable extends ArenaRunnable {
-    //private static final Debug DEBUG = new Debug(42);
+    //private static final Debugger debug = Debugger.getInstance();
     private final GoalTime goal;
 
     /**
@@ -28,14 +30,14 @@ public class TimedEndRunnable extends ArenaRunnable {
      */
     public TimedEndRunnable(final Arena arena, final int seconds, final GoalTime goalTime) {
         super(MSG.TIMER_ENDING_IN.getNode(), seconds, null, arena, false);
-        arena.getDebugger().i("TimedEndRunnable constructor");
+        debug(arena, "TimedEndRunnable constructor");
         arena.endRunner = this;
         this.goal = goalTime;
     }
 
     @Override
     public void commit() {
-        this.arena.getDebugger().i("TimedEndRunnable commiting");
+        debug(this.arena, "TimedEndRunnable commiting");
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this.goal, "");
         Bukkit.getPluginManager().callEvent(gEvent);
         if (this.arena.isFightInProgress()) {

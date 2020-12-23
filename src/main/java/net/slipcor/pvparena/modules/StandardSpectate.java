@@ -7,7 +7,6 @@ import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.classes.PALocation;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.loadables.ArenaModule;
@@ -30,7 +29,6 @@ public class StandardSpectate extends ArenaModule {
 
     public StandardSpectate() {
         super("StandardSpectate");
-        debug = new Debug(301);
     }
 
     private static final int PRIORITY = 2;

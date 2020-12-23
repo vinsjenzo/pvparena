@@ -8,7 +8,6 @@ import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
@@ -31,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Goal class "TeamDeathMatch"
@@ -45,7 +46,6 @@ import java.util.Set;
 public class GoalTeamDeathMatch extends ArenaGoal {
     public GoalTeamDeathMatch() {
         super("TeamDeathMatch");
-        this.debug = new Debug(104);
     }
 
     @Override
@@ -127,10 +127,10 @@ public class GoalTeamDeathMatch extends ArenaGoal {
     @Override
     public void commitEnd(final boolean force) {
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[TDM] already ending");
+            debug(this.arena, "[TDM] already ending");
             return;
         }
-        this.arena.getDebugger().i("[TDM]");
+        debug(this.arena, "[TDM]");
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "");
         Bukkit.getPluginManager().callEvent(gEvent);
 
@@ -283,7 +283,7 @@ public class GoalTeamDeathMatch extends ArenaGoal {
     @Override
     public void configParse(final YamlConfiguration config) {
         if (config.get("flagColors") == null) {
-            this.arena.getDebugger().i("no flagheads defined, adding white and black!");
+            debug(this.arena, "no flagheads defined, adding white and black!");
             config.addDefault("flagColors.red", "WHITE");
             config.addDefault("flagColors.blue", "BLACK");
         }
@@ -391,13 +391,13 @@ public class GoalTeamDeathMatch extends ArenaGoal {
             config.set("teams", null);
         }
         if (config.get("teams") == null) {
-            this.arena.getDebugger().i("no teams defined, adding custom red and blue!");
+            debug(this.arena, "no teams defined, adding custom red and blue!");
             config.addDefault("teams.red", ChatColor.RED.name());
             config.addDefault("teams.blue", ChatColor.BLUE.name());
         }
         if (this.arena.getArenaConfig().getBoolean(CFG.GOAL_FLAGS_WOOLFLAGHEAD)
                 && config.get("flagColors") == null) {
-            this.arena.getDebugger().i("no flagheads defined, adding white and black!");
+            debug(this.arena, "no flagheads defined, adding white and black!");
             config.addDefault("flagColors.red", "WHITE");
             config.addDefault("flagColors.blue", "BLACK");
         }

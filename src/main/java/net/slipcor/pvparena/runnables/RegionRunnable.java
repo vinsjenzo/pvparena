@@ -6,6 +6,7 @@ import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import static java.util.Arrays.asList;
+import static net.slipcor.pvparena.config.Debugger.trace;
 
 /**
  * <pre>
@@ -20,7 +21,7 @@ import static java.util.Arrays.asList;
 
 public class RegionRunnable extends BukkitRunnable {
     private final ArenaRegion region;
-//	private final static Debug DEBUG = new Debug(49);
+//	private final static Debugger debug = Debugger.getInstance();
 //	private int iID;
 
     /**
@@ -30,7 +31,7 @@ public class RegionRunnable extends BukkitRunnable {
      */
     public RegionRunnable(final ArenaRegion paRegion) {
         this.region = paRegion;
-        this.region.getArena().getDebugger().i("RegionRunnable constructor: " + paRegion.getRegionName());
+        trace(this.region.getArena(), "RegionRunnable constructor: {}", paRegion.getRegionName());
     }
 
     /**
@@ -64,30 +65,28 @@ public class RegionRunnable extends BukkitRunnable {
             if (this.region.getArena().isFightInProgress()) {
                 if (PVPArena.getInstance().getAgm().allowsJoinInBattle(this.region.getArena())) {
                     // ingame: only tick if allowed
-                    this.region.getArena().getDebugger().i("tick 1: " + this.region.getRegionName());
+                    trace(this.region.getArena(), "tick 1: {}", this.region.getRegionName());
                     this.region.tick();
                 } else {
-                    this.region.getArena().getDebugger().i("notick 1: " + this.region.getRegionName());
                     // otherwise: no tick! No cancelling for join regions!
-                    // Bukkit.getScheduler().cancelTask(iID);
+                    trace(this.region.getArena(), "notick 1: {}", this.region.getRegionName());
                 }
             } else {
                 // not running. JOIN!
 
-                this.region.getArena().getDebugger().i("tick 2: " + this.region.getRegionName());
+                trace(this.region.getArena(), "tick 2: {}", this.region.getRegionName());
                 this.region.tick();
             }
         } else if (asList(RegionType.WATCH, RegionType.LOUNGE).contains(this.region.getType())) {
             // always tick for WATCH & LOUNGE regions!
-            this.region.getArena().getDebugger().i("tick 3: " + this.region.getRegionName());
+            trace(this.region.getArena(), "tick 3: {}", this.region.getRegionName());
             this.region.tick();
         } else if (this.region.getArena().isFightInProgress()) {
             // if ingame, always tick for other kinds of things!
-            //region.getArena().getDebugger().i("tick 4: " + region.getRegionName());
             this.region.tick();
         } else {
             // not ingame; ignore!
-            this.region.getArena().getDebugger().i("notick 5: " + this.region.getRegionName());
+            trace(this.region.getArena(), "notick 5: {}", this.region.getRegionName());
         }
 
     }

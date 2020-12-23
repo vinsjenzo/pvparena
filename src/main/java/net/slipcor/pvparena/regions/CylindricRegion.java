@@ -362,10 +362,10 @@ public class CylindricRegion extends ArenaRegionShape {
                 this.region.locs[1].getY(),
                 center.getZ()+diff)); // == 3
 /*
-        getRegion().getArena().getDebugger().i("CYLINDRIC blockCheckList");
+        getRegion().getArena().debug("CYLINDRIC blockCheckList");
 
         for (PABlockLocation block : result) {
-            getRegion().getArena().getDebugger().i(block.toString());
+            getRegion().getArena().debug(block.toString());
         }*/
 
         return result;

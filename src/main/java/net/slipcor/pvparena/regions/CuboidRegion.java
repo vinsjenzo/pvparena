@@ -279,10 +279,10 @@ public class CuboidRegion extends ArenaRegionShape {
 
         result.add(this.region.locs[1]); // == 7
 /*
-        getRegion().getArena().getDebugger().i("CUBOID blockCheckList");
+        getRegion().getArena().debug("CUBOID blockCheckList");
 
         for (PABlockLocation block : result) {
-            getRegion().getArena().getDebugger().i(block.toString());
+            getRegion().getArena().debug(block.toString());
         }*/
 
         return result;

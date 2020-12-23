@@ -12,6 +12,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+import static net.slipcor.pvparena.config.Debugger.trace;
+
 public class PAClaimBar {
     final Arena arena;
     final BossBar bar;
@@ -33,7 +36,7 @@ public class PAClaimBar {
 
         this.task = Bukkit.getScheduler().runTaskTimer(PVPArena.getInstance(), new ClaimRunner(), interval, interval);
 
-        arena.getDebugger().i("interval: " + interval);
+        debug(arena, "interval: " + interval);
     }
 
     public void restart(String title, ChatColor color, Location location, int range, long millis) {
@@ -55,7 +58,7 @@ public class PAClaimBar {
 
         this.task = Bukkit.getScheduler().runTaskTimer(PVPArena.getInstance(), new ClaimRunner(), interval, interval);
 
-        this.arena.getDebugger().i("interval: " + interval);
+        debug(this.arena, "interval: " + interval);
     }
 
     public void stop() {
@@ -67,7 +70,7 @@ public class PAClaimBar {
     private class ClaimRunner implements Runnable {
         @Override
         public void run() {
-            PAClaimBar.this.arena.getDebugger().i("progress: " + PAClaimBar.this.progress);
+            trace(PAClaimBar.this.arena, "progress: " + PAClaimBar.this.progress);
             if (++PAClaimBar.this.progress > 9) {
                 PAClaimBar.this.bar.setProgress(PAClaimBar.this.progress /10f);
                 PAClaimBar.this.stop();

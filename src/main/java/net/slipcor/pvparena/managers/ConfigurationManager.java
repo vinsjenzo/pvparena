@@ -24,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
 import static net.slipcor.pvparena.core.ItemStackUtils.getItemStacksFromConfig;
 
 /**
@@ -38,7 +39,7 @@ import static net.slipcor.pvparena.core.ItemStackUtils.getItemStacksFromConfig;
  */
 
 public final class ConfigurationManager {
-    //private final static Debug DEBUG = new Debug(25);
+    //private final static Debugger debug = Debugger.getInstance();
 
     private ConfigurationManager() {
     }
@@ -194,7 +195,7 @@ public final class ConfigurationManager {
         final Map<String, Object> classes = config.getConfigurationSection(
                 "classitems").getValues(false);
         arena.getClasses().clear();
-        arena.getDebugger().i("reading class items");
+        debug(arena, "reading class items");
         ArenaClass.addGlobalClasses(arena);
         for (final Map.Entry<String, Object> stringObjectEntry1 : classes.entrySet()) {
             ItemStack[] items;
@@ -209,7 +210,7 @@ public final class ConfigurationManager {
                 Bukkit.getLogger().severe(
                         "[PVP Arena] Error while parsing class, skipping: "
                                 + stringObjectEntry1.getKey());
-                        arena.getDebugger().i(e.getMessage());
+                debug(arena, e.getMessage());
                 continue;
             }
             try {
@@ -224,11 +225,11 @@ public final class ConfigurationManager {
                 armors = Arrays.copyOfRange(contents, contents.length - 4, contents.length);
 
                 arena.addClass(stringObjectEntry1.getKey(), items, offHand, armors);
-                arena.getDebugger().i("adding class chest items to class " + stringObjectEntry1.getKey());
+                debug(arena, "adding class chest items to class " + stringObjectEntry1.getKey());
 
             }   catch (Exception e) {
                 arena.addClass(stringObjectEntry1.getKey(), items, offHand, armors);
-                arena.getDebugger().i("adding class items to class " + stringObjectEntry1.getKey());
+                debug(arena, "adding class items to class " + stringObjectEntry1.getKey());
             }
         }
         arena.addClass("custom",
@@ -239,13 +240,13 @@ public final class ConfigurationManager {
         arena.setLocked(!cfg.getBoolean(CFG.GENERAL_ENABLED));
         arena.setFree("free".equals(cfg.getString(CFG.GENERAL_TYPE)));
         if (config.getConfigurationSection("arenaregion") == null) {
-            arena.getDebugger().i("arenaregion null");
+            debug(arena, "arenaregion null");
         } else {
-            arena.getDebugger().i("arenaregion not null");
+            debug(arena, "arenaregion not null");
             final Map<String, Object> regs = config.getConfigurationSection(
                     "arenaregion").getValues(false);
             for (final String rName : regs.keySet()) {
-                arena.getDebugger().i("arenaregion '" + rName + '\'');
+                debug(arena, "arenaregion '" + rName + '\'');
                 final ArenaRegion region = Config.parseRegion(arena, config,
                         rName);
 
@@ -290,8 +291,8 @@ public final class ConfigurationManager {
                 final ArenaTeam team = new ArenaTeam(stringObjectEntry.getKey(),
                         (String) stringObjectEntry.getValue());
                 arena.getTeams().add(team);
-                arena.getDebugger().i("added team " + team.getName() + " => "
-                        + team.getColorCodeString());
+                debug(arena, "added team " + team.getName() + " => "
+                                + team.getColorCodeString());
             }
         }
 

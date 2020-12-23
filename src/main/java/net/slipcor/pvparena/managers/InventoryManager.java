@@ -3,7 +3,6 @@ package net.slipcor.pvparena.managers;
 import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,6 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Inventory Manager class</pre>
  * <p/>
@@ -28,7 +29,6 @@ import java.util.Map;
 
 public final class InventoryManager {
 
-    private static final Debug DEBUG = new Debug(26);
     private static final String[] TOOLSUFFIXES = {"_AXE", "_PICKAXE", "_SPADE", "_HOE", "_SWORD", "BOW", "SHEARS"};
 
     private InventoryManager() {
@@ -40,7 +40,7 @@ public final class InventoryManager {
      * @param player the player to clear
      */
     public static void clearInventory(final Player player) {
-        DEBUG.i("fully clear player inventory: " + player.getName(), player);
+        debug(player, "fully clear player inventory: " + player.getName());
 
         player.closeInventory();
 
@@ -60,7 +60,7 @@ public final class InventoryManager {
     public static List<ItemStack> drop(final Player player) {
         final List<ItemStack> returned = new ArrayList<>();
 
-        DEBUG.i("dropping player inventory: " + player.getName(), player);
+        debug(player, "dropping player inventory: " + player.getName());
         final List<Material> exclude;
         final List<ItemStack> keep;
 

@@ -56,13 +56,13 @@ public class PAA_Goal extends AbstractArenaCommand {
             return;
         }
 
-        if (StringParser.positive.contains(args[1].toLowerCase())) {
+        if (StringParser.isPositiveValue(args[1])) {
             arena.goalAdd(goal);
             arena.msg(sender, Language.parse(arena, MSG.GOAL_ADDED, args[0]));
             return;
         }
 
-        if (StringParser.negative.contains(args[1].toLowerCase())) {
+        if (StringParser.isNegativeValue(args[1])) {
             arena.goalRemove(goal);
             arena.msg(sender, Language.parse(arena, MSG.GOAL_REMOVED, args[0]));
             return;

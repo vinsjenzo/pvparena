@@ -141,10 +141,11 @@ public abstract class AbstractUpdater implements Runnable {
 
         final int versionLen = 3;
         for(int i = 0; i < versionLen; i++) {
-            Long currentVerChunk = Long.valueOf(currentVerArr[i]);
-            Long newVerChunk = Long.valueOf(newVerArr[i]);
-            currentVerVal += currentVerChunk * Math.pow(10, versionLen - i);
-            newVerVal += newVerChunk * Math.pow(10, versionLen - i);
+            int weight = (versionLen - i) * 2;
+            long currentVerChunk = Long.parseLong(currentVerArr[i]);
+            long newVerChunk = Long.parseLong(newVerArr[i]);
+            currentVerVal += currentVerChunk * Math.pow(10, weight);
+            newVerVal += newVerChunk * Math.pow(10, weight);
         }
 
         if(currentVerVal == newVerVal) {

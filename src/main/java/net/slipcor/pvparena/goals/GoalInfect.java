@@ -9,7 +9,6 @@ import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.classes.PASpawn;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.core.StringParser;
@@ -39,6 +38,8 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Goal class "Infect"
@@ -52,7 +53,6 @@ import java.util.*;
 public class GoalInfect extends ArenaGoal {
     public GoalInfect() {
         super("Infect");
-        this.debug = new Debug(108);
     }
 // BREAK, PLACE, TNT, TNTBREAK, DROP, INVENTORY, PICKUP, CRAFT;
     private EndRunnable endRunner;
@@ -95,7 +95,7 @@ public class GoalInfect extends ArenaGoal {
             if (bbreak) {
                 continue;
             }
-            this.arena.getDebugger().i("team empty: " + team.getName());
+            debug(this.arena, "team empty: " + team.getName());
             return true;
         }
         return false;
@@ -295,7 +295,7 @@ public class GoalInfect extends ArenaGoal {
                 return res;
             }
             final int iLives = this.getLifeMap().get(player.getName());
-            this.arena.getDebugger().i("lives before death: " + iLives, player);
+            debug(this.arena, player, "lives before death: " + iLives);
             if (iLives <= 1 && "infected".equals(ArenaPlayer.parsePlayer(player.getName()).getArenaTeam().getName())) {
                 res.setError(this, "0");
             }
@@ -344,16 +344,16 @@ public class GoalInfect extends ArenaGoal {
                 final ArenaPlayer.PlayerPrevention pp = ArenaPlayer.PlayerPrevention.valueOf(args[1].toUpperCase());
                 final boolean has = ArenaPlayer.PlayerPrevention.has(value, pp);
 
-                this.arena.getDebugger().i("plain value: " + value);
-                this.arena.getDebugger().i("checked: " + pp.name());
-                this.arena.getDebugger().i("has: " + has);
+                debug(this.arena, "plain value: " + value);
+                debug(this.arena, "checked: " + pp.name());
+                debug(this.arena, "has: " + has);
 
                 boolean future = !has;
 
                 if (args.length > 2) {
-                    if (StringParser.negative.contains(args[2].toLowerCase())) {
+                    if (StringParser.isNegativeValue(args[2])) {
                         future = false;
-                    } else if (StringParser.positive.contains(args[2].toLowerCase())) {
+                    } else if (StringParser.isPositiveValue(args[2])) {
                         future = true;
                     }
                 }
@@ -394,7 +394,7 @@ public class GoalInfect extends ArenaGoal {
             return;
         }
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[INFECT] already ending");
+            debug(this.arena, "[INFECT] already ending");
             return;
         }
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "");
@@ -443,7 +443,7 @@ public class GoalInfect extends ArenaGoal {
             return;
         }
         int iLives = this.getLifeMap().get(player.getName());
-        this.arena.getDebugger().i("lives before death: " + iLives, player);
+        debug(this.arena, player, "lives before death: " + iLives);
         ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
         if (iLives <= 1 || "infected".equals(aPlayer.getArenaTeam().getName())) {
             if (iLives <= 1 && "infected".equals(aPlayer.getArenaTeam().getName())) {
@@ -454,7 +454,7 @@ public class GoalInfect extends ArenaGoal {
                 // kill, remove!
                 this.getLifeMap().remove(player.getName());
                 if (this.arena.getArenaConfig().getBoolean(CFG.PLAYER_PREVENTDEATH)) {
-                    this.arena.getDebugger().i("faking player death", player);
+                    debug(this.arena, player, "faking player death");
                     PlayerListener.finallyKillPlayer(this.arena, player, event);
                 }
                 return;
@@ -636,9 +636,9 @@ public class GoalInfect extends ArenaGoal {
         final Random random = new Random();
         for (final ArenaTeam team : this.arena.getTeams()) {
             int pos = random.nextInt(team.getTeamMembers().size());
-            this.arena.getDebugger().i("team " + team.getName() + " random " + pos);
+            debug(this.arena, "team " + team.getName() + " random " + pos);
             for (final ArenaPlayer ap : team.getTeamMembers()) {
-                this.arena.getDebugger().i("#" + pos + ": " + ap, ap.getName());
+                debug(this.arena, ap.get(), "#" + pos + ": " + ap);
                 this.getLifeMap().put(ap.getName(),
                         this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_NLIVES));
                 if (pos-- == 0) {

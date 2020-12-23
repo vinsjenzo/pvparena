@@ -10,6 +10,8 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Arena Runnable class "End"</pre>
  * <p/>
@@ -20,7 +22,7 @@ import java.util.List;
  */
 
 public class EndRunnable extends ArenaRunnable {
-//	private final static Debug DEBUG = new Debug(40);
+//	private final static Debugger debug = Debugger.getInstance();
 
     /**
      * create a timed arena runnable
@@ -30,7 +32,7 @@ public class EndRunnable extends ArenaRunnable {
      */
     public EndRunnable(final Arena arena, final int seconds) {
         super(MSG.TIMER_RESETTING_IN.getNode(), seconds, null, arena, false);
-        arena.getDebugger().i("EndRunnable constructor");
+        debug(arena, "EndRunnable constructor");
         if (arena.endRunner != null) {
             arena.endRunner.cancel();
             arena.endRunner = null;
@@ -43,12 +45,12 @@ public class EndRunnable extends ArenaRunnable {
 
     @Override
     protected void commit() {
-        this.arena.getDebugger().i("EndRunnable commiting");
+        debug(this.arena, "EndRunnable commiting");
 
         this.arena.setRound(this.arena.getRound() + 1);
 
         if (this.arena.getRound() >= this.arena.getRoundCount()) {
-            this.arena.getDebugger().i("rounds done!");
+            debug(this.arena, "rounds done!");
 
             this.arena.reset(false);
             if (this.arena.realEndRunner != null) {
@@ -59,7 +61,7 @@ public class EndRunnable extends ArenaRunnable {
                 this.arena.endRunner = null;
             }
         } else {
-            this.arena.getDebugger().i("Starting round #" + this.arena.getRound());
+            debug(this.arena, "Starting round #" + this.arena.getRound());
 
             if (this.arena.realEndRunner != null) {
                 this.arena.realEndRunner = null;

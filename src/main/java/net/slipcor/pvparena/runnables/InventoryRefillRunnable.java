@@ -17,6 +17,8 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Arena Runnable class "Inventory"</pre>
  * <p/>
@@ -76,7 +78,7 @@ public class InventoryRefillRunnable implements Runnable {
     @Override
     public void run() {
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(this.player.getName());
-        this.arena.getDebugger().i("refilling " + this.player.getName());
+        debug(this.arena, "refilling " + this.player.getName());
         if (aPlayer.getStatus() == Status.FIGHT) {
             if (aPlayer.hasCustomClass() && !this.arena.getArenaConfig().getBoolean(CFG.PLAYER_REFILLCUSTOMINVENTORY) || !this.arena.getArenaConfig().getBoolean(CFG.PLAYER_REFILLINVENTORY)) {
                 if (this.refill) {
@@ -95,8 +97,8 @@ public class InventoryRefillRunnable implements Runnable {
                 if (this.arena.getArenaConfig().getBoolean(CFG.USES_WOOLHEAD)) {
                     final ArenaTeam aTeam = aPlayer.getArenaTeam();
                     final ChatColor chatColor = aTeam.getColor();
-                    this.arena.getDebugger().i("forcing woolhead: " + aTeam.getName() + '/'
-                            + chatColor.name(), this.player);
+                    debug(this.arena, this.player, "forcing woolhead: " + aTeam.getName() + '/'
+                                        + chatColor.name());
                     this.player.getInventory().setHelmet(
                             new ItemStack(ColorUtils.getWoolMaterialFromChatColor(chatColor), 1));
                     PVPArena.getInstance().getAgm().refillInventory(this.arena, this.player);
@@ -116,7 +118,7 @@ public class InventoryRefillRunnable implements Runnable {
                 }
             }
         } else {
-            this.arena.getDebugger().i("NOT");
+            debug(this.arena, "NOT");
         }
         this.player.setFireTicks(0);
         try {

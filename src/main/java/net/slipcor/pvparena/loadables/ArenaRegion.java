@@ -8,9 +8,9 @@ import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.commands.PAA_Region;
 import net.slipcor.pvparena.commands.PAG_Join;
+import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.listeners.PlayerListener;
@@ -34,10 +34,10 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 public class ArenaRegion {
 
-    private static final Debug debug = new Debug(34);
     private final String world;
     private Arena arena;
     private String name;
@@ -180,7 +180,7 @@ public class ArenaRegion {
         if (!arena.getArenaConfig().getBoolean(CFG.USES_OVERLAPCHECK)) {
             return true;
         }
-        arena.getDebugger().i("checking regions");
+        debug(arena, "checking regions");
 
         return ArenaManager.checkRegions(arena);
     }
@@ -207,7 +207,7 @@ public class ArenaRegion {
             // - modify mode is active
             // - player has admin perms
             // - player has wand in hand
-            arena.getDebugger().i("modify&adminperms&wand", player);
+            debug(arena, player, "modify&adminperms&wand");
             final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
             if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
                 aPlayer.setSelection(event.getClickedBlock().getLocation(), false);
@@ -611,8 +611,8 @@ public class ArenaRegion {
                 }
 
                 if (!found) {
-                    debug.i("escape due to '!found' #1");
-                    debug.i("location: "+pLoc.toString());
+                    debug("escape due to '!found' #1");
+                    debug("location: {}", pLoc);
                     Arena.pmsg(ap.get(), Language.parse(this.arena, MSG.NOTICE_YOU_ESCAPED));
                     if (this.arena.getArenaConfig().getBoolean(
                             CFG.GENERAL_LEAVEDEATH)) {
@@ -642,9 +642,9 @@ public class ArenaRegion {
                 }
 
                 if (!found) {
-                    debug.i("escape due to '!found' #2");
+                    debug("escape due to '!found' #2");
                     Arena.pmsg(ap.get(), Language.parse(this.arena, MSG.NOTICE_YOU_ESCAPED));
-                    debug.i("location: "+pLoc.toString());
+                    debug("location: {}", pLoc);
                     this.arena.playerLeave(ap.get(), CFG.TP_EXIT, false, false, false);
                 }
             } else if (this.type == RegionType.LOUNGE) {
@@ -653,7 +653,7 @@ public class ArenaRegion {
                     continue;
                 }
 
-                debug.i("LOUNGE TICK");
+                debug("LOUNGE TICK");
                 Set<ArenaRegion> regions = this.arena.getRegionsByType(RegionType.LOUNGE);
 
                 boolean found = false;
@@ -666,9 +666,9 @@ public class ArenaRegion {
                 }
 
                 if (!found) {
-                    debug.i("escape due to '!found' #3");
+                    debug("escape due to '!found' #3");
                     Arena.pmsg(ap.get(), Language.parse(this.arena, MSG.NOTICE_YOU_ESCAPED));
-                    debug.i("location: "+pLoc.toString());
+                    debug("location: {}", pLoc);
                     this.arena.playerLeave(ap.get(), CFG.TP_EXIT, false, false, false);
                 }
             }

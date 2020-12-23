@@ -4,7 +4,6 @@ import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import net.slipcor.pvparena.managers.ArenaManager;
@@ -12,6 +11,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>Arena Module class "RegionTool"</pre>
@@ -24,7 +25,6 @@ import org.bukkit.inventory.EquipmentSlot;
 public class RegionTool extends ArenaModule {
     public RegionTool() {
         super("RegionTool");
-        debug = new Debug(19);
     }
 
     @Override
@@ -53,15 +53,15 @@ public class RegionTool extends ArenaModule {
         }
 
         if (event.getHand().equals(EquipmentSlot.OFF_HAND)) {
-            debug.i("exiting: offhand", event.getPlayer());
+            debug(event.getPlayer(), "exiting: offhand");
             return false;
         }
 
         for (final Arena arena : ArenaManager.getArenas()) {
             if (arena.getArenaConfig().getString(CFG.GENERAL_WAND) != null) {
-                arena.getDebugger().i("reading wand", event.getPlayer());
+                debug(arena, event.getPlayer(), "reading wand");
                 final Material mMat = Material.getMaterial(arena.getArenaConfig().getString(CFG.GENERAL_WAND));
-                arena.getDebugger().i("mMat now is " + mMat.name(), event.getPlayer());
+                debug(arena, event.getPlayer(), "mMat now is " + mMat.name());
 
                 if (event.getPlayer().getEquipment().getItemInMainHand().getType() == mMat) {
                     PABlockLocation loc = new PABlockLocation(event.getPlayer().getLocation());

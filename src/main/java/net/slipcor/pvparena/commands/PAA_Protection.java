@@ -67,14 +67,14 @@ public class PAA_Protection extends AbstractArenaCommand {
             return;
         }
 
-        if (StringParser.positive.contains(args[2].toLowerCase())) {
+        if (StringParser.isPositiveValue(args[2])) {
             region.protectionAdd(regionProtection);
             arena.msg(sender, Language.parse(arena, MSG.REGION_FLAG_ADDED, args[1]));
             region.saveToConfig();
             return;
         }
 
-        if (StringParser.negative.contains(args[2].toLowerCase())) {
+        if (StringParser.isNegativeValue(args[2])) {
             region.protectionRemove(regionProtection);
             arena.msg(sender, Language.parse(arena, MSG.REGION_FLAG_REMOVED, args[1]));
             region.saveToConfig();

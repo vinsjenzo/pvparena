@@ -6,7 +6,6 @@ import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.loadables.ArenaModule;
@@ -17,6 +16,8 @@ import org.bukkit.entity.Player;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>Arena Module class "WarmupJoin"</pre>
@@ -36,7 +37,6 @@ public class WarmupJoin extends ArenaModule {
 
     public WarmupJoin() {
         super("WarmupJoin");
-        debug = new Debug(300);
     }
 
     public static boolean didNotAnnounceYet(Arena arena) {
@@ -79,7 +79,7 @@ public class WarmupJoin extends ArenaModule {
         }
 
         if (aPlayer.getArena() != null) {
-            aPlayer.getArena().getDebugger().i(this.getName(), sender);
+            debug(aPlayer.getArena(), sender, this.getName());
             result.setError(this, Language.parse(this.arena, MSG.ERROR_ARENA_ALREADY_PART_OF, ArenaManager.getIndirectArenaName(aPlayer.getArena())));
             return result;
         }

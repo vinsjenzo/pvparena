@@ -2,7 +2,6 @@ package net.slipcor.pvparena.arena;
 
 import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,6 +16,8 @@ import org.bukkit.util.Vector;
 
 import java.util.Collection;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Arena Player State class</pre>
  * <p/>
@@ -26,8 +27,6 @@ import java.util.Collection;
  */
 
 public final class PlayerState {
-
-    private static final Debug debug = new Debug(7);
 
     private final String name;
 
@@ -49,7 +48,7 @@ public final class PlayerState {
 
     public PlayerState(final Player player) {
         this.name = player.getName();
-        debug.i("creating PlayerState of " + this.name, player);
+        debug(player, "creating PlayerState of " + this.name);
 
         this.fireticks = player.getFireTicks();
         this.foodlevel = player.getFoodLevel();
@@ -82,7 +81,7 @@ public final class PlayerState {
     }
 
     public void dump(final YamlConfiguration cfg) {
-        debug.i("backing up PlayerState of " + this.name, this.name);
+        debug("backing up PlayerState of {}", this.name);
         cfg.set("state.fireticks", this.fireticks);
         cfg.set("state.foodlevel", this.foodlevel);
         cfg.set("state.gamemode", this.gamemode);
@@ -157,7 +156,7 @@ public final class PlayerState {
             PVPArena.getInstance().getAgm().disconnect(aPlayer.getArena(), aPlayer);
             return;
         }
-        debug.i("restoring PlayerState of " + this.name, player);
+        debug(player, "restoring PlayerState of {}", this.name);
 
         player.setFireTicks(this.fireticks);
         player.setFoodLevel(this.foodlevel);
@@ -239,7 +238,7 @@ public final class PlayerState {
      * @param value  the health value
      */
     public static void playersetHealth(final Player player, final double value) {
-        debug.i("setting health to " + value + "/20", player);
+        debug(player, "setting health to " + value + "/20");
         if (Bukkit.getServer().getPluginManager().getPlugin("Heroes") == null) {
             player.setHealth(value);
         }
@@ -251,7 +250,7 @@ public final class PlayerState {
     }
 
     public void reset() {
-        debug.i("clearing PlayerState of " + this.name, this.name);
+        debug("clearing PlayerState of {}", this.name);
         this.fireticks = 0;
         this.foodlevel = 0;
         this.gamemode = 0;
@@ -288,7 +287,7 @@ public final class PlayerState {
     }
 
     public static PlayerState undump(final YamlConfiguration cfg, final String pName) {
-        debug.i("restoring backed up PlayerState of " + pName, pName);
+        debug("restoring backed up PlayerState of {}", pName, pName);
         final PlayerState pState = new PlayerState(Bukkit.getPlayer(pName));
 
         pState.fireticks = cfg.getInt("state.fireticks", 0);

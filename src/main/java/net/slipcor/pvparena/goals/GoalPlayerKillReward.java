@@ -10,7 +10,6 @@ import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.AbstractArenaCommand;
 import net.slipcor.pvparena.commands.CommandTree;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
@@ -32,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
 import static net.slipcor.pvparena.core.Utils.getSerializableItemStacks;
 
 /**
@@ -49,7 +49,6 @@ import static net.slipcor.pvparena.core.Utils.getSerializableItemStacks;
 public class GoalPlayerKillReward extends ArenaGoal {
     public GoalPlayerKillReward() {
         super("PlayerKillReward");
-        this.debug = new Debug(102);
     }
 
     private Map<Integer, ItemStack[][]> itemMapCubed;
@@ -213,7 +212,7 @@ public class GoalPlayerKillReward extends ArenaGoal {
             return;
         }
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[PKW] already ending");
+            debug(this.arena, "[PKW] already ending");
             return;
         }
         final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "");
@@ -313,7 +312,7 @@ public class GoalPlayerKillReward extends ArenaGoal {
         }
 
         int iLives = this.getLifeMap().get(killer.getName());
-        this.arena.getDebugger().i("kills to go for " + killer.getName() + ": " + iLives, killer);
+        debug(this.arena, killer, "kills to go for " + killer.getName() + ": " + iLives);
         if (iLives <= 1) {
             // player has won!
             final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "trigger:" + killer.getName(), "playerKill:" + killer.getName() + ':' + player.getName(), "playerDeath:" + player.getName());
@@ -328,7 +327,7 @@ public class GoalPlayerKillReward extends ArenaGoal {
             for (final ArenaPlayer ap : plrs) {
                 this.getLifeMap().remove(ap.getName());
 				/*
-				arena.getDebugger().i("faking player death", ap.get());
+				arena.debug("faking player death", ap.get());
 				arena.removePlayer(ap.get(), CFG.TP_LOSE.toString(), true,
 						false);*/
 
@@ -441,13 +440,13 @@ public class GoalPlayerKillReward extends ArenaGoal {
                 config.set("teams", null);
             }
             if (config.get("teams") == null) {
-                this.arena.getDebugger().i("no teams defined, adding custom red and blue!");
+                debug(this.arena, "no teams defined, adding custom red and blue!");
                 config.addDefault("teams.red", ChatColor.RED.name());
                 config.addDefault("teams.blue", ChatColor.BLUE.name());
             }
             if (this.arena.getArenaConfig().getBoolean(CFG.GOAL_FLAGS_WOOLFLAGHEAD)
                     && config.get("flagColors") == null) {
-                this.arena.getDebugger().i("no flagheads defined, adding white and black!");
+                debug(this.arena, "no flagheads defined, adding white and black!");
                 config.addDefault("flagColors.red", "WHITE");
                 config.addDefault("flagColors.blue", "BLACK");
             }

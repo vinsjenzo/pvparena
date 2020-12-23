@@ -8,8 +8,8 @@ import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.PAA_Edit;
 import net.slipcor.pvparena.commands.PAA_Setup;
+import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.core.Utils;
@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>
@@ -49,7 +50,6 @@ import static java.util.Arrays.asList;
  */
 
 public class BlockListener implements Listener {
-    private static final Debug DEBUG = new Debug(20);
 
     private boolean willBeSkipped(final Event event, final Location loc, final RegionProtection rp) {
         Arena arena = ArenaManager
@@ -104,10 +104,10 @@ public class BlockListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(final BlockBreakEvent event) {
-        DEBUG.i("onBlockBreak", event.getPlayer());
+        debug(event.getPlayer(), "onBlockBreak");
         if (this.willBeSkipped(event, event.getBlock().getLocation(),
                 RegionProtection.BREAK)) {
-            DEBUG.i("willbeskipped. GFYS!!!!", event.getPlayer());
+            debug(event.getPlayer(), "willbeskipped. GFYS!!!!");
             return;
         }
 
@@ -138,13 +138,13 @@ public class BlockListener implements Listener {
                             Language.parse(arena, MSG.GENERAL_BREAK)));
             // not on whitelist. DENY!
             event.setCancelled(true);
-            DEBUG.i("whitelist out", event.getPlayer());
+            debug(event.getPlayer(), "whitelist out");
             return;
         }
 
         if (isProtected(event.getBlock().getLocation(), event,
                 RegionProtection.BREAK)) {
-            DEBUG.i("isprotected!", event.getPlayer());
+            debug(event.getPlayer(), "isprotected!");
             return;
         }
         list.clear();
@@ -160,18 +160,18 @@ public class BlockListener implements Listener {
                             Language.parse(arena, MSG.GENERAL_BREAK)));
             // on blacklist. DENY!
             event.setCancelled(true);
-            DEBUG.i("blacklist out", event.getPlayer());
+            debug(event.getPlayer(), "blacklist out");
             return;
         }
 
         PACheck res = ArenaGoalManager.checkBreak(arena, event);
 
         if (res.hasError()) {
-            DEBUG.i("onBlockBreak cancelled by goal: " + res.getModName(), event.getPlayer());
+            debug(event.getPlayer(), "onBlockBreak cancelled by goal: " + res.getModName());
             return;
         }
 
-        DEBUG.i("onBlockBreak !!!", event.getPlayer());
+        debug(event.getPlayer(), "onBlockBreak !!!");
 
         ArenaModuleManager.onBlockBreak(arena, event.getBlock());
 
@@ -205,7 +205,7 @@ public class BlockListener implements Listener {
             return;
         }
 
-        arena.getDebugger().i("block block decaying inside the arena");
+        debug(arena, "block block decaying inside the arena");
 
         if (isProtected(event.getBlock().getLocation(), event,
                 RegionProtection.NATURE)) {
@@ -230,7 +230,7 @@ public class BlockListener implements Listener {
             return;
         }
 
-        arena.getDebugger().i("block block fading inside the arena");
+        debug(arena, "block block fading inside the arena");
         if (isProtected(event.getBlock().getLocation(), event,
                 RegionProtection.NATURE)) {
             return;
@@ -255,7 +255,7 @@ public class BlockListener implements Listener {
             return;
         }
 
-        // arena.getDebugger().info("block fluids inside the arena");
+        // arena.debugnfo("block fluids inside the arena");
 
         if (isProtected(block.getLocation(), event, RegionProtection.NATURE)) {
             return;
@@ -290,13 +290,13 @@ public class BlockListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onBlockGrow(final BlockGrowEvent event) {
+    public static void onBlockGrow(final BlockGrowEvent event) {
         Arena arena = ArenaManager.getArenaByProtectedRegionLocation(
                 new PABlockLocation(event.getBlock().getLocation()),
                 RegionProtection.NATURE);
         Block block = event.getBlock();
         if (arena == null) {
-            DEBUG.i("BlockGrowEvent -> no arena");
+            debug("BlockGrowEvent -> no arena");
             return; // no arena => out
         }
         if (isProtected(block.getLocation(), event, RegionProtection.NATURE)) {
@@ -307,7 +307,7 @@ public class BlockListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onBlockGrow(final StructureGrowEvent event) {
+    public static void onBlockGrow(final StructureGrowEvent event) {
         Arena arena = null;
 
         for (final BlockState block : event.getBlocks()) {
@@ -319,7 +319,7 @@ public class BlockListener implements Listener {
         }
 
         if (arena == null) {
-            DEBUG.i("StructureGrowEvent -> no arena");
+            debug("StructureGrowEvent -> no arena");
             return; // no arena => out
         }
         for (final BlockState block : event.getBlocks()) {
@@ -389,7 +389,7 @@ public class BlockListener implements Listener {
         if (arena == null) {
             return; // no arena => out
         }
-        arena.getDebugger().i("block piston extend inside the arena");
+        debug(arena, "block piston extend inside the arena");
         for (final Block block : event.getBlocks()) {
 
             ArenaModuleManager.onBlockPiston(arena, block);
@@ -401,7 +401,7 @@ public class BlockListener implements Listener {
         final Player player = event.getPlayer();
         final Block block = event.getBlock();
 
-        DEBUG.i("BlockPlace", player);
+        debug(player, "BlockPlace");
 
         if (this.willBeSkipped(event, block.getLocation(), RegionProtection.PLACE)) {
             return;
@@ -417,7 +417,7 @@ public class BlockListener implements Listener {
         final Block placedBlock = event.getBlockPlaced();
 
         if (block.getType() == Material.TNT && arena.getArenaConfig().getBoolean(CFG.PLAYER_AUTOIGNITE)) {
-            arena.getDebugger().i("autoignite tnt");
+            debug(arena, "autoignite tnt");
             placedBlock.setType(Material.AIR);
             block.getWorld().spawnEntity(Utils.getCenteredLocation(block.getLocation()), EntityType.PRIMED_TNT);
             return;
@@ -431,7 +431,7 @@ public class BlockListener implements Listener {
         if (!list.isEmpty() && !list.contains(placedBlock.getType().name())) {
             arena.msg(player, Language.parse(arena, MSG.ERROR_WHITELIST_DISALLOWED, Language.parse(arena, MSG.GENERAL_PLACE)));
             event.setCancelled(true);
-            arena.getDebugger().i("not on whitelist. DENY!");
+            debug(arena, "not on whitelist. DENY!");
             return;
         }
 
@@ -441,13 +441,13 @@ public class BlockListener implements Listener {
 
                 ArenaModuleManager.onBlockPlace(arena, block, event.getBlockReplacedState().getType());
                 event.setCancelled(false);
-                arena.getDebugger().i("we do not block TNT, so just return if it is TNT");
+                debug(arena, "we do not block TNT, so just return if it is TNT");
             } else if (arena.isFightInProgress() && !isProtected(block.getLocation(), event, RegionProtection.FIRE)
                     && block.getBlockData() instanceof Fire) {
 
                 ArenaModuleManager.onBlockPlace(arena, block, event.getBlockReplacedState().getType());
                 event.setCancelled(false);
-                arena.getDebugger().i("we do not block FIRE, so just return if it is FIRE");
+                debug(arena, "we do not block FIRE, so just return if it is FIRE");
             }
             return;
         }
@@ -459,17 +459,17 @@ public class BlockListener implements Listener {
         if (list.contains(placedBlock.getType().name())) {
             arena.msg(player, Language.parse(arena, MSG.ERROR_BLACKLIST_DISALLOWED, Language.parse(arena, MSG.GENERAL_PLACE)));
             event.setCancelled(true);
-            arena.getDebugger().i("on blacklist. DENY!");
+            debug(arena, "on blacklist. DENY!");
             return;
         }
 
         PACheck res = ArenaGoalManager.checkPlace(arena, event);
 
         if (res.hasError()) {
-            DEBUG.i("onBlockPlace cancelled by goal: " + res.getModName(), player);
+            debug(player, "onBlockPlace cancelled by goal: " + res.getModName());
             return;
         }
-        arena.getDebugger().i("BlockPlace not cancelled!");
+        debug(arena, "BlockPlace not cancelled!");
 
         ArenaModuleManager.onBlockPlace(arena, block, event.getBlockReplacedState().getType());
     }
@@ -485,7 +485,7 @@ public class BlockListener implements Listener {
                 new PABlockLocation(event.getBlock().getLocation()),
                 RegionProtection.PAINTING);
 
-        DEBUG.i("painting place", event.getPlayer());
+        debug(event.getPlayer(), "painting place");
 
         if (arena == null || isProtected(event.getBlock().getLocation(), event,
                 RegionProtection.PAINTING)) {
@@ -512,9 +512,9 @@ public class BlockListener implements Listener {
             return;
         }
         if (arena == null) {
-            DEBUG.i("painting break inside the arena");
+            debug("painting break inside the arena");
         } else {
-            arena.getDebugger().i("painting break inside the arena");
+            debug(arena, "painting break inside the arena");
         }
         ArenaModuleManager.onPaintingBreak(arena, event.getEntity(), event
                 .getEntity().getType());

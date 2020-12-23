@@ -8,6 +8,8 @@ import net.slipcor.pvparena.core.Config.CFG;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Team Manager class
@@ -28,7 +30,7 @@ public final class TeamManager {
      * @return the team name
      */
     public static String calcFreeTeam(final Arena arena) {
-        arena.getDebugger().i("calculating free team");
+        debug(arena, "calculating free team");
         final Map<String, Integer> counts = new HashMap<>();
 
         // spam the available teams into a map counting the members
@@ -38,7 +40,7 @@ public final class TeamManager {
 
             if (count > 0) {
                 counts.put(team.getName(), count);
-                arena.getDebugger().i("team " + team.getName() + " contains " + count);
+                debug(arena, "team " + team.getName() + " contains " + count);
             }
         }
 
@@ -54,8 +56,8 @@ public final class TeamManager {
         for (final ArenaTeam team : arena.getTeams()) {
             final String teamName = team.getName();
             // check if we are full
-            arena.getDebugger().i("String s: " + teamName + "; max: "
-                    + arena.getArenaConfig().getInt(CFG.READY_MAXPLAYERS));
+            debug(arena, "String s: " + teamName + "; max: "
+                        + arena.getArenaConfig().getInt(CFG.READY_MAXPLAYERS));
             if (counts.get(teamName) < arena.getArenaConfig().getInt(
                     CFG.READY_MAXPLAYERS)
                     || arena.getArenaConfig().getInt(CFG.READY_MAXPLAYERS) == 0) {
@@ -114,18 +116,18 @@ public final class TeamManager {
      * @return true if teams have the same amount of players, false otherwise
      */
     public static boolean checkEven(final Arena arena) {
-        arena.getDebugger().i("checking if teams are even");
+        debug(arena, "checking if teams are even");
         final Map<String, Integer> counts = new HashMap<>();
 
         // count each team members
 
         for (final ArenaTeam team : arena.getTeams()) {
-            arena.getDebugger().i(team.getName() + ": " + team.getTeamMembers().size());
+            debug(arena, team.getName() + ": " + team.getTeamMembers().size());
             counts.put(team.getName(), team.getTeamMembers().size());
         }
 
         if (counts.size() < 1) {
-            arena.getDebugger().i("noone in there");
+            debug(arena, "noone in there");
             return false; // noone there => not even
         }
 
@@ -136,11 +138,11 @@ public final class TeamManager {
                 continue;
             }
             if (temp != i) {
-                arena.getDebugger().i("NOT EVEN");
+                debug(arena, "NOT EVEN");
                 return false; // different count => not even
             }
         }
-        arena.getDebugger().i("EVEN");
+        debug(arena, "EVEN");
         return true; // every team has the same player count!
     }
 
@@ -150,7 +152,7 @@ public final class TeamManager {
      * @return the number of teams that have active players
      */
     public static int countActiveTeams(final Arena arena) {
-        arena.getDebugger().i("counting active teams");
+        debug(arena, "counting active teams");
 
         final Set<String> activeteams = new HashSet<>();
         for (final ArenaTeam team : arena.getTeams()) {
@@ -161,7 +163,7 @@ public final class TeamManager {
                 }
             }
         }
-        arena.getDebugger().i("result: " + activeteams.size());
+        debug(arena, "result: " + activeteams.size());
         return activeteams.size();
     }
 
@@ -175,7 +177,7 @@ public final class TeamManager {
         for (final ArenaTeam team : arena.getTeams()) {
             result += team.getTeamMembers().size();
         }
-        arena.getDebugger().i("players having a team: " + result);
+        debug(arena, "players having a team: " + result);
         return result;
     }
 
@@ -186,20 +188,20 @@ public final class TeamManager {
      * @return one empty team name
      */
     private static String returnEmptyTeam(final Arena arena, final Set<String> set) {
-        arena.getDebugger().i("choosing an empty team");
+        debug(arena, "choosing an empty team");
         final Set<String> empty = new HashSet<>();
         for (final ArenaTeam team : arena.getTeams()) {
             final String teamName = team.getName();
-            arena.getDebugger().i("team: " + teamName);
+            debug(arena, "team: " + teamName);
             if (set.contains(teamName)) {
                 continue;
             }
             empty.add(teamName);
         }
-        arena.getDebugger().i("empty.size: " + empty.size());
+        debug(arena, "empty.size: " + empty.size());
         if (empty.size() == 1) {
             for (final String s : empty) {
-                arena.getDebugger().i("return: " + s);
+                debug(arena, "return: " + s);
                 return s;
             }
         }

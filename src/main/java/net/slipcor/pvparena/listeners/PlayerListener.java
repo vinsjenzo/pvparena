@@ -13,7 +13,6 @@ import net.slipcor.pvparena.commands.PAA_Setup;
 import net.slipcor.pvparena.commands.PAG_Arenaclass;
 import net.slipcor.pvparena.commands.PAG_Leave;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
@@ -47,6 +46,7 @@ import org.bukkit.plugin.IllegalPluginAccessException;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>
@@ -58,7 +58,6 @@ import static java.util.Arrays.asList;
  */
 
 public class PlayerListener implements Listener {
-    private static final Debug DEBUG = new Debug(23);
 
     private boolean checkAndCommitCancel(final Arena arena, final Player player,
                                          final Cancellable event) {
@@ -75,15 +74,15 @@ public class PlayerListener implements Listener {
         final Material check = arena == null ? Material.IRON_BLOCK : arena.getReadyBlock();
 
         if (block != null && (block.getState() instanceof Sign || block.getType() == check)) {
-            DEBUG.i("signs and ready blocks allowed!", player);
-            DEBUG.i("> false", player);
+            debug(player, "signs and ready blocks allowed!");
+            debug(player, "> false");
             return false;
         }
 
-        DEBUG.i("checkAndCommitCancel", player);
+        debug(player, "checkAndCommitCancel");
         if (arena == null || player.hasPermission("pvparena.admin")) {
-            DEBUG.i("no arena or admin", player);
-            DEBUG.i("> false", player);
+            debug(player, "no arena or admin");
+            debug(player, "> false");
             return false;
         }
 
@@ -99,8 +98,8 @@ public class PlayerListener implements Listener {
         }
 
         if (!arena.isFightInProgress()) {
-            arena.getDebugger().i("arena != null and fight not in progress => cancel", player);
-            arena.getDebugger().i("> true", player);
+            debug(arena, player, "arena != null and fight not in progress => cancel");
+            debug(arena, player, "> true");
 
             PACheck.handleInteract(arena, player, pie, pie.getClickedBlock());
             event.setCancelled(true);
@@ -108,26 +107,26 @@ public class PlayerListener implements Listener {
         }
 
         if (aPlayer.getStatus() != Status.FIGHT) {
-            DEBUG.i("not fighting => cancel", player);
-            DEBUG.i("> true", player);
+            debug(player, "not fighting => cancel");
+            debug(player, "> true");
             event.setCancelled(true);
             return true;
         }
 
-        DEBUG.i("> false", player);
+        debug(player, "> false");
         return false;
     }
 
-    private boolean willBeCancelled(final Player player, final Cancellable event) {
+    private static boolean willBeCancelled(final Player player, final Cancellable event) {
         if (event instanceof PlayerInteractEvent) {
             PlayerInteractEvent e = (PlayerInteractEvent) event;
             if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-                DEBUG.i("Allowing right click interact", player);
+                debug(player, "Allowing right click interact");
                 return false;
             }
         }
         if (ArenaPlayer.parsePlayer(player.getName()).getStatus() == Status.LOST) {
-            DEBUG.i("cancelling because LOST", player);
+            debug(player, "cancelling because LOST");
             event.setCancelled(true);
             return true;
         }
@@ -160,7 +159,7 @@ public class PlayerListener implements Listener {
             }
             return; // no fighting player => OUT
         }
-        arena.getDebugger().i("fighting player chatting!", player);
+        debug(arena, player, "fighting player chatting!");
         final String sTeam = team.getName();
 
         if (!arena.getArenaConfig().getBoolean(CFG.CHAT_ONLYPRIVATE)) {
@@ -220,7 +219,7 @@ public class PlayerListener implements Listener {
                 "whitelist");
         list.add("pa");
         list.add("pvparena");
-        arena.getDebugger().i("checking command whitelist", player);
+        debug(arena, player, "checking command whitelist");
 
         boolean wildcard = PVPArena.getInstance().getConfig().getBoolean("whitelist_wildcard", false);
 
@@ -228,7 +227,7 @@ public class PlayerListener implements Listener {
             if ("*".equals(s) ||
                     ((wildcard || s.endsWith(" ")) && event.getMessage().toLowerCase().startsWith('/' + s)) ||
                     (!wildcard && event.getMessage().toLowerCase().startsWith('/' + s +' '))) {
-                arena.getDebugger().i("command allowed: " + s, player);
+                debug(arena, player, "command allowed: " + s);
                 return;
             }
         }
@@ -246,23 +245,23 @@ public class PlayerListener implements Listener {
 
         list.add("pa");
         list.add("pvparena");
-        arena.getDebugger().i("checking command whitelist", player);
+        debug(arena, player, "checking command whitelist");
 
         for (final String s : list) {
             if (event.getMessage().toLowerCase().startsWith('/' + s)) {
-                arena.getDebugger().i("command allowed: " + s, player);
+                debug(arena, player, "command allowed: " + s);
                 return;
             }
         }
 
-        arena.getDebugger().i("command blocked: " + event.getMessage(), player);
+        debug(arena, player, "command blocked: " + event.getMessage());
         arena.msg(player,
                 Language.parse(arena, MSG.ERROR_COMMAND_BLOCKED, event.getMessage()));
         event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onPlayerCraft(final CraftItemEvent event) {
+    public static void onPlayerCraft(final CraftItemEvent event) {
 
         final Player player = (Player) event.getWhoClicked();
 
@@ -275,7 +274,7 @@ public class PlayerListener implements Listener {
         PACheck res = ArenaGoalManager.checkCraft(arena, event);
 
         if (res.hasError()) {
-            DEBUG.i("onPlayerCraft cancelled by goal: " + res.getModName(), player);
+            debug(player, "onPlayerCraft cancelled by goal: " + res.getModName());
             return;
         }
 
@@ -284,7 +283,7 @@ public class PlayerListener implements Listener {
             return; // no craft protection
         }
 
-        arena.getDebugger().i("onCraftItemEvent: fighting player", player);
+        debug(arena, player, "onCraftItemEvent: fighting player");
         event.setCancelled(true);
     }
 
@@ -311,7 +310,7 @@ public class PlayerListener implements Listener {
         PACheck res = ArenaGoalManager.checkDrop(arena, event);
 
         if (res.hasError()) {
-            DEBUG.i("onPlayerDropItem cancelled by goal: " + res.getModName(), player);
+            debug(player, "onPlayerDropItem cancelled by goal: " + res.getModName());
             return;
         }
 
@@ -321,11 +320,11 @@ public class PlayerListener implements Listener {
         }
 
         if (Bukkit.getPlayer(player.getName()) == null || aPlayer.getStatus() == Status.DEAD || aPlayer.getStatus() == Status.LOST) {
-            arena.getDebugger().i("Player is dead. allowing drops!");
+            debug(arena, "Player is dead. allowing drops!");
             return;
         }
 
-        arena.getDebugger().i("onPlayerDropItem: fighting player", player);
+        debug(arena, player, "onPlayerDropItem: fighting player");
         arena.msg(player, Language.parse(arena, MSG.NOTICE_NO_DROP_ITEM));
         event.setCancelled(true);
         // cancel the drop event for fighting players, with message
@@ -453,25 +452,25 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerInteract(final PlayerInteractEvent event) {
         final Player player = event.getPlayer();
-        DEBUG.i("onPlayerInteract", player);
+        debug(player, "onPlayerInteract");
 
         if (event.getAction() == Action.PHYSICAL) {
-            DEBUG.i("returning: physical", player);
+            debug(player, "returning: physical");
             return;
         }
 
         if (event.getHand().equals(EquipmentSlot.OFF_HAND)) {
-            DEBUG.i("exiting: offhand", player);
+            debug(player, "exiting: offhand");
             return;
         }
 
-        DEBUG.i("event pre cancelled: " + event.isCancelled(),
-                player);
+        debug(player, "event pre cancelled: " + event.isCancelled()
+        );
 
         Arena arena = null;
 
         if (event.hasBlock()) {
-            DEBUG.i("block: " + event.getClickedBlock().getType().name(), player);
+            debug(player, "block: " + event.getClickedBlock().getType().name());
 
             arena = ArenaManager.getArenaByRegionLocation(new PABlockLocation(
                     event.getClickedBlock().getLocation()));
@@ -484,32 +483,31 @@ public class PlayerListener implements Listener {
         }
 
         if (arena != null && ArenaModuleManager.onPlayerInteract(arena, event)) {
-            DEBUG.i("returning: #1", player);
+            debug(player, "returning: #1");
             return;
         }
 
         if (PACheck.handleSetFlag(player, event.getClickedBlock())) {
-            DEBUG.i("returning: #2", player);
+            debug(player, "returning: #2");
             event.setCancelled(true);
             return;
         }
 
         if (ArenaRegion.checkRegionSetPosition(event, player)) {
-            DEBUG.i("returning: #3", player);
+            debug(player, "returning: #3");
             return;
         }
 
         arena = ArenaPlayer.parsePlayer(player.getName()).getArena();
         if (arena == null) {
-            DEBUG.i("returning: #4", player);
+            debug(player, "returning: #4");
             ArenaManager.trySignJoin(event, player);
             return;
         }
 
         PACheck.handleInteract(arena, player, event, event.getClickedBlock());
 
-        arena.getDebugger().i("event post cancelled: " + event.isCancelled(),
-                player);
+        debug(arena, player, "event post cancelled: " + event.isCancelled());
 
         //TODO: seriously, why?
         final boolean whyMe = arena.isFightInProgress()
@@ -520,20 +518,21 @@ public class PlayerListener implements Listener {
 
         if (aPlayer.getStatus() == Status.WATCH &&
                 arena.getArenaConfig().getBoolean(CFG.PERMS_SPECINTERACT)) {
-            arena.getDebugger().i("allowing spectator interaction due to config setting!");
+            debug(arena, "allowing spectator interaction due to config setting!");
             return;
         }
 
         if (aPlayer.getStatus() != Status.FIGHT) {
             if (whyMe) {
-                arena.getDebugger().i("exiting! fight in progress AND no INBATTLEJOIN arena!", player); return;
+                debug(arena, player, "exiting! fight in progress AND no INBATTLEJOIN arena!");
+                return;
             }
             if (asList(Status.LOUNGE, Status.READY).contains(aPlayer.getStatus()) &&
                     arena.getArenaConfig().getBoolean(CFG.PERMS_LOUNGEINTERACT)) {
-                arena.getDebugger().i("allowing lounge interaction due to config setting!");
+                debug(arena, "allowing lounge interaction due to config setting!");
                 event.setCancelled(false);
             } else if (aPlayer.getStatus() != Status.LOUNGE && aPlayer.getStatus() != Status.READY) {
-                arena.getDebugger().i("cancelling: not fighting nor in the lounge", player);
+                debug(arena, player, "cancelling: not fighting nor in the lounge");
                 event.setCancelled(true);
             } else if (aPlayer.getArena() != null && team != null) {
                 // fighting player inside the lobby!
@@ -542,16 +541,16 @@ public class PlayerListener implements Listener {
         }
 
         if (team == null) {
-            arena.getDebugger().i("returning: no team", player);
+            debug(arena, player, "returning: no team");
             return;
         }
 
         if (event.getAction() == Action.LEFT_CLICK_BLOCK ||
                 event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             final Block block = event.getClickedBlock();
-            arena.getDebugger().i("player team: " + team.getName(), player);
+            debug(arena, player, "player team: " + team.getName());
             if (block.getState() instanceof Sign) {
-                arena.getDebugger().i("sign click!", player);
+                debug(arena, player, "sign click!");
                 final Sign sign = (Sign) block.getState();
 
                 if ("custom".equalsIgnoreCase(sign.getLine(0)) || arena
@@ -563,31 +562,30 @@ public class PlayerListener implements Listener {
                         arena.chooseClass(player, sign, sign.getLine(0));
                     }
                 } else {
-                    arena.getDebugger().i('|' + sign.getLine(0) + '|', player);
-                    arena.getDebugger().i(String.valueOf(arena.getClass(sign.getLine(0))),
-                            player);
-                    arena.getDebugger().i(String.valueOf(team), player);
+                    debug(arena, player, '|' + sign.getLine(0) + '|');
+                    debug(arena, player, arena.getClass(sign.getLine(0)));
+                    debug(arena, player, team);
 
                     if (whyMe) {
-                        arena.getDebugger().i("exiting! fight in progress AND no INBATTLEJOIN arena!", player);
+                        debug(arena, player, "exiting! fight in progress AND no INBATTLEJOIN arena!");
                     }
                 }
                 return;
             }
 
             if (whyMe) {
-                arena.getDebugger().i("exiting! fight in progress AND no INBATTLEJOIN arena!", player);
+                debug(arena, player, "exiting! fight in progress AND no INBATTLEJOIN arena!");
                 return;
             }
-            arena.getDebugger().i("block click!", player);
+            debug(arena, player, "block click!");
 
             final Material mMat = arena.getReadyBlock();
-            arena.getDebugger().i("clicked " + block.getType().name() + ", is it " + mMat.name()
-                    + '?', player);
+            debug(arena, player, "clicked " + block.getType().name() + ", is it " + mMat.name()
+                        + '?');
             if (block.getType() == mMat) {
-                arena.getDebugger().i("clicked ready block!", player);
+                debug(arena, player, "clicked ready block!");
                 if (event.getHand() == EquipmentSlot.OFF_HAND) {
-                    arena.getDebugger().i("out: offhand!", player);
+                    debug(arena, player, "out: offhand!");
                     return; // double event
                 }
                 if (aPlayer.getArenaClass() == null || aPlayer.getArenaClass().getName() != null && aPlayer.getArenaClass().getName().isEmpty()) {
@@ -601,7 +599,7 @@ public class PlayerListener implements Listener {
                     return;
                 }
                 event.setCancelled(true);
-                arena.getDebugger().i("Cancelled ready block click event to prevent itemstack consumation");
+                debug(arena, "Cancelled ready block click event to prevent itemstack consumation");
                 Bukkit.getScheduler().runTaskLater(PVPArena.getInstance(), new Runnable() {
                     @Override
                     public void run() {
@@ -610,9 +608,10 @@ public class PlayerListener implements Listener {
                 }, 1L);
                 final boolean alreadyReady = aPlayer.getStatus() == Status.READY;
 
-                arena.getDebugger().i("===============", player);
-                arena.getDebugger().i("===== class: " + (aPlayer.getArenaClass() == null ? "null" : aPlayer.getArenaClass().getName()) + " =====", player);
-                arena.getDebugger().i("===============", player);
+                debug(arena, player, "===============");
+                String msg = "===== class: " + (aPlayer.getArenaClass() == null ? "null" : aPlayer.getArenaClass().getName()) + " =====";
+                debug(arena, player, msg);
+                debug(arena, player, "===============");
 
                 if (!arena.isFightInProgress()) {
                     if (aPlayer.getStatus() != Status.READY) {
@@ -735,7 +734,7 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onPlayerJoin(final PlayerJoinEvent event) {
+    public static void onPlayerJoin(final PlayerJoinEvent event) {
         final Player player = event.getPlayer();
 
         if (player.isDead()) {
@@ -756,7 +755,7 @@ public class PlayerListener implements Listener {
             arena.playerLeave(player, CFG.TP_EXIT, true, true, false);
         }
 
-        DEBUG.i("OP joins the game", player);
+        debug(player, "OP joins the game");
         if (player.isOp() && PVPArena.getInstance().getUpdateChecker() != null) {
             PVPArena.getInstance().getUpdateChecker().displayMessage(player);
         }
@@ -783,7 +782,7 @@ public class PlayerListener implements Listener {
 
         if (aPlayer.getArena() != null && aPlayer.getStatus() == Status.FIGHT) {
             Arena arena = aPlayer.getArena();
-            arena.getDebugger().i("Trying to override a rogue RespawnEvent!");
+            debug(arena, "Trying to override a rogue RespawnEvent!");
         }
 
         aPlayer.debugPrint();
@@ -813,7 +812,7 @@ public class PlayerListener implements Listener {
             PACheck res = ArenaGoalManager.checkPickup(arena, event);
 
             if (res.hasError()) {
-                DEBUG.i("onPlayerPickupItem cancelled by goal: " + res.getModName(), player);
+                debug(player, "onPlayerPickupItem cancelled by goal: " + res.getModName());
                 return;
             }
         }
@@ -868,8 +867,8 @@ public class PlayerListener implements Listener {
             }
         }
 
-        arena.getDebugger().i("onPlayerTeleport: fighting player '"
-                + event.getPlayer().getName() + "' (uncancel)", player);
+        debug(arena, player, "onPlayerTeleport: fighting player '"
+                + event.getPlayer().getName() + "' (uncancel)");
         event.setCancelled(false); // fighting player - first recon NOT to
         // cancel!
 
@@ -877,11 +876,11 @@ public class PlayerListener implements Listener {
             return; // ignore spectators
         }
 
-        arena.getDebugger().i("aimed location: " + event.getTo(), player);
+        debug(arena, player, "aimed location: " + event.getTo());
 
 
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL && ArenaPlayer.parsePlayer(player.getName()).getStatus() != Status.FIGHT) {
-            arena.getDebugger().i("onPlayerTeleport: ender pearl when not fighting, cancelling!", player);
+            debug(arena, player, "onPlayerTeleport: ender pearl when not fighting, cancelling!");
             event.setCancelled(true); // cancel and out
             return;
         }
@@ -893,7 +892,7 @@ public class PlayerListener implements Listener {
 
             return; // if allowed => OUT
         }
-        arena.getDebugger().i("telepass: no!!", player);
+        debug(arena, player, "telepass: no!!");
 
         final Set<ArenaRegion> regions = arena
                 .getRegionsByType(RegionType.BATTLE);
@@ -917,7 +916,7 @@ public class PlayerListener implements Listener {
             }
         }
 
-        arena.getDebugger().i("onPlayerTeleport: no tele pass, cancelling!", player);
+        debug(arena, player, "onPlayerTeleport: no tele pass, cancelling!");
         event.setCancelled(true); // cancel and tell
         arena.msg(player, Language.parse(arena, MSG.NOTICE_NO_TELEPORT));
     }

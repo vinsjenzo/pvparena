@@ -3,6 +3,7 @@ package net.slipcor.pvparena.arena;
 import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.classes.*;
+import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.*;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language.MSG;
@@ -47,6 +48,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
+import static net.slipcor.pvparena.config.Debugger.*;
 
 /**
  * <pre>
@@ -61,8 +63,7 @@ import static java.util.Optional.ofNullable;
 
 public class Arena {
 
-    private static Debug DEBUG = new Debug(3);
-    private Debug debug;
+    private Debugger debug;
     private final Set<ArenaClass> classes = new HashSet<>();
     private final Set<ArenaGoal> goals = new HashSet<>();
     private final Set<ArenaModule> mods = new HashSet<>();
@@ -107,7 +108,7 @@ public class Arena {
     public Arena(final String name) {
         this.name = name;
 
-        this.getDebugger().i("loading Arena " + name);
+        debug(this, "loading Arena " + name);
         final File file = new File(PVPArena.getInstance().getDataFolder().getPath()
                 + "/arenas/" + name + ".yml");
         if (!file.exists()) {
@@ -161,13 +162,13 @@ public class Arena {
     }
 
     public boolean addCustomScoreBoardEntry(final ArenaModule module, final String key, final int value) {
-        this.debug.i("module "+module+" tries to set custom scoreboard value '"+key+"' to score "+value);
+        debug("module "+module+" tries to set custom scoreboard value '"+key+"' to score "+value);
         if (key == null || key.isEmpty()) {
-            this.debug.i("empty -> remove");
+            debug("empty -> remove");
             return this.removeCustomScoreBoardEntry(module, value);
         }
         if (this.scoreboard == null) {
-            this.debug.i("scoreboard is not setup!");
+            debug("scoreboard is not setup!");
             return false;
         }
         try {
@@ -220,7 +221,7 @@ public class Arena {
 
     public void addRegion(final ArenaRegion region) {
         this.regions.add(region);
-        this.getDebugger().i("loading region: " + region.getRegionName());
+        debug(this, "loading region: " + region.getRegionName());
         if (region.getType() == RegionType.JOIN) {
             if (this.cfg.getBoolean(CFG.JOIN_FORCE)) {
                 region.initTimer();
@@ -231,7 +232,7 @@ public class Arena {
     }
 
     public void broadcast(final String msg) {
-        this.getDebugger().i("@all: " + msg);
+        debug(this, "@all: " + msg);
         final Set<ArenaPlayer> players = this.getEveryone();
         for (final ArenaPlayer p : players) {
             if (p.getArena() == null || !p.getArena().equals(this)) {
@@ -263,7 +264,7 @@ public class Arena {
      * @param msg    the message to send
      */
     public void broadcastExcept(final CommandSender sender, final String msg) {
-        this.getDebugger().i("@all/" + sender.getName() + ": " + msg, sender);
+        debug(this, sender, "@all/" + sender.getName() + ": " + msg);
         final Set<ArenaPlayer> players = this.getEveryone();
         for (final ArenaPlayer p : players) {
             if (p.getArena() == null || !p.getArena().equals(this)) {
@@ -278,9 +279,9 @@ public class Arena {
 
     public void chooseClass(final Player player, final Sign sign, final String className) {
 
-        this.getDebugger().i("choosing player class", player);
+        debug(this, player, "choosing player class");
 
-        this.getDebugger().i("checking class perms", player);
+        debug(this, player, "checking class perms");
         if (this.cfg.getBoolean(CFG.PERMS_EXPLICITCLASS)
                 && !player.hasPermission("pvparena.class." + className)) {
             this.msg(player,
@@ -371,7 +372,7 @@ public class Arena {
                 }
             }
         }
-        this.getDebugger().i("counting ready players: " + sum);
+        debug(this, "counting ready players: " + sum);
         return sum;
     }
 
@@ -394,13 +395,6 @@ public class Arena {
 
     public Set<ArenaClass> getClasses() {
         return this.classes;
-    }
-
-    public Debug getDebugger() {
-        if (this.debug == null) {
-            this.debug = new Debug(this);
-        }
-        return this.debug;
     }
 
     public Player getEntityOwner(final Entity entity) {
@@ -484,10 +478,10 @@ public class Arena {
     }
 
     public Material getReadyBlock() {
-        this.getDebugger().i("reading ready block");
+        debug(this, "reading ready block");
         try {
             Material mMat = this.cfg.getMaterial(CFG.READY_BLOCK, Material.STICK);
-            this.getDebugger().i("mMat now is " + mMat.name());
+            debug(this, "mMat now is " + mMat.name());
             return mMat;
         } catch (final Exception e) {
             Language.logWarn(MSG.ERROR_MAT_NOT_FOUND, "ready block");
@@ -657,7 +651,7 @@ public class Arena {
             return;
         }
 
-        this.getDebugger().i("giving rewards to " + player.getName(), player);
+        debug(this, player, "giving rewards to " + player.getName());
 
         ArenaModuleManager.giveRewards(this, player);
         ItemStack[] items = this.cfg.getItems(CFG.ITEMS_REWARDS);
@@ -669,7 +663,7 @@ public class Arena {
         Bukkit.getPluginManager().callEvent(dEvent);
         items = dEvent.getItems();
 
-        this.getDebugger().i("start " + this.startCount + " - minplayers: " + this.cfg.getInt(CFG.ITEMS_MINPLAYERS), player);
+        debug(this, player, "start " + this.startCount + " - minplayers: " + this.cfg.getInt(CFG.ITEMS_MINPLAYERS));
 
         if (items == null || items.length < 1
                 || this.cfg.getInt(CFG.ITEMS_MINPLAYERS) > this.startCount) {
@@ -830,7 +824,7 @@ public class Arena {
                 " ".equals(msg)) {
             return;
         }
-        this.getDebugger().i('@' + sender.getName() + ": " + msg);
+        debug(this, '@' + sender.getName() + ": " + msg);
 
         sender.sendMessage(Language.parse(this, MSG.MESSAGES_GENERAL, this.prefix, msg));
     }
@@ -850,9 +844,9 @@ public class Arena {
             return Language.parse(this, MSG.DEATHCAUSE_CUSTOM);
         }
 
-        this.getDebugger().i("return a damage name for : " + cause.toString(), player);
+        debug(this, player, "return a damage name for : " + cause.toString());
 
-        this.getDebugger().i("damager: " + damager, player);
+        debug(this, player, "damager: " + damager);
 
         ArenaPlayer aPlayer = null;
         ArenaTeam team = null;
@@ -871,9 +865,9 @@ public class Arena {
                 }
 
                 try {
-                    this.getDebugger().i("last damager: "
-                            + ((EntityDamageByEntityEvent) lastDamageCause)
-                            .getDamager().getType(), player);
+                    debug(this, player, "last damager: "
+                                        + ((EntityDamageByEntityEvent) lastDamageCause)
+                                        .getDamager().getType());
                     return Language.parse(this, MSG.getByName("DEATHCAUSE_"
                             + ((EntityDamageByEntityEvent) lastDamageCause)
                             .getDamager().getType().name()));
@@ -883,9 +877,9 @@ public class Arena {
                 }
             case ENTITY_EXPLOSION:
                 try {
-                    this.getDebugger().i("last damager: "
-                            + ((EntityDamageByEntityEvent) lastDamageCause)
-                            .getDamager().getType(), player);
+                    debug(this, player, "last damager: "
+                                        + ((EntityDamageByEntityEvent) lastDamageCause)
+                                        .getDamager().getType());
                     return Language.parse(this, MSG.getByName("DEATHCAUSE_"
                             + ((EntityDamageByEntityEvent) lastDamageCause)
                             .getDamager().getType().name()));
@@ -904,8 +898,8 @@ public class Arena {
 
                     final LivingEntity lEntity = (LivingEntity) source;
 
-                    this.getDebugger().i("last damager: "
-                            + lEntity.getType(), player);
+                    debug(this, player, "last damager: "
+                                        + lEntity.getType());
 
                     return Language
                             .parse(this, MSG
@@ -931,7 +925,7 @@ public class Arena {
                 " ".equals(msg)) {
             return;
         }
-        DEBUG.i('@' + sender.getName() + ": " + msg, sender);
+        debug(sender, '@' + sender.getName() + ": " + msg);
         sender.sendMessage(Language.parse(MSG.MESSAGES_GENERAL, PVPArena.getInstance().getConfig().getString("globalPrefix", "PVP Arena"), msg));
     }
 
@@ -953,7 +947,7 @@ public class Arena {
             this.startCount--;
             this.playedPlayers.remove(player.getName());
         }
-        this.getDebugger().i("fully removing player from arena", player);
+        debug(this, player, "fully removing player from arena");
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
         if (!silent) {
 
@@ -997,7 +991,7 @@ public class Arena {
      * @return null if ok, error message otherwise
      */
     public String ready() {
-        this.getDebugger().i("ready check !!");
+        debug(this, "ready check !!");
 
         final int players = TeamManager.countPlayersInTeams(this);
         if (players < 2) {
@@ -1051,10 +1045,10 @@ public class Arena {
                 if (p.get() == null) {
                     continue;
                 }
-                this.getDebugger().i("checking class: " + p.get().getName(), p.get());
+                debug(this, p.get(), "checking class: " + p.get().getName());
 
                 if (p.getArenaClass() == null) {
-                    this.getDebugger().i("player has no class", p.get());
+                    debug(this, p.get(), "player has no class");
 
 
                     final String autoClass =
@@ -1078,7 +1072,7 @@ public class Arena {
 
         if (players > readyPlayers) {
             final double ratio = this.cfg.getDouble(CFG.READY_NEEDEDRATIO);
-            this.getDebugger().i("ratio: " + ratio);
+            debug(this, "ratio: " + ratio);
             if (ratio > 0) {
                 final double aRatio = ((double) readyPlayers)
                         / players;
@@ -1156,8 +1150,9 @@ public class Arena {
      */
     public void removePlayer(final Player player, final String tploc, final boolean soft,
                              final boolean force) {
-        this.getDebugger().i("removing player " + player.getName() + (soft ? " (soft)" : "")
-                + ", tp to " + tploc, player);
+        String msg = "removing player " + player.getName() + (soft ? " (soft)" : "")
+                + ", tp to " + tploc;
+        debug(this, player, msg);
         this.resetPlayer(player, tploc, soft, force);
 
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
@@ -1177,33 +1172,26 @@ public class Arena {
         player.setNoDamageTicks(60);
     }
 
-    public void renewDebugger() {
-        this.debug = null;
-        this.debug = new Debug(this);
-        DEBUG = null;
-        DEBUG = new Debug(3);
-    }
-
     /**
      * reset an arena
      *
      * @param force enforce it
      */
     public void resetPlayers(final boolean force) {
-        this.getDebugger().i("resetting player manager");
+        debug(this, "resetting player manager");
         final Set<ArenaPlayer> players = new HashSet<>();
         for (final ArenaTeam team : this.teams) {
             for (final ArenaPlayer p : team.getTeamMembers()) {
-                this.getDebugger().i("player: " + p.getName(), p.get());
+                debug(this, p.get(), "player: " + p.getName());
                 if (p.getArena() == null || !p.getArena().equals(this)) {
                     /*
 					if (p.getArenaTeam() != null) {
 						p.getArenaTeam().remove(p);
 						getDebugger().info("> removed", p.get());
 					}*/
-                    this.getDebugger().i("> skipped", p.get());
+                    debug(this, p.get(), "> skipped");
                 } else {
-                    this.getDebugger().i("> added", p.get());
+                    debug(this, p.get(), "> added");
                     players.add(p);
                 }
             }
@@ -1283,7 +1271,8 @@ public class Arena {
 
     private void resetScoreboard(final Player player, final boolean force, final boolean soft) {
         if (this.getArenaConfig().getBoolean(CFG.USES_SCOREBOARD)) {
-            this.getDebugger().i("ScoreBoards: "+(soft?"(soft) ":"")+"remove: " + player.getName(), player);
+            String msg = "ScoreBoards: "+(soft?"(soft) ":"")+"remove: " + player.getName();
+            debug(this, player, msg);
             try {
                 if (this.scoreboard != null) {
                     for (final Team team : this.scoreboard.getTeams()) {
@@ -1297,13 +1286,13 @@ public class Arena {
                         }
                     }
                 } else {
-                    this.getDebugger().i("ScoreBoards: scoreboard is null!");
+                    debug(this, "ScoreBoards: scoreboard is null!");
                     return;
                 }
 
                 final ArenaPlayer ap = ArenaPlayer.parsePlayer(player.getName());
                 if (ap.hasBackupScoreboard()) {
-                    this.getDebugger().i("ScoreBoards: restoring " + ap.get());
+                    debug(this, "ScoreBoards: restoring " + ap.get());
 
                     class RunLater extends BukkitRunnable {
                         @Override
@@ -1359,9 +1348,9 @@ public class Arena {
     }
 
     private void giveRewardsLater(final ArenaTeam arenaTeam) {
-        this.debug.i("Giving rewards to the whole team!");
+        debug("Giving rewards to the whole team!");
         if (arenaTeam == null) {
-            this.debug.i("team is null");
+            debug("team is null");
             return; // this one failed. try next time...
         }
 
@@ -1375,13 +1364,13 @@ public class Arena {
                     false, false);
             ap.reset();
         }
-        this.debug.i("Giving rewards to team " + arenaTeam.getName() + '!');
+        debug("Giving rewards to team " + arenaTeam.getName() + '!');
 
         Bukkit.getScheduler().runTaskLater(PVPArena.getInstance(), new Runnable(){
             @Override
             public void run() {
                 for (final ArenaPlayer ap : players) {
-                    Arena.this.debug.i("Giving rewards to " + ap.get().getName() + '!');
+                    debug("Giving rewards to " + ap.get().getName() + '!');
                     try {
                         Arena.this.giveRewards(ap.get());
                     } catch (final Exception e) {
@@ -1402,7 +1391,7 @@ public class Arena {
         final PAEndEvent event = new PAEndEvent(this);
         Bukkit.getPluginManager().callEvent(event);
 
-        this.getDebugger().i("resetting arena; force: " + force);
+        debug(this, "resetting arena; force: " + force);
         for (final PAClassSign as : this.signs) {
             as.clear();
         }
@@ -1447,9 +1436,9 @@ public class Arena {
     }
 
     public boolean removeCustomScoreBoardEntry(final ArenaModule module, final int value) {
-        this.debug.i("module "+module+" tries to unset custom scoreboard value '"+value+"'");
+        debug("module "+module+" tries to unset custom scoreboard value '"+value+"'");
         if (this.scoreboard == null) {
-            this.debug.i("scoreboard is not setup!");
+            debug("scoreboard is not setup!");
             return false;
         }
         try {
@@ -1491,8 +1480,8 @@ public class Arena {
         if (player == null) {
             return;
         }
-        this.getDebugger().i("resetting player: " + player.getName() + (soft ? "(soft)" : ""),
-                player);
+        String msg = "resetting player: " + player.getName() + (soft ? "(soft)" : "");
+        debug(this, player, msg);
 
         try {
             new ArrowHack(player);
@@ -1521,13 +1510,13 @@ public class Arena {
 
             @Override
             public void run() {
-                Arena.this.getDebugger().i("string = " + destination, player);
+                debug(Arena.this, player, "string = " + destination);
                 aPlayer.setTelePass(true);
 
                 if ("old".equalsIgnoreCase(destination)) {
-                    Arena.this.getDebugger().i("tping to old", player);
+                    debug(Arena.this, player, "tping to old");
                     if (aPlayer.getSavedLocation() != null) {
-                        Arena.this.getDebugger().i("location is fine", player);
+                        debug(Arena.this, player, "location is fine");
                         final PALocation loc = aPlayer.getSavedLocation();
                         player.teleport(loc.toLocation());
                         player
@@ -1579,9 +1568,9 @@ public class Arena {
     public void setupScoreboard(final ArenaPlayer ap) {
         Player player = ap.get();
 
-        this.getDebugger().i("ScoreBoards: Initiating scoreboard for player " + player.getName());
-        this.getDebugger().i("ScoreBoards: has backup: " + ap.hasBackupScoreboard());
-        this.getDebugger().i("ScoreBoards: player.getScoreboard == null: " + (player.getScoreboard() == null));
+        debug(this, "ScoreBoards: Initiating scoreboard for player " + player.getName());
+        debug(this, "ScoreBoards: has backup: " + ap.hasBackupScoreboard());
+        debug(this, "ScoreBoards: player.getScoreboard == null: " + (player.getScoreboard() == null));
         if (!ap.hasBackupScoreboard() && player.getScoreboard() != null) {
             ap.setBackupScoreboard(player.getScoreboard());
             ofNullable(player.getScoreboard().getEntryTeam(ap.getName())).ifPresent(team ->
@@ -1621,7 +1610,7 @@ public class Arena {
      */
     public void unKillPlayer(final Player player, final DamageCause cause, final Entity damager) {
 
-        this.getDebugger().i("respawning player " + player.getName(), player);
+        debug(this, player, "respawning player " + player.getName());
         double iHealth = this.cfg.getInt(CFG.PLAYER_HEALTH, -1);
 
         if (iHealth < 1) {
@@ -1702,7 +1691,7 @@ public class Arena {
 
     public void setFightInProgress(final boolean fightInProgress) {
         this.fightInProgress = fightInProgress;
-        this.getDebugger().i("fighting : " + fightInProgress);
+        debug(this, "fighting : " + fightInProgress);
     }
 
     public void setFree(final boolean isFree) {
@@ -1817,7 +1806,7 @@ public class Arena {
      * initiate the arena start
      */
     public void start(final boolean forceStart) {
-        this.getDebugger().i("start()");
+        debug(this, "start()");
         if (this.getArenaConfig().getBoolean(CFG.USES_SCOREBOARD) && this.scoreboard != null) {
             Objective obj = this.scoreboard.getObjective("lives");
             if (this.isFightInProgress()) {
@@ -1827,7 +1816,7 @@ public class Arena {
         this.gaveRewards = false;
         this.startRunner = null;
         if (this.fightInProgress) {
-            this.getDebugger().i("already in progress! OUT!");
+            debug(this, "already in progress! OUT!");
             return;
         }
         int sum = 0;
@@ -1842,7 +1831,7 @@ public class Arena {
                 }
             }
         }
-        this.getDebugger().i("sum == " + sum);
+        debug(this, "sum == " + sum);
         final String errror = this.ready();
 
         boolean overRide = false;
@@ -1859,7 +1848,7 @@ public class Arena {
             final Boolean handle = PACheck.handleStart(this, null, forceStart);
 
             if (overRide || handle) {
-                this.getDebugger().i("START!");
+                debug(this, "START!");
                 this.setFightInProgress(true);
 
                 if (this.getArenaConfig().getBoolean(CFG.USES_SCOREBOARD)) {
@@ -1911,7 +1900,7 @@ public class Arena {
         if (team == null) {
             return;
         }
-        this.getDebugger().i('@' + team.getName() + ": " + msg, player);
+        debug(this, player, '@' + team.getName() + ": " + msg);
         synchronized (this) {
             for (final ArenaPlayer p : team.getTeamMembers()) {
                 final String reset = this.cfg.getBoolean(CFG.CHAT_COLORNICK)?"":ChatColor.RESET.toString();
@@ -1931,6 +1920,19 @@ public class Arena {
     @Override
     public String toString() {
         return this.name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Arena arena = (Arena) o;
+        return name.equals(arena.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 
     public void tpPlayerToCoordName(ArenaPlayer player, String place) {
@@ -1957,7 +1959,7 @@ public class Arena {
 
     private Location prepareTeleportation(ArenaPlayer aPlayer, String place) {
         Player player = aPlayer.get();
-        this.getDebugger().i("teleporting " + player + " to coord " + place, player);
+        debug(this, player, "teleporting " + player + " to coord " + place);
 
         if (player == null) {
             PVPArena.getInstance().getLogger().severe("Player null!");
@@ -1985,13 +1987,13 @@ public class Arena {
             throw new RuntimeException("TP Spawn null: " + this.name + "->" + place);
         }
 
-        this.debug.i("raw location: " + loc.toString());
+        debug("raw location: " + loc.toString());
 
         Location offset = this.getOffset(place);
         if (offset == null) {
             offset = new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
         }
-        this.debug.i("offset location: " + offset.toString());
+        debug("offset location: " + offset.toString());
 
         aPlayer.setTeleporting(true);
         aPlayer.setTelePass(true);
@@ -2038,7 +2040,7 @@ public class Arena {
         player.teleport(location);
         player.setNoDamageTicks(this.cfg.getInt(CFG.TIME_TELEPORTPROTECT) * 20);
         if (place.contains("lounge")) {
-            this.getDebugger().i("setting TelePass later!");
+            debug(this, "setting TelePass later!");
             Bukkit.getScheduler().runTaskLater(PVPArena.getInstance(), new Runnable() {
                 @Override
                 public void run() {
@@ -2048,7 +2050,7 @@ public class Arena {
             }, this.cfg.getInt(CFG.TIME_TELEPORTPROTECT) * 20);
 
         } else {
-            this.getDebugger().i("setting TelePass now!");
+            debug(this, "setting TelePass now!");
             aPlayer.setTelePass(false);
             aPlayer.setTeleporting(false);
         }
@@ -2064,7 +2066,7 @@ public class Arena {
     public boolean tryJoin(final Player player, final ArenaTeam team) {
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
 
-        this.getDebugger().i("trying to join player " + player.getName(), player);
+        debug(this, player, "trying to join player " + player.getName());
 
         final String clear = this.cfg.getString(CFG.PLAYER_CLEARINVENTORY);
 
@@ -2077,7 +2079,7 @@ public class Arena {
         final PAJoinEvent event = new PAJoinEvent(this, player, false);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) {
-            this.debug.i("! Join event cancelled by a plugin !");
+            debug("! Join event cancelled by a plugin !");
             return false;
         }
 

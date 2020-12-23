@@ -1,12 +1,13 @@
 package net.slipcor.pvparena.classes;
 
-import net.slipcor.pvparena.core.Debug;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
 import java.util.Set;
+
+import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>PVP Arena Class Sign class</pre>
@@ -19,7 +20,6 @@ import java.util.Set;
 
 public class PAClassSign {
     private final PABlockLocation location;
-    private final Debug debug = new Debug(10);
 
     /**
      * create an arena class sign instance
@@ -28,7 +28,7 @@ public class PAClassSign {
      */
     public PAClassSign(final Location loc) {
         this.location = new PABlockLocation(loc);
-        this.debug.i("adding arena class sign: " + this.location);
+        debug("adding arena class sign: {}", this.location);
         this.clear();
     }
 

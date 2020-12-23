@@ -8,7 +8,6 @@ import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.CommandTree;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
 import net.slipcor.pvparena.ncloader.NCBLoadable;
 import org.bukkit.Material;
@@ -41,8 +40,6 @@ import java.util.Set;
  */
 
 public abstract class ArenaModule extends NCBLoadable implements IArenaCommandHandler {
-    protected static Debug debug = new Debug(32);
-
     protected Arena arena;
 
     public ArenaModule(final String name) {

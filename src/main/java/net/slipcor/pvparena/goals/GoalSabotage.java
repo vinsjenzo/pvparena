@@ -9,8 +9,8 @@ import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.PAA_Region;
+import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.core.Debug;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
@@ -37,6 +37,8 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>
  * Arena Goal class "Sabotage"
@@ -52,7 +54,6 @@ public class GoalSabotage extends ArenaGoal implements Listener {
 
     public GoalSabotage() {
         super("Sabotage");
-        this.debug = new Debug(103);
     }
 
     private String flagName = "";
@@ -121,17 +122,17 @@ public class GoalSabotage extends ArenaGoal implements Listener {
         if (block == null || res.getPriority() > PRIORITY) {
             return res;
         }
-        this.arena.getDebugger().i("checking interact", player);
+        debug(this.arena, player, "checking interact");
 
         if (block.getType() != Material.TNT) {
-            this.arena.getDebugger().i("block, but not flag", player);
+            debug(this.arena, player, "block, but not flag");
             return res;
         }
-        this.arena.getDebugger().i("flag click!", player);
+        debug(this.arena, player, "flag click!");
 
         if (player.getEquipment().getItemInMainHand() == null
                 || player.getEquipment().getItemInMainHand().getType() != Material.FLINT_AND_STEEL) {
-            this.arena.getDebugger().i("block, but no sabotage items", player);
+            debug(this.arena, player, "block, but no sabotage items");
             return res;
         }
 
@@ -147,9 +148,9 @@ public class GoalSabotage extends ArenaGoal implements Listener {
             if (team.getTeamMembers().size() < 1) {
                 continue; // dont check for inactive teams
             }
-            this.arena.getDebugger().i("checking for tnt of team " + aTeam, player);
+            debug(this.arena, player, "checking for tnt of team " + aTeam);
             Vector vLoc = block.getLocation().toVector();
-            this.arena.getDebugger().i("block: " + vLoc, player);
+            debug(this.arena, player, "block: " + vLoc);
             if (!SpawnManager.getBlocksStartingWith(this.arena, aTeam + "tnt").isEmpty()) {
                 vFlag = SpawnManager
                         .getBlockNearest(
@@ -159,8 +160,8 @@ public class GoalSabotage extends ArenaGoal implements Listener {
             }
 
             if (vFlag != null && vLoc.distance(vFlag) < 2) {
-                this.arena.getDebugger().i("flag found!", player);
-                this.arena.getDebugger().i("vFlag: " + vFlag, player);
+                debug(this.arena, player, "flag found!");
+                debug(this.arena, player, "vFlag: " + vFlag);
 
                 if (aTeam.equals(pTeam.getName())) {
                     res.setError(this, Language.parse(MSG.GOAL_SABOTAGE_YOUCANNOTSELFDESTROY));
@@ -238,11 +239,11 @@ public class GoalSabotage extends ArenaGoal implements Listener {
 
     private void commit(final Arena arena, final String sTeam) {
         if (arena.realEndRunner != null) {
-            arena.getDebugger().i("[SABOTAGE] already ending");
+            debug(arena, "[SABOTAGE] already ending");
             return;
         }
-        arena.getDebugger().i("[SABOTAGE] committing end: " + sTeam);
-        arena.getDebugger().i("win: " + false);
+        debug(arena, "[SABOTAGE] committing end: " + sTeam);
+        debug(arena, "win: " + false);
 
         final PAGoalEvent gEvent = new PAGoalEvent(arena, this, "");
         Bukkit.getPluginManager().callEvent(gEvent);
@@ -309,10 +310,10 @@ public class GoalSabotage extends ArenaGoal implements Listener {
     @Override
     public void commitEnd(final boolean force) {
         if (this.arena.realEndRunner != null) {
-            this.arena.getDebugger().i("[SABOTAGE] already ending");
+            debug(this.arena, "[SABOTAGE] already ending");
             return;
         }
-        this.arena.getDebugger().i("[SABOTAGE]");
+        debug(this.arena, "[SABOTAGE]");
 
         ArenaTeam aTeam = null;
 
@@ -352,7 +353,7 @@ public class GoalSabotage extends ArenaGoal implements Listener {
     @Override
     public boolean commitSetFlag(final Player player, final Block block) {
 
-        this.arena.getDebugger().i("trying to set a tnt", player);
+        debug(this.arena, player, "trying to set a tnt");
 
         // command : /pa redtnt1
         // location: red1tnt:
@@ -375,7 +376,7 @@ public class GoalSabotage extends ArenaGoal implements Listener {
     @Override
     public void disconnect(final ArenaPlayer aPlayer) {
 
-        final String flag = this.getHeldFlagTeam(aPlayer.getName());
+        final String flag = this.getHeldFlagTeam(aPlayer.get());
         if (flag != null) {
             final ArenaTeam flagTeam = this.arena.getTeam(flag);
             this.getFlagMap().remove(flag);
@@ -389,7 +390,7 @@ public class GoalSabotage extends ArenaGoal implements Listener {
         int pos = new Random().nextInt(players.size());
 
         for (final ArenaPlayer ap : players) {
-            this.arena.getDebugger().i("distributing sabotage: " + ap.getName(), ap.getName());
+            debug(this.arena, ap.get(), "distributing sabotage: " + ap.getName());
             if (ap.equals(player)) {
                 continue;
             }
@@ -403,16 +404,15 @@ public class GoalSabotage extends ArenaGoal implements Listener {
         }
     }
 
-    private String getHeldFlagTeam(final String player) {
+    private String getHeldFlagTeam(final Player player) {
         if (this.getFlagMap().size() < 1) {
             return null;
         }
 
-        this.arena.getDebugger().i("getting held TNT of player " + player, player);
+        debug(player, "getting held TNT of player {}", player);
         for (final String sTeam : this.getFlagMap().keySet()) {
-            this.arena.getDebugger().i("team " + sTeam + "'s sabotage is carried by "
-                    + this.getFlagMap().get(sTeam) + "s hands", player);
-            if (player.equals(this.getFlagMap().get(sTeam))) {
+            debug(player, "team {}'s sabotage is carried by {}s hands", sTeam, this.getFlagMap().get(sTeam));
+            if (player.getName().equals(this.getFlagMap().get(sTeam))) {
                 return sTeam;
             }
         }
@@ -463,7 +463,7 @@ public class GoalSabotage extends ArenaGoal implements Listener {
                 SpawnManager.getBlockByExactName(this.arena, team.getName() + "tnt"));
         //TODO: allow multiple TNTs?
         if (!this.getFlagMap().containsKey(team.getName())) {
-            this.arena.getDebugger().i("adding team " + team.getName(), player);
+            debug(this.arena, player, "adding team " + team.getName());
             this.distributeFlag(null, team);
         }
     }
@@ -475,7 +475,7 @@ public class GoalSabotage extends ArenaGoal implements Listener {
 
     @Override
     public void parsePlayerDeath(final Player player, final EntityDamageEvent event) {
-        final String teamName = this.getHeldFlagTeam(player.getName());
+        final String teamName = this.getHeldFlagTeam(player);
         final ArenaTeam team = this.arena.getTeam(teamName);
         if (teamName != null && team != null) {
             final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
@@ -486,14 +486,14 @@ public class GoalSabotage extends ArenaGoal implements Listener {
 
     @Override
     public void parseStart() {
-        this.arena.getDebugger().i("initiating arena");
+        debug(this.arena, "initiating arena");
         this.getFlagMap().clear();
         for (final ArenaTeam team : this.arena.getTeams()) {
             this.takeFlag(team.getName(), false,
                     SpawnManager.getBlockByExactName(this.arena, team.getName() + "tnt"));
             // TODO: allow multiple TNTs?
             if (!this.getFlagMap().containsKey(team.getName())) {
-                this.arena.getDebugger().i("adding team " + team.getName());
+                debug(this.arena, "adding team " + team.getName());
                 this.distributeFlag(null, team);
             }
         }
@@ -517,7 +517,7 @@ public class GoalSabotage extends ArenaGoal implements Listener {
             config.set("teams", null);
         }
         if (config.get("teams") == null) {
-            this.arena.getDebugger().i("no teams defined, adding custom red and blue!");
+            debug(this.arena, "no teams defined, adding custom red and blue!");
             config.addDefault("teams.red", ChatColor.RED.name());
             config.addDefault("teams.blue", ChatColor.BLUE.name());
         }
