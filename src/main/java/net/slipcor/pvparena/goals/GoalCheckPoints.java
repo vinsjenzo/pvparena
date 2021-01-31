@@ -339,11 +339,6 @@ public class GoalCheckPoints extends ArenaGoal {
     }
 
     @Override
-    public boolean isInternal() {
-        return true;
-    }
-
-    @Override
     public void lateJoin(final Player player) {
         this.initate(player);
     }

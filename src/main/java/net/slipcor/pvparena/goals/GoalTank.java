@@ -297,11 +297,6 @@ public class GoalTank extends ArenaGoal {
     }
 
     @Override
-    public boolean isInternal() {
-        return true;
-    }
-
-    @Override
     public void parseLeave(final Player player) {
         if (player == null) {
             PVPArena.getInstance().getLogger().warning(

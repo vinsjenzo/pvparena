@@ -1,28 +1,24 @@
 package net.slipcor.pvparena.loadables;
 
 import net.slipcor.pvparena.PVPArena;
-import net.slipcor.pvparena.ncloader.NCBLoader;
+import net.slipcor.pvparena.loader.JarLoader;
+import net.slipcor.pvparena.loader.Loadable;
 import net.slipcor.pvparena.regions.CuboidRegion;
 import net.slipcor.pvparena.regions.CylindricRegion;
 import net.slipcor.pvparena.regions.SphericRegion;
 
 import java.io.File;
-import java.util.List;
-
-import static net.slipcor.pvparena.config.Debugger.debug;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * <pre>Arena Region Shape Manager class</pre>
  * <p/>
  * Loads and manages arena region shapes
- *
- * @author slipcor
- * @version v0.9.1
  */
-
 public class ArenaRegionShapeManager {
-    private static List<ArenaRegionShape> regions;
-    private final NCBLoader<ArenaRegionShape> loader;
+    private Set<Loadable<? extends ArenaRegionShape>> shapeLoadables;
+    private final JarLoader<ArenaRegionShape> loader;
 
     /**
      * create an arena region manager instance
@@ -34,53 +30,44 @@ public class ArenaRegionShapeManager {
         if (!path.exists()) {
             path.mkdir();
         }
-        this.loader = new NCBLoader<>(plugin, path);
-        regions = this.loader.load(ArenaRegionShape.class);
-        this.fill();
+        this.loader = new JarLoader<>(path, ArenaRegionShape.class);
+        this.shapeLoadables = this.loader.loadClasses();
+        this.addInternalShapes();
     }
 
-    private static void fill() {
-        regions.add(new CuboidRegion());
-        regions.add(new CylindricRegion());
-        regions.add(new SphericRegion());
-
-        for (final ArenaRegionShape mod : regions) {
-            mod.onThisLoad();
-            debug("ArenaRegionShape loaded: {} (version {})", mod.getName(), mod.version());
-        }
+    private void addInternalShapes() {
+        this.addInternalLoadable(CuboidRegion.class);
+        this.addInternalLoadable(CylindricRegion.class);
+        this.addInternalLoadable(SphericRegion.class);
     }
 
-    /**
-     * search modules by module name
-     *
-     * @param mName the module name to find
-     * @return the module if found, null otherwise
-     */
-    public ArenaRegionShape getModule(final String mName) {
-        for (final ArenaRegionShape region : regions) {
-            if (region.getName().equalsIgnoreCase(mName)) {
-                return region;
+    public ArenaRegionShape getNewInstance(String name) {
+        try {
+            Optional<Loadable<? extends ArenaRegionShape>> shapeLoadable = this.shapeLoadables.stream()
+                    .filter(loadable -> loadable.getName().equalsIgnoreCase(name))
+                    .findFirst();
+
+            if(shapeLoadable.isPresent()) {
+                return shapeLoadable.get().getNewInstance();
             }
+
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
         }
         return null;
     }
 
-    public static ArenaRegionShape getShapeByName(final String string) {
-        for (final ArenaRegionShape shape : regions) {
-            if (shape.getName().toUpperCase().startsWith(string.toUpperCase().substring(0, 2))) {
-                return shape;
-            }
-        }
-        return null;
+    public Set<Loadable<? extends ArenaRegionShape>> getAllLoadables() {
+        return this.shapeLoadables;
     }
-
-    public List<ArenaRegionShape> getRegions() {
-        return regions;
-    }
-
 
     public void reload() {
-        regions = this.loader.reload(ArenaRegionShape.class);
-        this.fill();
+        this.shapeLoadables = this.loader.reloadClasses();
+        this.addInternalShapes();
+    }
+
+    private void addInternalLoadable(Class<? extends ArenaRegionShape> loadableClass) {
+        String shapeName = loadableClass.getSimpleName().replace("Region", "").toLowerCase();
+        this.shapeLoadables.add(new Loadable<>(shapeName, true, loadableClass));
     }
 }

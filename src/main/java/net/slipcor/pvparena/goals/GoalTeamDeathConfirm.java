@@ -256,11 +256,6 @@ public class GoalTeamDeathConfirm extends ArenaGoal {
     }
 
     @Override
-    public boolean isInternal() {
-        return true;
-    }
-
-    @Override
     public void onPlayerPickUp(final EntityPickupItemEvent event) {
         final ItemStack item = event.getItem().getItemStack();
 

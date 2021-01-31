@@ -13,7 +13,6 @@ import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.core.StringParser;
-import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionProtection;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
@@ -91,12 +90,10 @@ public final class ArenaManager {
             return null;
         }
 
-        for (final String goal : list) {
+        for (final String goalName : list) {
 
-            final ArenaGoal type = PVPArena.getInstance().getAgm().getGoalByName(goal);
-
-            if (type == null) {
-                return goal;
+            if (!PVPArena.getInstance().getAgm().hasLoadable(goalName)) {
+                return goalName;
             }
 
         }

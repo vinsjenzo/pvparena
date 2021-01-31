@@ -4,9 +4,7 @@ import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.core.Help;
 import net.slipcor.pvparena.core.Help.HELP;
-import net.slipcor.pvparena.loadables.ArenaGoal;
-import net.slipcor.pvparena.loadables.ArenaModule;
-import net.slipcor.pvparena.loadables.ArenaRegionShape;
+import net.slipcor.pvparena.loader.Loadable;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -38,27 +36,27 @@ public class PAI_Version extends AbstractGlobalCommand {
             return;
         }
 
-        Arena.pmsg(sender, ChatColor.COLOR_CHAR + "e" + ChatColor.COLOR_CHAR + "n-- PVP Arena version information --");
-        Arena.pmsg(sender, ChatColor.COLOR_CHAR + "ePVP Arena version: " + ChatColor.COLOR_CHAR + 'l' + PVPArena.getInstance().getDescription().getVersion());
+        Arena.pmsg(sender, String.format("%s%s-- PVP Arena version information --", ChatColor.YELLOW, ChatColor.UNDERLINE));
+        Arena.pmsg(sender, String.format("%sPVP Arena version: %s%s", ChatColor.YELLOW, ChatColor.BOLD, PVPArena.getInstance().getDescription().getVersion()));
         if (args.length < 2 || args[1].toLowerCase().startsWith("goal")) {
-            Arena.pmsg(sender, ChatColor.COLOR_CHAR + "7-----------------------------------");
-            Arena.pmsg(sender, ChatColor.COLOR_CHAR + "cArena Goals:");
-            for (final ArenaGoal ag : PVPArena.getInstance().getAgm().getAllGoals()) {
-                Arena.pmsg(sender, ChatColor.COLOR_CHAR + "c" + ag.getName() + " - " + ag.version());
+            Arena.pmsg(sender, String.format("%s-----------------------------------", ChatColor.GRAY));
+            Arena.pmsg(sender, String.format("%sArena Goals:", ChatColor.RED));
+            for (final Loadable<?> ag : PVPArena.getInstance().getAgm().getAllLoadables()) {
+                Arena.pmsg(sender, String.format("%s%s - %s", ChatColor.RED, ag.getName(), ag.getVersion()));
             }
         }
         if (args.length < 2 || args[1].toLowerCase().startsWith("mod")) {
-            Arena.pmsg(sender, ChatColor.COLOR_CHAR + "7-----------------------------------");
-            Arena.pmsg(sender, ChatColor.COLOR_CHAR + "aMods:");
-            for (final ArenaModule am : PVPArena.getInstance().getAmm().getAllMods()) {
-                Arena.pmsg(sender, ChatColor.COLOR_CHAR + "a" + am.getName() + " - " + am.version());
+            Arena.pmsg(sender, String.format("%s7-----------------------------------", ChatColor.GRAY));
+            Arena.pmsg(sender, String.format("%sMods:", ChatColor.GREEN));
+            for (final Loadable<?> am : PVPArena.getInstance().getAmm().getAllLoadables()) {
+                Arena.pmsg(sender, String.format("%s%s - %s", ChatColor.GREEN, am.getName(), am.getVersion()));
             }
         }
         if (args.length < 2 || args[1].toLowerCase().startsWith("reg")) {
-            Arena.pmsg(sender, ChatColor.COLOR_CHAR + "7-----------------------------------");
-            Arena.pmsg(sender, ChatColor.COLOR_CHAR + "aRegionshapes:");
-            for (final ArenaRegionShape ars : PVPArena.getInstance().getArsm().getRegions()) {
-                Arena.pmsg(sender, ChatColor.COLOR_CHAR + "a" + ars.getName() + " - " + ars.version());
+            Arena.pmsg(sender, String.format("%s-----------------------------------", ChatColor.GRAY));
+            Arena.pmsg(sender, String.format("%sRegionshapes:", ChatColor.GREEN));
+            for (final Loadable<?> arsLoadable : PVPArena.getInstance().getArsm().getAllLoadables()) {
+                Arena.pmsg(sender, String.format("%s%s - %s", ChatColor.GREEN, arsLoadable.getName(), arsLoadable.getVersion()));
             }
         }
     }

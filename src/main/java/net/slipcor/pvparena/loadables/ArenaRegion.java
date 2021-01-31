@@ -8,7 +8,6 @@ import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.commands.PAA_Region;
 import net.slipcor.pvparena.commands.PAG_Join;
-import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
@@ -259,7 +258,7 @@ public class ArenaRegion {
         this.arena = arena;
         this.name = name;
         this.locs = locs;
-        this.shape = shape.clone();
+        this.shape = shape;
         this.type = RegionType.CUSTOM;
         this.world = locs[0].getWorldName();
         arena.addRegion(this);
@@ -505,12 +504,12 @@ public class ArenaRegion {
                 Arena.pmsg(ap.get(), Language.parse(this.arena, MSG.NOTICE_YOU_DEATH));
                 for (final ArenaGoal goal : this.arena.getGoals()) {
                     if (goal.getName().endsWith("DeathMatch")) {
-                        if (goal.lifeMap.containsKey(ap.getName())) {
-                            final int lives = goal.lifeMap.get(ap.getName()) + 1;
-                            goal.lifeMap.put(ap.getName(), lives);
+                        if (goal.getLifeMap().containsKey(ap.getName())) {
+                            final int lives = goal.getLifeMap().get(ap.getName()) + 1;
+                            goal.getLifeMap().put(ap.getName(), lives);
                         } else if (goal.getLifeMap().containsKey(ap.getArenaTeam().getName())) {
-                            final int lives = goal.lifeMap.get(ap.getArenaTeam().getName()) + 1;
-                            goal.lifeMap.put(ap.getArenaTeam().getName(), lives);
+                            final int lives = goal.getLifeMap().get(ap.getArenaTeam().getName()) + 1;
+                            goal.getLifeMap().put(ap.getArenaTeam().getName(), lives);
                         }
                     }
                 }

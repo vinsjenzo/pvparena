@@ -101,9 +101,4 @@ public class StandardSpectate extends ArenaModule {
     public boolean hasSpawn(final String string) {
         return "spectator".equalsIgnoreCase(string);
     }
-
-    @Override
-    public boolean isInternal() {
-        return true;
-    }
 }

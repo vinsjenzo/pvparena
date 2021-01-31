@@ -18,9 +18,4 @@ public class CustomSpawn extends ArenaModule {
     public boolean hasSpawn(final String s) {
         return true;
     }
-
-    @Override
-    public boolean isInternal() {
-        return true;
-    }
 }

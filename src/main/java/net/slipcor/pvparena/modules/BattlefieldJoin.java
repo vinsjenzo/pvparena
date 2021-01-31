@@ -167,9 +167,4 @@ public class BattlefieldJoin extends ArenaModule {
     public void reset(boolean force) {
         this.runner = null;
     }
-
-    @Override
-    public boolean isInternal() {
-        return true;
-    }
 }

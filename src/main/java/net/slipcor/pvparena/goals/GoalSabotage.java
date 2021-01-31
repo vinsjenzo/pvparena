@@ -469,11 +469,6 @@ public class GoalSabotage extends ArenaGoal implements Listener {
     }
 
     @Override
-    public boolean isInternal() {
-        return true;
-    }
-
-    @Override
     public void parsePlayerDeath(final Player player, final EntityDamageEvent event) {
         final String teamName = this.getHeldFlagTeam(player);
         final ArenaTeam team = this.arena.getTeam(teamName);

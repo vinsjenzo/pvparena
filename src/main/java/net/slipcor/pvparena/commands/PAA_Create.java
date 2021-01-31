@@ -1,10 +1,13 @@
 package net.slipcor.pvparena.commands;
 
+import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.core.Help;
 import net.slipcor.pvparena.core.Help.HELP;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
+import net.slipcor.pvparena.loadables.ArenaGoal;
+import net.slipcor.pvparena.loadables.ArenaGoalManager;
 import net.slipcor.pvparena.managers.ArenaManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -59,13 +62,18 @@ public class PAA_Create extends AbstractGlobalCommand {
             arena.setOwner(sender.getName());
         }
 
+        ArenaGoalManager goalManager = PVPArena.getInstance().getAgm();
         if (args.length > 1) {
-            // preset arena stuff based on legacy stuff
-            if (!arena.getLegacyGoals(args[1])) {
-                arena.msg(sender, Language.parse(arena, MSG.ERROR_GOAL_LEGACY_UNKNOWN, args[1]));
+            if (goalManager.hasLoadable(args[1])) {
+                ArenaGoal goal = goalManager.getNewInstance(args[1]);
+                arena.addGoal(goal, true);
+            } else {
+                arena.msg(sender, Language.parse(MSG.ERROR_GOAL_NOTFOUND, args[1], String.join(",", goalManager.getAllGoalNames())));
+                return;
             }
         } else {
-            arena.getLegacyGoals("teams");
+            ArenaGoal goal = goalManager.getNewInstance("TeamLives");
+            arena.addGoal(goal, true);
         }
 
         if (ArenaManager.loadArena(arena)) {

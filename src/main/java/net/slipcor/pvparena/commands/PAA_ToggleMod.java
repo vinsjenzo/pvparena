@@ -7,6 +7,8 @@ import net.slipcor.pvparena.core.Help.HELP;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.loadables.ArenaModule;
+import net.slipcor.pvparena.loadables.ArenaModuleManager;
+import net.slipcor.pvparena.loader.Loadable;
 import org.bukkit.command.CommandSender;
 
 import java.util.Collections;
@@ -41,11 +43,18 @@ public class PAA_ToggleMod extends AbstractArenaCommand {
         // pa [arenaname] togglemod [module]
 
         final String name = args[0].toLowerCase();
-        final ArenaModule mod = PVPArena.getInstance().getAmm().getModByName(name);
-        if (mod != null) {
-            arena.msg(sender, Language.parse(arena, MSG.SET_DONE, mod.getName(), String.valueOf(mod.toggleEnabled(arena))));
-            if (mod.isMissingBattleRegion(arena)) {
-                arena.msg(sender, Language.parse(arena, MSG.TOGGLEMOD_NOTICE));
+        ArenaModuleManager moduleManager = PVPArena.getInstance().getAmm();
+        if (moduleManager.hasLoadable(name)) {
+            boolean isEnabling = !arena.hasMod(name);
+            arena.msg(sender, Language.parse(arena, MSG.SET_DONE, name, String.valueOf(isEnabling)));
+            if(isEnabling) {
+                ArenaModule module = moduleManager.getNewInstance(name);
+                arena.addModule(module, true);
+                if (module.isMissingBattleRegion(arena)) {
+                    arena.msg(sender, Language.parse(arena, MSG.TOGGLEMOD_NOTICE));
+                }
+            } else {
+                arena.removeModule(name);
             }
             return;
         }
@@ -78,7 +87,7 @@ public class PAA_ToggleMod extends AbstractArenaCommand {
         for (final String string : PVPArena.getInstance().getAgm().getAllGoalNames()) {
             result.define(new String[]{string});
         }
-        for (final ArenaModule mod : PVPArena.getInstance().getAmm().getAllMods()) {
+        for (final Loadable<?> mod : PVPArena.getInstance().getAmm().getAllLoadables()) {
             result.define(new String[]{mod.getName()});
         }
         return result;

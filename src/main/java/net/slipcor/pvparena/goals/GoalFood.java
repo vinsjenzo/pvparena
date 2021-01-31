@@ -390,11 +390,6 @@ public class GoalFood extends ArenaGoal implements Listener {
         }
     }
 
-    @Override
-    public boolean isInternal() {
-        return true;
-    }
-
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onFurnaceClick(final PlayerInteractEvent event) {
         if (!event.hasBlock() || event.getClickedBlock().getType() != Material.FURNACE) {

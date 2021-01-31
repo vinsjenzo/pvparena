@@ -267,11 +267,6 @@ public class GoalTeamLives extends ArenaGoal {
                 .getInt(CFG.GOAL_TLIVES_LIVES));
     }
 
-    @Override
-    public boolean isInternal() {
-        return true;
-    }
-
     private void reduceLives(final Arena arena, final ArenaTeam team) {
         final int iLives = this.getTeamLives(team);
 

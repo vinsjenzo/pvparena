@@ -430,11 +430,6 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
     }
 
     @Override
-    public boolean isInternal() {
-        return true;
-    }
-
-    @Override
     public void parseStart() {
         this.getLifeMap().clear();
         for (final ArenaTeam team : this.arena.getTeams()) {

@@ -11,7 +11,7 @@ import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import net.slipcor.pvparena.loadables.ArenaRegionShape;
-import net.slipcor.pvparena.loadables.ArenaRegionShapeManager;
+import net.slipcor.pvparena.loader.Loadable;
 import net.slipcor.pvparena.regions.CuboidRegion;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -118,7 +118,7 @@ public class PAA_Region extends AbstractArenaCommand {
             ArenaRegionShape shape;
 
             if (args.length == 2) {
-                shape = ArenaRegionShapeManager.getShapeByName(args[1]);
+                shape = PVPArena.getInstance().getArsm().getNewInstance(args[1]);
             } else {
                 shape = new CuboidRegion();
             }
@@ -203,8 +203,8 @@ public class PAA_Region extends AbstractArenaCommand {
         }
 
         for (final ArenaRegion region : arena.getRegions()) {
-            for (final ArenaRegionShape shape : PVPArena.getInstance().getArsm().getRegions()) {
-                result.define(new String[]{region.getRegionName(), shape.getName()});
+            for (final Loadable<?> shapeLoadable : PVPArena.getInstance().getArsm().getAllLoadables()) {
+                result.define(new String[]{region.getRegionName(), shapeLoadable.getName()});
                 result.define(new String[]{region.getRegionName(), "border"});
                 result.define(new String[]{region.getRegionName(), "remove"});
             }

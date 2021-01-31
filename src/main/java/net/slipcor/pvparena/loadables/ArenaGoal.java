@@ -9,7 +9,6 @@ import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.CommandTree;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
-import net.slipcor.pvparena.ncloader.NCBLoadable;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -38,9 +37,11 @@ import static java.util.Optional.ofNullable;
  * @author slipcor
  */
 
-public class ArenaGoal extends NCBLoadable implements IArenaCommandHandler {
+public class ArenaGoal implements IArenaCommandHandler {
+    protected String name;
     protected Arena arena;
-    Map<String, Integer> lifeMap;
+    protected Map<String, Integer> lifeMap;
+
 
     /**
      * create an arena type instance
@@ -48,7 +49,11 @@ public class ArenaGoal extends NCBLoadable implements IArenaCommandHandler {
      * @param sName the arena type name
      */
     public ArenaGoal(final String sName) {
-        super(sName);
+        this.name = sName;
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     /**

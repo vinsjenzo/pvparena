@@ -106,11 +106,6 @@ public class WarmupJoin extends ArenaModule {
                 this.arena.getArenaConfig().getInt(CFG.TIME_WARMUPCOUNTDOWN));
     }
 
-    @Override
-    public boolean isInternal() {
-        return true;
-    }
-
     private Set<ArenaPlayer> getPlayerSet() {
         if (this.playerSet == null) {
             this.playerSet = new HashSet<>();

@@ -4,8 +4,9 @@ import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaClass;
 import net.slipcor.pvparena.arena.ArenaTeam;
+import net.slipcor.pvparena.loader.JarLoader;
+import net.slipcor.pvparena.loader.Loadable;
 import net.slipcor.pvparena.modules.*;
-import net.slipcor.pvparena.ncloader.NCBLoader;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -20,23 +21,16 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
-
-import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>Arena Module Manager class</pre>
  * <p/>
  * Loads and manages arena modules
- *
- * @author slipcor
- * @version v0.10.2
  */
-
 public class ArenaModuleManager {
-    private List<ArenaModule> mods;
-    private final NCBLoader<ArenaModule> loader;
+    private Set<Loadable<? extends ArenaModule>> modLoadables;
+    private final JarLoader<ArenaModule> loader;
 
     /**
      * create an arena module manager instance
@@ -44,27 +38,22 @@ public class ArenaModuleManager {
      * @param plugin the plugin instance
      */
     public ArenaModuleManager(final PVPArena plugin) {
-        final File path = new File(plugin.getDataFolder() + "/mods");
+        final File path = new File(plugin.getDataFolder(), "/mods");
         if (!path.exists()) {
             path.mkdir();
         }
-        this.loader = new NCBLoader<>(plugin, path);
-        this.mods = this.loader.load(ArenaModule.class);
-        this.fill();
+        this.loader = new JarLoader<>(path, ArenaModule.class);
+        this.modLoadables = this.loader.loadClasses();
+        this.addInternalMods();
     }
 
-    private void fill() {
-        this.mods.add(new BattlefieldJoin());
-        this.mods.add(new CustomSpawn());
-        this.mods.add(new RegionTool());
-        this.mods.add(new StandardLounge());
-        this.mods.add(new StandardSpectate());
-        this.mods.add(new WarmupJoin());
-
-        for (final ArenaModule mod : this.mods) {
-            mod.onThisLoad();
-            debug("ArenaModule loaded: {} (version {})", mod.getName(), mod.version());
-        }
+    private void addInternalMods() {
+        this.addInternalLoadable(BattlefieldJoin.class);
+        this.addInternalLoadable(CustomSpawn.class);
+        this.addInternalLoadable(RegionTool.class);
+        this.addInternalLoadable(StandardLounge.class);
+        this.addInternalLoadable(StandardSpectate.class);
+        this.addInternalLoadable(WarmupJoin.class);
     }
 
     public static void announce(final Arena arena, final String message, final String type) {
@@ -296,21 +285,42 @@ public class ArenaModuleManager {
         }
     }
 
-    public List<ArenaModule> getAllMods() {
-        return this.mods;
+    public Set<Loadable<? extends ArenaModule>> getAllLoadables() {
+        return this.modLoadables;
     }
 
-    public ArenaModule getModByName(final String mName) {
-        for (final ArenaModule mod : this.mods) {
-            if (mod.getName().equalsIgnoreCase(mName)) {
-                return mod;
+    public boolean hasLoadable(final String name) {
+        return this.modLoadables.stream().anyMatch(l -> l.getName().equalsIgnoreCase(name));
+    }
+
+    public Loadable<? extends ArenaModule> getLoadableByName(String name) {
+        return this.modLoadables.stream()
+                .filter(l -> l.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public ArenaModule getNewInstance(String name) {
+        try {
+            Loadable<? extends ArenaModule> modLoadable = this.getLoadableByName(name);
+
+            if(modLoadable != null) {
+                return modLoadable.getNewInstance();
             }
+
+        } catch (ReflectiveOperationException e) {
+            PVPArena.getInstance().getLogger().severe(String.format("Mod '%s' seems corrupted", name));
+            e.printStackTrace();
         }
         return null;
     }
 
     public void reload() {
-        this.mods = this.loader.reload(ArenaModule.class);
-        this.fill();
+        this.modLoadables = this.loader.reloadClasses();
+        this.addInternalMods();
+    }
+
+    private void addInternalLoadable(Class<? extends ArenaModule> loadableClass) {
+        this.modLoadables.add(new Loadable<>(loadableClass.getSimpleName(), true, loadableClass));
     }
 }

@@ -7,7 +7,6 @@ import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.classes.PALocation;
-import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
@@ -162,11 +161,6 @@ public class StandardLounge extends ArenaModule {
             }
         }
         return false;
-    }
-
-    @Override
-    public boolean isInternal() {
-        return true;
     }
 
     @Override

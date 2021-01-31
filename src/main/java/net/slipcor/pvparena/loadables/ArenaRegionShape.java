@@ -1,7 +1,6 @@
 package net.slipcor.pvparena.loadables;
 
 import net.slipcor.pvparena.classes.PABlockLocation;
-import net.slipcor.pvparena.ncloader.NCBLoadable;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
@@ -19,12 +18,17 @@ import java.util.List;
  * @author slipcor
  */
 
-public abstract class ArenaRegionShape extends NCBLoadable {
+public abstract class ArenaRegionShape {
+
+    private final String name;
 
     protected ArenaRegionShape(final String name) {
-        super(name);
+        this.name = name;
     }
 
+    public String getName() {
+        return this.name;
+    }
 
     public abstract boolean contains(PABlockLocation loc);
 
@@ -43,11 +47,6 @@ public abstract class ArenaRegionShape extends NCBLoadable {
     public abstract boolean tooFarAway(int joinRange, Location location);
 
     public abstract boolean hasVolume();
-
-    @Override
-    public ArenaRegionShape clone() {
-        return (ArenaRegionShape) super.clone();
-    }
 
     public void displayInfo(final CommandSender sender) {
     }

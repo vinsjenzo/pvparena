@@ -9,7 +9,6 @@ import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.CommandTree;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
-import net.slipcor.pvparena.ncloader.NCBLoadable;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -39,11 +38,16 @@ import java.util.Set;
  * @author slipcor
  */
 
-public abstract class ArenaModule extends NCBLoadable implements IArenaCommandHandler {
+public abstract class ArenaModule implements IArenaCommandHandler {
     protected Arena arena;
+    protected String name;
 
     public ArenaModule(final String name) {
-        super(name);
+        this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     /**
@@ -142,7 +146,7 @@ public abstract class ArenaModule extends NCBLoadable implements IArenaCommandHa
      * @param args   the command arguments
      */
     public void commitCommand(final CommandSender sender, final String[] args) {
-        throw new IllegalStateException(this.getName());
+        throw new IllegalStateException(this.name);
     }
 
     /**
@@ -162,7 +166,7 @@ public abstract class ArenaModule extends NCBLoadable implements IArenaCommandHa
      * @param team   the chosen team
      */
     public void commitJoin(final Player sender, final ArenaTeam team) {
-        throw new IllegalStateException(this.getName());
+        throw new IllegalStateException(this.name);
     }
 
     /**
@@ -171,7 +175,7 @@ public abstract class ArenaModule extends NCBLoadable implements IArenaCommandHa
      * @param player the spectating player
      */
     public void commitSpectate(final Player player) {
-        throw new IllegalStateException(this.getName());
+        throw new IllegalStateException(this.name);
     }
 
     /**
@@ -447,25 +451,6 @@ public abstract class ArenaModule extends NCBLoadable implements IArenaCommandHa
      * @param result the winner names
      */
     public void timedEnd(final Set<String> result) {
-    }
-
-    /**
-     * toggle a module
-     *
-     * @param arena the arena to toggle
-     * @return true if the module was added, false if it was removed
-     */
-    public boolean toggleEnabled(final Arena arena) {
-        for (final ArenaModule mod : arena.getMods()) {
-            if (mod.getName().equals(this.getName())) {
-                arena.modRemove(mod);
-                return false;
-            }
-        }
-        final ArenaModule mod = (ArenaModule) this.clone();
-        mod.arena = arena;
-        arena.modAdd(mod);
-        return true;
     }
 
     /**

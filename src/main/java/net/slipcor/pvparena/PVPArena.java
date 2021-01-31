@@ -187,7 +187,6 @@ public class PVPArena extends JavaPlugin {
         this.arenaCommands.add(new PAA_RegionType());
         this.arenaCommands.add(new PAA_Reload());
         this.arenaCommands.add(new PAA_Remove());
-        this.arenaCommands.add(new PAA_Round());
         this.arenaCommands.add(new PAA_Set());
         this.arenaCommands.add(new PAA_Setup());
         this.arenaCommands.add(new PAA_SetOwner());

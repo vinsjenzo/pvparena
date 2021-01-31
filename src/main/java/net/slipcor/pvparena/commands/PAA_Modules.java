@@ -6,8 +6,7 @@ import net.slipcor.pvparena.core.Help;
 import net.slipcor.pvparena.core.Help.HELP;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
-import net.slipcor.pvparena.loadables.ArenaModule;
-import net.slipcor.pvparena.ncloader.NCBLoadable;
+import net.slipcor.pvparena.loader.Loadable;
 import net.slipcor.pvparena.updater.ModulesUpdater;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,7 +17,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * <pre>
@@ -96,8 +98,8 @@ public class PAA_Modules extends AbstractGlobalCommand {
         Arena.pmsg(sender, ChatColor.GREEN + "--- Installed Arena Mods ---->");
 
         for (final String modName : getModInFilesFolder()) {
-            final ArenaModule mod = PVPArena.getInstance().getAmm().getModByName(modName);
-            Arena.pmsg(sender, (mod != null ? ChatColor.YELLOW : ChatColor.GRAY) + modName + ChatColor.RESET);
+            final boolean modLoaded = PVPArena.getInstance().getAmm().hasLoadable(modName);
+            Arena.pmsg(sender, (modLoaded ? ChatColor.YELLOW : ChatColor.GRAY) + modName + ChatColor.RESET);
         }
     }
 
@@ -129,9 +131,9 @@ public class PAA_Modules extends AbstractGlobalCommand {
      * @param name Module named typed by user
      */
     private static void uninstallModule(CommandSender sender, String name) {
-        final ArenaModule mod = PVPArena.getInstance().getAmm().getModByName(name);
-        if (mod != null) {
-            String modName = mod.getName();
+        final boolean modLoaded = PVPArena.getInstance().getAmm().hasLoadable(name);
+        if (modLoaded) {
+            String modName = name;
             String jarName = "pa_m_" + modName.toLowerCase() + ".jar";
             if (remove(jarName)) {
                 PVPArena.getInstance().getAmm().reload();
@@ -153,16 +155,14 @@ public class PAA_Modules extends AbstractGlobalCommand {
      * @param sender User who typed the command
      */
     private static void updateModules(CommandSender sender) {
-        final Set<NCBLoadable> modules = new HashSet<>(PVPArena.getInstance().getAmm().getAllMods());
-
-        modules.stream()
-                .filter(mod -> !mod.isInternal())
-                .forEach(mod -> {
-                    final File jarFile = new File(FILES_DIR, "pa_m_" + mod.getName().toLowerCase() + ".jar");
+        PVPArena.getInstance().getAmm().getAllLoadables().stream()
+                .filter(loadable -> !loadable.isInternal())
+                .forEach(loadable -> {
+                    final File jarFile = new File(FILES_DIR, "pa_m_" + loadable.getName().toLowerCase() + ".jar");
 
                     if (jarFile.exists()) {
-                        uninstallModule(sender, mod.getName());
-                        installModule(sender, mod.getName());
+                        uninstallModule(sender, loadable.getName());
+                        installModule(sender, loadable.getName());
                     }
                 });
     }
@@ -281,9 +281,9 @@ public class PAA_Modules extends AbstractGlobalCommand {
 
         getModInFilesFolder().forEach(modName -> result.define(new String[]{"install", modName}));
 
-        PVPArena.getInstance().getAmm().getAllMods().stream()
-                .filter(mod -> !mod.isInternal())
-                .map(ArenaModule::getName)
+        PVPArena.getInstance().getAmm().getAllLoadables().stream()
+                .filter(loadable -> !loadable.isInternal())
+                .map(Loadable::getName)
                 .forEach(modName -> result.define(new String[]{"uninstall", modName}));
 
         return result;

@@ -333,11 +333,6 @@ public class GoalTeamDeathMatch extends ArenaGoal {
                 .getInt(CFG.GOAL_TDM_LIVES));
     }
 
-    @Override
-    public boolean isInternal() {
-        return true;
-    }
-
     /**
      * @param arena the arena this is happening in
      * @param team  the killing team

@@ -10,7 +10,6 @@ import net.slipcor.pvparena.loadables.ArenaRegion.RegionFlag;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionProtection;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
 import net.slipcor.pvparena.loadables.ArenaRegionShape;
-import net.slipcor.pvparena.loadables.ArenaRegionShapeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -93,11 +92,11 @@ public class Config {
         JOIN_FORCE("join.forceregionjoin", false, null),
         JOIN_ONLYIFHASPLAYED("join.onlyifhasplayed", false, null),
 
-        LISTS_BLACKLIST("block.blacklist", new ArrayList<String>(), null),
-        LISTS_CMDWHITELIST("cmds.whitelist", new ArrayList<String>(), null),
-        LISTS_GOALS("goals", new ArrayList<String>(), null),
-        LISTS_MODS("mods", new ArrayList<String>(), null),
-        LISTS_WHITELIST("block.whitelist", new ArrayList<String>(), null),
+        LISTS_BLACKLIST("block.blacklist", new ArrayList<>(), null),
+        LISTS_CMDWHITELIST("cmds.whitelist", new ArrayList<>(), null),
+        LISTS_GOALS("goals", new ArrayList<>(), null),
+        LISTS_MODS("mods", new ArrayList<>(), null),
+        LISTS_WHITELIST("block.whitelist", new ArrayList<>(), null),
 
         MSG_LOUNGE("msg.lounge", "Welcome to the arena lounge! Hit a class sign and then the iron block to flag yourself as ready!", null),
         MSG_PLAYERJOINED("msg.playerjoined", "%1% joined the Arena!", null),
@@ -177,7 +176,6 @@ public class Config {
         USES_OVERLAPCHECK("uses.overlapCheck", true, null),
         USES_PLAYERCLASSES("uses.playerclasses", false, null),
         USES_SCOREBOARD("uses.scoreboard", false, null),
-        USES_SCOREBOARDROUNDDISPLAY("uses.scoreboardrounddisplay", false, null),
         USES_SUICIDEPUNISH("uses.suicidepunish", false, null),
         USES_TEAMREWARDS("uses.teamrewards", false, null),
         USES_TELEPORTONKILL("uses.teleportonkill", false, null),
@@ -921,7 +919,7 @@ public class Config {
         final String coords = config.getString("arenaregion." + regionName);
         final String[] parts = coords.split(",");
 
-        final ArenaRegionShape shape = ArenaRegionShapeManager.getShapeByName(parts[7]);
+        final ArenaRegionShape shape = PVPArena.getInstance().getArsm().getNewInstance(parts[7]);
 
         if (parts.length < 11) {
             PVPArena.getInstance().getLogger().severe(arena.getName() + " caused an error while loading region " + regionName);
@@ -955,8 +953,7 @@ public class Config {
         final PABlockLocation[] l = {new PABlockLocation(parts[0], x1, y1, z1),
                 new PABlockLocation(parts[0], x2, y2, z2)};
 
-        final ArenaRegion region = new ArenaRegion(arena, regionName,
-                shape, l);
+        final ArenaRegion region = new ArenaRegion(arena, regionName, shape, l);
         region.applyFlags(flags);
         region.applyProtections(prots);
         region.setType(RegionType.valueOf(parts[10]));

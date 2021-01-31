@@ -1,6 +1,5 @@
 package net.slipcor.pvparena.managers;
 
-import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.api.IArenaCommandHandler;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
@@ -86,8 +85,9 @@ public final class TabManager {
             addCommandsStartingWithPrefix(matches, sender, arena, arenaCommands, args[0]);
 
             if (arena == null) {
-                addCommandsStartingWithPrefix(matches, sender, null, PVPArena.getInstance().getAgm().getAllGoals(), args[0]);
-                addCommandsStartingWithPrefix(matches, sender, null, PVPArena.getInstance().getAmm().getAllMods(), args[0]);
+                // FIXME: Never used ?!!
+//                addCommandsStartingWithPrefix(matches, sender, null, PVPArena.getInstance().getAgm().getAllGoals(), args[0]);
+//                addCommandsStartingWithPrefix(matches, sender, null, PVPArena.getInstance().getAmm().getAllMods(), args[0]);
             } else {
                 addCommandsStartingWithPrefix(matches, sender, arena, new ArrayList<>(arena.getGoals()), args[0]);
                 addCommandsStartingWithPrefix(matches, sender, arena, new ArrayList<>(arena.getMods()), args[0]);
@@ -99,8 +99,9 @@ public final class TabManager {
         addTreesMatchingValueInHandlerList(commands, arenaCommands, arena, args[0]);
         addTreesMatchingValueInHandlerList(commands, globalCommands, arena, args[0]);
         if (arena == null) {
-            addTreesMatchingValueInHandlerList(commands, PVPArena.getInstance().getAgm().getAllGoals(), null, args[0]);
-            addTreesMatchingValueInHandlerList(commands, PVPArena.getInstance().getAmm().getAllMods(), null, args[0]);
+               // FIXME: Never used ?!!
+//            addTreesMatchingValueInHandlerList(commands, PVPArena.getInstance().getAgm().getAllGoals(), null, args[0]);
+//            addTreesMatchingValueInHandlerList(commands, PVPArena.getInstance().getAmm().getAllMods(), null, args[0]);
         } else {
             addTreesMatchingValueInHandlerList(commands, new ArrayList<>(arena.getGoals()), arena, args[0]);
             addTreesMatchingValueInHandlerList(commands, new ArrayList<>(arena.getMods()), arena, args[0]);

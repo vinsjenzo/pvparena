@@ -6,12 +6,12 @@ import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PACheck;
-import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.goals.*;
-import net.slipcor.pvparena.ncloader.NCBLoader;
+import net.slipcor.pvparena.loader.JarLoader;
+import net.slipcor.pvparena.loader.Loadable;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static net.slipcor.pvparena.config.Debugger.debug;
 
@@ -32,14 +33,10 @@ import static net.slipcor.pvparena.config.Debugger.debug;
  * </pre>
  * <p/>
  * Loads and manages arena goals
- *
- * @author slipcor
- * @version v0.10.2
  */
-
 public class ArenaGoalManager {
-    private List<ArenaGoal> types;
-    private final NCBLoader<ArenaGoal> loader;
+    private Set<Loadable<? extends ArenaGoal>> goalLoadables;
+    private final JarLoader<ArenaGoal> loader;
 
     /**
      * create an arena type instance
@@ -51,34 +48,29 @@ public class ArenaGoalManager {
         if (!path.exists()) {
             path.mkdir();
         }
-        this.loader = new NCBLoader<>(plugin, path);
-        this.types = this.loader.load(ArenaGoal.class);
-        this.fill();
+        this.loader = new JarLoader<>(path, ArenaGoal.class);
+        this.goalLoadables = this.loader.loadClasses();
+        this.addInternalGoals();
     }
 
-    private void fill() {
-        this.types.add(new GoalBlockDestroy());
-        this.types.add(new GoalCheckPoints());
-        this.types.add(new GoalDomination());
-        this.types.add(new GoalFlags());
-        this.types.add(new GoalFood());
-        this.types.add(new GoalInfect());
-        this.types.add(new GoalLiberation());
-        this.types.add(new GoalPhysicalFlags());
-        this.types.add(new GoalPlayerDeathMatch());
-        this.types.add(new GoalPlayerKillReward());
-        this.types.add(new GoalPlayerLives());
-        this.types.add(new GoalSabotage());
-        this.types.add(new GoalTank());
-        this.types.add(new GoalTeamDeathConfirm());
-        this.types.add(new GoalTeamDeathMatch());
-        this.types.add(new GoalTeamLives());
-        this.types.add(new GoalTime());
-
-        for (final ArenaGoal goal : this.types) {
-            goal.onThisLoad();
-            debug("ArenaGoal loaded: {} (version {})", goal.getName(), goal.version());
-        }
+    private void addInternalGoals() {
+        this.addInternalLoadable(GoalBlockDestroy.class);
+        this.addInternalLoadable(GoalCheckPoints.class);
+        this.addInternalLoadable(GoalDomination.class);
+        this.addInternalLoadable(GoalFlags.class);
+        this.addInternalLoadable(GoalFood.class);
+        this.addInternalLoadable(GoalInfect.class);
+        this.addInternalLoadable(GoalLiberation.class);
+        this.addInternalLoadable(GoalPhysicalFlags.class);
+        this.addInternalLoadable(GoalPlayerDeathMatch.class);
+        this.addInternalLoadable(GoalPlayerKillReward.class);
+        this.addInternalLoadable(GoalPlayerLives.class);
+        this.addInternalLoadable(GoalSabotage.class);
+        this.addInternalLoadable(GoalTank.class);
+        this.addInternalLoadable(GoalTeamDeathConfirm.class);
+        this.addInternalLoadable(GoalTeamDeathMatch.class);
+        this.addInternalLoadable(GoalTeamLives.class);
+        this.addInternalLoadable(GoalTime.class);
     }
 
     public boolean allowsJoinInBattle(final Arena arena) {
@@ -158,30 +150,35 @@ public class ArenaGoalManager {
     }
 
     public Set<String> getAllGoalNames() {
-        final Set<String> result = new HashSet<>();
-
-        for (final ArenaGoal goal : this.types) {
-            result.add(goal.getName());
-        }
-
-        return result;
+        return this.goalLoadables.stream().map(Loadable::getName).collect(Collectors.toSet());
     }
 
-    public List<ArenaGoal> getAllGoals() {
-        return this.types;
+    public Set<Loadable<? extends ArenaGoal>> getAllLoadables() {
+        return this.goalLoadables;
     }
 
-    /**
-     * find an arena type by arena type name
-     *
-     * @param tName the type name to find
-     * @return the arena type if found, null otherwise
-     */
-    public ArenaGoal getGoalByName(final String tName) {
-        for (final ArenaGoal type : this.types) {
-            if (type.getName().equalsIgnoreCase(tName)) {
-                return type;
+    public boolean hasLoadable(String name) {
+        return this.goalLoadables.stream().anyMatch(l -> l.getName().equalsIgnoreCase(name));
+    }
+
+    public Loadable<? extends ArenaGoal> getLoadableByName(String name) {
+        return this.goalLoadables.stream()
+                .filter(l -> l.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public ArenaGoal getNewInstance(String name) {
+        try {
+            Loadable<? extends ArenaGoal> goalLoadable = this.getLoadableByName(name);
+
+            if(goalLoadable != null) {
+                return goalLoadable.getNewInstance();
             }
+
+        } catch (ReflectiveOperationException e) {
+            PVPArena.getInstance().getLogger().severe(String.format("Goal '%s' seems corrupted", name));
+            e.printStackTrace();
         }
         return null;
     }
@@ -216,8 +213,8 @@ public class ArenaGoalManager {
     }
 
     public void reload() {
-        this.types = this.loader.reload(ArenaGoal.class);
-        this.fill();
+        this.goalLoadables = this.loader.reloadClasses();
+        this.addInternalGoals();
     }
 
     public void reset(final Arena arena, final boolean force) {
@@ -510,5 +507,10 @@ public class ArenaGoalManager {
                 goal.onPlayerPickUp(event);
             }
         }
+    }
+
+    private void addInternalLoadable(Class<? extends ArenaGoal> loadableClass) {
+        String goalName = loadableClass.getSimpleName().replace("Goal", "");
+        this.goalLoadables.add(new Loadable<>(goalName, true, loadableClass));
     }
 }

@@ -746,11 +746,6 @@ public class GoalPhysicalFlags extends ArenaGoal implements Listener {
     }
 
     @Override
-    public boolean isInternal() {
-        return true;
-    }
-
-    @Override
     public void parsePlayerDeath(final Player player,
                                  final EntityDamageEvent lastDamageCause) {
 

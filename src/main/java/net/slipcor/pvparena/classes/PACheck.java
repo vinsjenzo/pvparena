@@ -19,7 +19,6 @@ import net.slipcor.pvparena.loadables.ArenaRegion;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionFlag;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
 import net.slipcor.pvparena.managers.*;
-import net.slipcor.pvparena.ncloader.NCBLoadable;
 import net.slipcor.pvparena.runnables.InventoryRefillRunnable;
 import net.slipcor.pvparena.runnables.PVPActivateRunnable;
 import net.slipcor.pvparena.runnables.SpawnCampRunnable;
@@ -93,7 +92,7 @@ public class PACheck {
      *
      * @param error the error message
      */
-    public void setError(final NCBLoadable loadable, final String error) {
+    public void setError(ArenaGoal loadable, String error) {
         this.modName = loadable.getName();
         try {
             Integer.parseInt(error);
@@ -109,8 +108,30 @@ public class PACheck {
      *
      * @param priority the priority
      */
-    public void setPriority(final NCBLoadable loadable, final int priority) {
+    public void setPriority(ArenaGoal loadable, int priority) {
         this.modName = loadable.getName();
+        debug("{} is setting priority to: {}", this.modName, priority);
+        this.priority = priority;
+    }
+
+    public void setError(ArenaModule module, String error) {
+        this.modName = module.getName();
+        try {
+            Integer.parseInt(error);
+        } catch (Exception e) {
+            debug("{} is setting error to: {}", this.modName, error);
+        }
+        this.error = error;
+        this.priority += 1000;
+    }
+
+    /**
+     * set the priority
+     *
+     * @param priority the priority
+     */
+    public void setPriority(ArenaModule module, int priority) {
+        this.modName = module.getName();
         debug("{} is setting priority to: {}", this.modName, priority);
         this.priority = priority;
     }

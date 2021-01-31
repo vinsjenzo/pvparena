@@ -12,10 +12,7 @@ import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.core.Utils;
-import net.slipcor.pvparena.loadables.ArenaGoal;
-import net.slipcor.pvparena.loadables.ArenaModule;
-import net.slipcor.pvparena.loadables.ArenaModuleManager;
-import net.slipcor.pvparena.loadables.ArenaRegion;
+import net.slipcor.pvparena.loadables.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Chest;
@@ -59,6 +56,7 @@ public final class ConfigurationManager {
         final List<String> goals = cfg.getStringList("goals", new ArrayList<String>());
         final List<String> modules = cfg.getStringList("mods", new ArrayList<String>());
 
+        ArenaGoalManager goalManager = PVPArena.getInstance().getAgm();
         if (cfg.getString(CFG.GENERAL_TYPE, "null") == null
                 || "null".equals(cfg.getString(CFG.GENERAL_TYPE, "null"))) {
             cfg.createDefaults(goals, modules);
@@ -95,37 +93,26 @@ public final class ConfigurationManager {
                 }
             }
 
-            List<String> list = cfg.getStringList(CFG.LISTS_GOALS.getNode(),
-                    new ArrayList<String>());
-            for (final String goal : list) {
-                ArenaGoal aGoal = PVPArena.getInstance().getAgm()
-                        .getGoalByName(goal);
-                if (aGoal == null) {
-                    PVPArena.getInstance().getLogger().warning(
-                            "Goal referenced in arena '" +
-                                    arena.getName() + "' not found (uninstalled?): " + goal);
+            List<String> list = cfg.getStringList(CFG.LISTS_GOALS.getNode(), new ArrayList<>());
+            for (String goalName : list) {
+                if (!goalManager.hasLoadable(goalName)) {
+                    PVPArena.getInstance().getLogger().warning(String.format("Goal referenced in arena '%s' not found (uninstalled?): %s", arena.getName(), goalName));
                     continue;
                 }
-                aGoal = (ArenaGoal) aGoal.clone();
-                aGoal.setArena(arena);
-                arena.goalAdd(aGoal);
+                ArenaGoal goal = goalManager.getNewInstance(goalName);
+                arena.addGoal(goal, false);
             }
 
-            list = cfg.getStringList(CFG.LISTS_MODS.getNode(),
-                    new ArrayList<String>());
-            for (final String mod : list) {
-                ArenaModule aMod = PVPArena.getInstance().getAmm().getModByName(mod);
-                if (aMod == null) {
-                    PVPArena.getInstance().getLogger().warning(
-                            "Module referenced in arena '" +
-                                    arena.getName() + "' not found (uninstalled?): " + mod);
+            list = cfg.getStringList(CFG.LISTS_MODS.getNode(), new ArrayList<>());
+            for (String moduleName : list) {
+                ArenaModuleManager moduleManager = PVPArena.getInstance().getAmm();
+                if (!moduleManager.hasLoadable(moduleName)) {
+                    PVPArena.getInstance().getLogger().warning(String.format("Module referenced in arena '%s' not found (uninstalled?): %s", arena.getName(), moduleName));
                     continue;
                 }
-                aMod = (ArenaModule) aMod.clone();
-                aMod.setArena(arena);
-                aMod.toggleEnabled(arena);
+                ArenaModule module = moduleManager.getNewInstance(moduleName);
+                arena.addModule(module, false);
             }
-
         }
 
         if (config.get("classitems") == null) {
@@ -184,7 +171,7 @@ public final class ConfigurationManager {
             config.addDefault(prefix + "3600", "60 %m");
         }
 
-        PVPArena.getInstance().getAgm().setDefaults(arena, config);
+        goalManager.setDefaults(arena, config);
 
         config.options().copyDefaults(true);
 
@@ -261,11 +248,10 @@ public final class ConfigurationManager {
                 }
             }
         }
-        arena.setRoundMap(config.getStringList("rounds"));
 
         cfg.save();
 
-        PVPArena.getInstance().getAgm().configParse(arena, config);
+        goalManager.configParse(arena, config);
 
         if (cfg.getYamlConfiguration().getConfigurationSection("teams") == null) {
             if (arena.isFreeForAll()) {

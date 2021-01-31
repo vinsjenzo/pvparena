@@ -309,10 +309,7 @@ public class GoalPlayerDeathMatch extends ArenaGoal {
         this.updateLives(player, this.arena.getArenaConfig().getInt(CFG.GOAL_PDM_LIVES));
     }
 
-    @Override
-    public boolean isInternal() {
-        return true;
-    }
+
 
     @Override
     public void lateJoin(final Player player) {
