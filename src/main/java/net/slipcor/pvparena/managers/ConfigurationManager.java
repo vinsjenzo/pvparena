@@ -93,17 +93,15 @@ public final class ConfigurationManager {
                 }
             }
 
-            List<String> list = cfg.getStringList(CFG.LISTS_GOALS.getNode(), new ArrayList<>());
-            for (String goalName : list) {
-                if (!goalManager.hasLoadable(goalName)) {
-                    PVPArena.getInstance().getLogger().warning(String.format("Goal referenced in arena '%s' not found (uninstalled?): %s", arena.getName(), goalName));
-                    continue;
-                }
+            String goalName = cfg.getString(CFG.GENERAL_GOAL);
+            if (goalManager.hasLoadable(goalName)) {
                 ArenaGoal goal = goalManager.getNewInstance(goalName);
-                arena.addGoal(goal, false);
+                arena.setGoal(goal, false);
+            } else {
+                PVPArena.getInstance().getLogger().warning(String.format("Goal referenced in arena '%s' not found (uninstalled?): %s", arena.getName(), goalName));
             }
 
-            list = cfg.getStringList(CFG.LISTS_MODS.getNode(), new ArrayList<>());
+            List<String> list = cfg.getStringList(CFG.LISTS_MODS.getNode(), new ArrayList<>());
             for (String moduleName : list) {
                 ArenaModuleManager moduleManager = PVPArena.getInstance().getAmm();
                 if (!moduleManager.hasLoadable(moduleName)) {
@@ -171,7 +169,7 @@ public final class ConfigurationManager {
             config.addDefault(prefix + "3600", "60 %m");
         }
 
-        goalManager.setDefaults(arena, config);
+        arena.getGoal().setDefaults(config);
 
         config.options().copyDefaults(true);
 
@@ -251,7 +249,7 @@ public final class ConfigurationManager {
 
         cfg.save();
 
-        goalManager.configParse(arena, config);
+        arena.getGoal().configParse(config);
 
         if (cfg.getYamlConfiguration().getConfigurationSection("teams") == null) {
             if (arena.isFreeForAll()) {
@@ -269,7 +267,7 @@ public final class ConfigurationManager {
                 .getValues(true);
 
         if (arena.isFreeForAll()) {
-            if (!arena.getArenaConfig().getBoolean(CFG.PERMS_TEAMKILL) && !arena.getArenaConfig().getStringList(CFG.LISTS_GOALS).contains("Infect")) {
+            if (!arena.getArenaConfig().getBoolean(CFG.PERMS_TEAMKILL) && !"Infect".equals(arena.getArenaConfig().getString(CFG.GENERAL_GOAL))) {
                 PVPArena.getInstance().getLogger().warning("Arena " + arena.getName() + " is running in NO-PVP mode! Make sure people can die!");
             }
         } else {
@@ -341,7 +339,7 @@ public final class ConfigurationManager {
         if (error != null) {
             return Language.parse(arena, MSG.ERROR_MISSING_SPAWN, error);
         }
-        error = PVPArena.getInstance().getAgm().checkForMissingSpawns(arena, list);
+        error = arena.getGoal().checkForMissingSpawns(list);
         if (error != null) {
             return Language.parse(arena, MSG.ERROR_MISSING_SPAWN, error);
         }

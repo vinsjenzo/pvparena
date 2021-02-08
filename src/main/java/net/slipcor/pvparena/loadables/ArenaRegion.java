@@ -502,17 +502,17 @@ public class ArenaRegion {
             final PABlockLocation pLoc = new PABlockLocation(ap.get().getLocation());
             if (this.flags.contains(RegionFlag.DEATH) && this.shape.contains(pLoc)) {
                 Arena.pmsg(ap.get(), Language.parse(this.arena, MSG.NOTICE_YOU_DEATH));
-                for (final ArenaGoal goal : this.arena.getGoals()) {
-                    if (goal.getName().endsWith("DeathMatch")) {
-                        if (goal.getLifeMap().containsKey(ap.getName())) {
-                            final int lives = goal.getLifeMap().get(ap.getName()) + 1;
-                            goal.getLifeMap().put(ap.getName(), lives);
-                        } else if (goal.getLifeMap().containsKey(ap.getArenaTeam().getName())) {
-                            final int lives = goal.getLifeMap().get(ap.getArenaTeam().getName()) + 1;
-                            goal.getLifeMap().put(ap.getArenaTeam().getName(), lives);
-                        }
+                ArenaGoal goal = this.arena.getGoal();
+                if (goal.getName().endsWith("DeathMatch")) {
+                    if (goal.getLifeMap().containsKey(ap.getName())) {
+                        final int lives = goal.getLifeMap().get(ap.getName()) + 1;
+                        goal.getLifeMap().put(ap.getName(), lives);
+                    } else if (goal.getLifeMap().containsKey(ap.getArenaTeam().getName())) {
+                        final int lives = goal.getLifeMap().get(ap.getArenaTeam().getName()) + 1;
+                        goal.getLifeMap().put(ap.getArenaTeam().getName(), lives);
                     }
                 }
+
                 ap.get().setLastDamageCause(
                         new EntityDamageEvent(ap.get(), DamageCause.CUSTOM,
                                 1003.0));

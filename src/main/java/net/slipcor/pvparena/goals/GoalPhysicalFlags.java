@@ -737,7 +737,7 @@ public class GoalPhysicalFlags extends ArenaGoal implements Listener {
     }
 
     @Override
-    public void initate(final Player player) {
+    public void initiate(final Player player) {
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
         final ArenaTeam team = aPlayer.getArenaTeam();
         if (!this.getLifeMap().containsKey(team.getName())) {

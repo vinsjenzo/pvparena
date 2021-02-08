@@ -136,24 +136,12 @@ public class PACheck {
         this.priority = priority;
     }
 
-    public static boolean handleCommand(final Arena arena,
-                                        final CommandSender sender, final String[] args) {
-        int priority = 0;
-        PACheck res = new PACheck();
-
-        ArenaGoal commit = null;
-
-        for (final ArenaGoal mod : arena.getGoals()) {
-            res = mod.checkCommand(res, args[0]);
-            if (res.priority > priority && priority >= 0) {
-                // success and higher priority
-                priority = res.priority;
-                commit = mod;
-            } else if (res.priority < 0 || priority < 0) {
-                // fail
-                priority = res.priority;
-                commit = null;
-            }
+    public static boolean handleCommand(final Arena arena, final CommandSender sender, final String[] args) {
+        ArenaGoal commit = arena.getGoal();
+        PACheck res = commit.checkCommand(new PACheck(), args[0]);
+        if (res.priority <= 0) {
+            // fail
+            commit = null;
         }
 
         if (res.hasError()) {
@@ -161,6 +149,7 @@ public class PACheck {
                     Language.parse(arena, MSG.ERROR_ERROR, res.error));
             return false;
         }
+
         if (commit == null) {
             for (final ArenaModule am : arena.getMods()) {
                 if (am.checkCommand(args[0].toLowerCase())) {
@@ -178,23 +167,12 @@ public class PACheck {
 
     public static boolean handleEnd(final Arena arena, final boolean force) {
         debug(arena, "handleEnd: " + arena.getName() + "; force: " + force);
-        int priority = 0;
-        PACheck res = new PACheck();
 
-        ArenaGoal commit = null;
-
-        for (final ArenaGoal mod : arena.getGoals()) {
-            debug(arena, "checking " + mod.getName());
-            res = mod.checkEnd(res);
-            if (res.priority > priority && priority >= 0) {
-                debug(arena, "> success and higher priority");
-                priority = res.priority;
-                commit = mod;
-            } else if (res.priority < 0 || priority < 0) {
-                debug(arena, "> fail");
-                priority = res.priority;
-                commit = null;
-            }
+        ArenaGoal commit = arena.getGoal();
+        PACheck res = commit.checkEnd(new PACheck());
+        if (res.priority <= 0) {
+            // fail
+            commit = null;
         }
 
         if (res.hasError()) {
@@ -221,29 +199,17 @@ public class PACheck {
         return true;
     }
 
-    public static int handleGetLives(final Arena arena,
-                                     final ArenaPlayer aPlayer) {
+    public static int handleGetLives(final Arena arena, final ArenaPlayer aPlayer) {
 
-        if (aPlayer.getStatus() == Status.LOUNGE
-                || aPlayer.getStatus() == Status.WATCH) {
+        if (aPlayer.getStatus() == Status.LOUNGE || aPlayer.getStatus() == Status.WATCH) {
             return 0;
         }
 
-        PACheck res = new PACheck();
-        int priority = 0;
-        for (final ArenaGoal mod : arena.getGoals()) {
-            res = mod.getLives(res, aPlayer);
-            if (res.priority > priority && priority >= 0) {
-                // success and higher priority
-                priority = res.priority;
-            } else if (res.priority < 0 || priority < 0) {
-                // fail
-                priority = res.priority;
-            }
-        }
+        ArenaGoal goal = arena.getGoal();
+        PACheck res = goal.getLives(new PACheck(), aPlayer);
 
         if (res.hasError()) {
-            return Math.round(Float.valueOf(res.error));
+            return Math.round(Float.parseFloat(res.error));
         }
         return 0;
     }
@@ -251,22 +217,11 @@ public class PACheck {
     public static void handleInteract(final Arena arena, final Player player,
                                       final Cancellable event, final Block clickedBlock) {
 
-        int priority = 0;
-        PACheck res = new PACheck();
-
-        ArenaGoal commit = null;
-
-        for (final ArenaGoal mod : arena.getGoals()) {
-            res = mod.checkInteract(res, player, clickedBlock);
-            if (res.priority > priority && priority >= 0) {
-                // success and higher priority
-                priority = res.priority;
-                commit = mod;
-            } else if (res.priority < 0 || priority < 0) {
-                // fail
-                priority = res.priority;
-                commit = null;
-            }
+        ArenaGoal commit = arena.getGoal();
+        PACheck res = commit.checkInteract(new PACheck(), player, clickedBlock);
+        if (res.priority <= 0) {
+            // fail
+            commit = null;
         }
 
         if (res.hasError()) {
@@ -324,20 +279,11 @@ public class PACheck {
             return false;
         }
 
-        ArenaGoal commGoal = null;
-
-        for (final ArenaGoal mod : arena.getGoals()) {
-            res = mod.checkJoin(sender, res, args);
-            if (res.priority > priority && priority >= 0) {
-                // success and higher priority
-                debug(arena, "higher priority, commGoal := "+mod.getName());
-                priority = res.priority;
-                commGoal = mod;
-            } else if (res.priority < 0 || priority < 0) {
-                // fail
-                priority = res.priority;
-                commGoal = null;
-            }
+        ArenaGoal commGoal = arena.getGoal();
+        res = commGoal.checkJoin(sender, res, args);
+        if (res.priority <= 0) {
+            // fail
+            commGoal = null;
         }
 
         if (commGoal != null && !ArenaManager.checkJoin((Player) sender, arena)) {
@@ -450,7 +396,7 @@ public class PACheck {
             }
             ArenaModuleManager.parseJoin(arena, (Player) sender, team);
 
-            PVPArena.getInstance().getAgm().initiate(arena, (Player) sender);
+            arena.getGoal().initiate(((Player) sender));
             ArenaModuleManager.initiate(arena, (Player) sender);
 
             if (arena.getFighters().size() > 1
@@ -461,9 +407,7 @@ public class PACheck {
                     SpawnManager.distribute(arena, ateam);
                 }
 
-                for (final ArenaGoal goal : arena.getGoals()) {
-                    goal.parseStart();
-                }
+                arena.getGoal().parseStart();
 
                 for (final ArenaModule mod : arena.getMods()) {
                     mod.parseStart();
@@ -499,25 +443,11 @@ public class PACheck {
     public static void handlePlayerDeath(final Arena arena,
                                          final Player player, final PlayerDeathEvent event) {
 
-        int priority = 0;
-        PACheck res = new PACheck();
-
-        ArenaGoal commit = null;
-
-        for (final ArenaGoal mod : arena.getGoals()) {
-            res = mod.checkPlayerDeath(res, player);
-            if (res.priority > priority && priority >= 0) {
-                debug(arena, player, "success and higher priority");
-                priority = res.priority;
-                commit = mod;
-            } else if (res.priority < 0 || priority < 0) {
-                debug(arena, player, "fail");
-                // fail
-                priority = res.priority;
-                commit = null;
-            } else {
-                debug(arena, player, "else");
-            }
+        ArenaGoal commit = arena.getGoal();
+        PACheck res = commit.checkPlayerDeath(new PACheck(), player);
+        if (res.priority <= 0) {
+            // fail
+            commit = null;
         }
 
         boolean doesRespawn = true;
@@ -608,9 +538,8 @@ public class PACheck {
             handleRespawn(arena, ArenaPlayer.parsePlayer(player.getName()),
                     returned);
 
-            for (final ArenaGoal g : arena.getGoals()) {
-                g.parsePlayerDeath(player, player.getLastDamageCause());
-            }
+
+            arena.getGoal().parsePlayerDeath(player, player.getLastDamageCause());
 
             return;
         }
@@ -619,10 +548,8 @@ public class PACheck {
         final int exp = event.getDroppedExp();
 
         commit.commitPlayerDeath(player, doesRespawn, res.error, event);
-        for (final ArenaGoal g : arena.getGoals()) {
-            debug(arena, player, "parsing death: " + g.getName());
-            g.parsePlayerDeath(player, player.getLastDamageCause());
-        }
+        debug(arena, player, "parsing death: " + commit.getName());
+        commit.parsePlayerDeath(player, player.getLastDamageCause());
 
         ArenaModuleManager.parsePlayerDeath(arena, player,
                 player.getLastDamageCause());
@@ -672,22 +599,11 @@ public class PACheck {
             return false;
         }
 
-        int priority = 0;
-        PACheck res = new PACheck();
-
-        ArenaGoal commit = null;
-
-        for (final ArenaGoal mod : arena.getGoals()) {
-            res = mod.checkSetBlock(res, player, block);
-            if (res.priority > priority && priority >= 0) {
-                // success and higher priority
-                priority = res.priority;
-                commit = mod;
-            } else if (res.priority < 0 || priority < 0) {
-                // fail
-                priority = res.priority;
-                commit = null;
-            }
+        ArenaGoal commit = arena.getGoal();
+        PACheck res = commit.checkSetBlock(new PACheck(), player, block);
+        if (res.priority <= 0) {
+            // fail
+            commit = null;
         }
 
         if (res.hasError()) {
@@ -754,26 +670,14 @@ public class PACheck {
         return handleStart(arena, sender, false);
     }
 
-    public static Boolean handleStart(final Arena arena,
-                                      final CommandSender sender, final boolean force) {
-        PACheck res = new PACheck();
-
+    public static Boolean handleStart(final Arena arena, final CommandSender sender, final boolean force) {
         debug(arena, "handling start!");
 
-        ArenaGoal commit = null;
-        int priority = 0;
-
-        for (final ArenaGoal mod : arena.getGoals()) {
-            res = mod.checkStart(res);
-            if (res.priority > priority && priority >= 0) {
-                // success and higher priority
-                priority = res.priority;
-                commit = mod;
-            } else if (res.priority < 0 || priority < 0) {
-                // fail
-                priority = res.priority;
-                commit = null;
-            }
+        ArenaGoal commit = arena.getGoal();
+        PACheck res = commit.checkStart(new PACheck());
+        if (res.priority <= 0) {
+            // fail
+            commit = null;
         }
 
         if (!force && res.hasError()) {
@@ -817,9 +721,7 @@ public class PACheck {
         arena.broadcast(Language.parse(arena, MSG.FIGHT_BEGINS));
         arena.setFightInProgress(true);
 
-        for (final ArenaGoal x : arena.getGoals()) {
-            x.parseStart();
-        }
+        arena.getGoal().parseStart();
 
         for (final ArenaModule x : arena.getMods()) {
             x.parseStart();

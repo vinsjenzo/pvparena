@@ -264,9 +264,8 @@ nulang:
     place: place
     use: use
   goal:
-    added: 'Goal added: &a%1%&r'
+    set: 'Goal set: &a%1%&r'
     installing: 'Install goals by command: &a/pa install [goalname]&r'
-    removed: 'Goal removed: &a%1%&r'
     blockdestroy:
       typeset: 'Blocktype set to: &e%1%'
       setflag: 'Block set: %1%'

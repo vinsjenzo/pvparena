@@ -291,7 +291,7 @@ public class GoalTank extends ArenaGoal {
     }
 
     @Override
-    public void initate(final Player player) {
+    public void initiate(final Player player) {
         this.getLifeMap().put(player.getName(),
                 this.arena.getArenaConfig().getInt(CFG.GOAL_TANK_LIVES));
     }

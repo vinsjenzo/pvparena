@@ -16,7 +16,6 @@ import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
-import net.slipcor.pvparena.loadables.ArenaGoalManager;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.loadables.ArenaRegion;
@@ -271,7 +270,7 @@ public class PlayerListener implements Listener {
             return; // no fighting player => OUT
         }
 
-        PACheck res = ArenaGoalManager.checkCraft(arena, event);
+        PACheck res = arena.getGoal().checkCraft(new PACheck(), arena, event);
 
         if (res.hasError()) {
             debug(player, "onPlayerCraft cancelled by goal: " + res.getModName());
@@ -307,7 +306,7 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        PACheck res = ArenaGoalManager.checkDrop(arena, event);
+        PACheck res = arena.getGoal().checkDrop(new PACheck(), arena, event);
 
         if (res.hasError()) {
             debug(player, "onPlayerDropItem cancelled by goal: " + res.getModName());
@@ -515,7 +514,7 @@ public class PlayerListener implements Listener {
 
         //TODO: seriously, why?
         final boolean whyMe = arena.isFightInProgress()
-                && !PVPArena.getInstance().getAgm().allowsJoinInBattle(arena);
+                && !arena.getGoal().allowsJoinInBattle();
 
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
         final ArenaTeam team = aPlayer.getArenaTeam();
@@ -684,7 +683,7 @@ public class PlayerListener implements Listener {
                         Status.FIGHT);
 
                 ArenaModuleManager.lateJoin(arena, player);
-                ArenaGoalManager.lateJoin(arena, player);
+                arena.getGoal().lateJoin(player);
             } else if (block.getType() == Material.CHEST || block.getType() == Material.TRAPPED_CHEST) {
                 arena = ArenaManager.getArenaByRegionLocation(new PABlockLocation(block.getLocation()));
                 if (arena != null) {
@@ -805,7 +804,7 @@ public class PlayerListener implements Listener {
         }
         final Player player = (Player) event.getEntity();
 
-        if (this.willBeCancelled(player, event)) {
+        if (willBeCancelled(player, event)) {
             return;
         }
 
@@ -813,7 +812,7 @@ public class PlayerListener implements Listener {
 
         if (arena != null) {
 
-            PACheck res = ArenaGoalManager.checkPickup(arena, event);
+            PACheck res = arena.getGoal().checkPickup(new PACheck(), arena, event);
 
             if (res.hasError()) {
                 debug(player, "onPlayerPickupItem cancelled by goal: " + res.getModName());
@@ -825,7 +824,7 @@ public class PlayerListener implements Listener {
                 RegionProtection.PICKUP)) {
             return; // no fighting player or no powerups => OUT
         }
-        ArenaGoalManager.onPlayerPickUp(arena, event);
+        arena.getGoal().onPlayerPickUp(event);
         ArenaModuleManager.onPlayerPickupItem(arena, event);
     }
 

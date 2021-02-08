@@ -6,6 +6,8 @@ import net.slipcor.pvparena.runnables.TimedEndRunnable;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.IllegalPluginAccessException;
 
+import static net.slipcor.pvparena.config.Debugger.debug;
+
 /**
  * <pre>Arena Timer</pre>
  * <p/>
@@ -21,28 +23,28 @@ public class ArenaTimer {
     }
 
     public void start() {
-        final int timed = arena.getArenaConfig().getInt(CFG.GENERAL_TIME);
+        final int timed = this.arena.getArenaConfig().getInt(CFG.GENERAL_TIMER);
         if (timed > 0) {
-            PVPArena.getInstance().getLogger().info("arena timing!");
+            debug(this.arena, "arena timing!");
             // initiate arena timer
-            ter = new TimedEndRunnable(arena, timed);
+            this.ter = new TimedEndRunnable(this.arena, timed);
         }
     }
 
     public void stop() {
-        if (ter == null) {
-            PVPArena.getInstance().getLogger().info("timer already stopped");
+        if (this.ter == null) {
+           debug(this.arena, "timer already stopped");
             return;
         }
 
         class EndTimerRunner implements Runnable {
             @Override
             public void run() {
-                ter.commit();
+                ArenaTimer.this.ter.commit();
             }
         }
 
-        PVPArena.getInstance().getLogger().info("Stopping arena end timer");
+        debug(this.arena, "Stopping arena end timer");
         try {
             Bukkit.getScheduler().runTaskLater(PVPArena.getInstance(), new EndTimerRunner(), 1L);
         } catch (IllegalPluginAccessException ex) {

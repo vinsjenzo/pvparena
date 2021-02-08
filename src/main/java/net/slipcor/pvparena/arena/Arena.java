@@ -2,9 +2,7 @@ package net.slipcor.pvparena.arena;
 
 import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
-import net.slipcor.pvparena.arena.ArenaTimer;
 import net.slipcor.pvparena.classes.*;
-import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.ArrowHack;
 import net.slipcor.pvparena.core.Config;
 import net.slipcor.pvparena.core.Config.CFG;
@@ -67,9 +65,7 @@ import static net.slipcor.pvparena.config.Debugger.debug;
 
 public class Arena {
 
-    private Debugger debug;
     private final Set<ArenaClass> classes = new HashSet<>();
-    private final Set<ArenaGoal> goals = new HashSet<>();
     private final Set<ArenaModule> mods = new HashSet<>();
     private final Set<ArenaRegion> regions = new HashSet<>();
     private final Set<PAClassSign> signs = new HashSet<>();
@@ -91,6 +87,8 @@ public class Arena {
     private boolean free;
     private final boolean valid;
     private int startCount;
+
+    private ArenaGoal goal;
 
     // Runnable IDs
     public BukkitRunnable endRunner;
@@ -433,30 +431,20 @@ public class Arena {
         return players;
     }
 
-    public Set<ArenaGoal> getGoals() {
-        return this.goals;
+    public ArenaGoal getGoal() {
+        return this.goal;
     }
 
-    public boolean hasGoal(String goalName) {
-        return this.goals.stream().anyMatch(g -> g.getName().equalsIgnoreCase(goalName));
-    }
-
-    public void addGoal(ArenaGoal goal, boolean updateConfig) {
+    public void setGoal(ArenaGoal goal, boolean updateConfig) {
         goal.setArena(this);
-        this.goals.add(goal);
+        this.goal = goal;
         if (updateConfig) {
             this.updateGoalListInCfg();
         }
     }
 
-    public void removeGoal(String goalName) {
-        this.goals.removeIf(g -> g.getName().equalsIgnoreCase(goalName));
-        this.updateGoalListInCfg();
-    }
-
     private void updateGoalListInCfg() {
-        final List<String> list = this.goals.stream().map(ArenaGoal::getName).collect(Collectors.toList());
-        this.cfg.set(CFG.LISTS_GOALS, list);
+        this.cfg.set(CFG.GENERAL_GOAL, this.goal.getName());
         this.cfg.save();
     }
 
@@ -918,9 +906,8 @@ public class Arena {
         if (player == null) {
             return;
         }
-        for (final ArenaGoal goal : this.getGoals()) {
-            goal.parseLeave(player);
-        }
+
+        this.goal.parseLeave(player);
 
         if (!this.fightInProgress) {
             this.startCount--;
@@ -1014,7 +1001,7 @@ public class Arena {
             }
         }
 
-        final String error = PVPArena.getInstance().getAgm().ready(this);
+        final String error = this.goal.ready();
         if (error != null) {
             return error;
         }
@@ -1398,7 +1385,7 @@ public class Arena {
         ArenaModuleManager.reset(this, force);
         ArenaManager.advance(Arena.this);
         this.clearRegions();
-        PVPArena.getInstance().getAgm().reset(this, force);
+        this.goal.reset(force);
 
         StatisticsManager.save();
 
@@ -2286,14 +2273,5 @@ public class Arena {
             }
         }
         this.spawns.add(paSpawn);
-    }
-
-    public boolean allowsJoinInBattle() {
-        for (final ArenaGoal goal : this.getGoals()) {
-            if (!goal.allowsJoinInBattle()) {
-                return false;
-            }
-        }
-        return true;
     }
 }

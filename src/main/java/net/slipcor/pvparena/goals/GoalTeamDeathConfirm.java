@@ -249,7 +249,7 @@ public class GoalTeamDeathConfirm extends ArenaGoal {
     }
 
     @Override
-    public void initate(final Player player) {
+    public void initiate(final Player player) {
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
         this.updateLives(aPlayer.getArenaTeam(), this.arena.getArenaConfig()
                 .getInt(CFG.GOAL_TDC_LIVES));

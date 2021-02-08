@@ -382,7 +382,7 @@ public class GoalFood extends ArenaGoal implements Listener {
     }
 
     @Override
-    public void initate(final Player player) {
+    public void initiate(final Player player) {
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
         if (this.getLifeMap().get(aPlayer.getArenaTeam().getName()) == null) {
             this.getLifeMap().put(aPlayer.getArenaTeam().getName(), this.arena.getArenaConfig()

@@ -305,7 +305,7 @@ public class GoalPlayerDeathMatch extends ArenaGoal {
     }
 
     @Override
-    public void initate(final Player player) {
+    public void initiate(final Player player) {
         this.updateLives(player, this.arena.getArenaConfig().getInt(CFG.GOAL_PDM_LIVES));
     }
 
@@ -313,7 +313,7 @@ public class GoalPlayerDeathMatch extends ArenaGoal {
 
     @Override
     public void lateJoin(final Player player) {
-        this.initate(player);
+        this.initiate(player);
     }
 
     @Override

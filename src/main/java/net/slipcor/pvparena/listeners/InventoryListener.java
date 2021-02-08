@@ -4,7 +4,6 @@ import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
-import net.slipcor.pvparena.loadables.ArenaGoalManager;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionProtection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -55,7 +54,7 @@ public class InventoryListener implements Listener {
         }
 
 
-        PACheck res = ArenaGoalManager.checkInventory(arena, event);
+        PACheck res = arena.getGoal().checkInventory(new PACheck(), arena, event);
 
         if (res.hasError()) {
             debug(player, "onInventoryClick cancelled by goal: " + res.getModName());

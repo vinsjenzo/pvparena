@@ -74,10 +74,12 @@ public class Config {
         GENERAL_PREFIX("general.prefix", "PVP Arena", null),
         GENERAL_SHOWREMAININGLIVES("general.showRemainingLives", true, null),
         GENERAL_SMARTSPAWN("general.smartspawn", false, null),
-        GENERAL_TIME("general.time.end", 0, null),
-        GENERAL_TIME_WINNER("general.time.winner", "none", null),
+        GENERAL_TIMER("general.timer.end", 0, null),
+        GENERAL_TIMER_WINNER("general.timer.winner", "none", null),
         GENERAL_TYPE("general.type", "none", null),
+        GENERAL_GOAL("general.goal", "none", null),
         GENERAL_WAND("general.wand", Material.STICK, null),
+        GENERAL_ADDLIVESPERPLAYER("general.addLivesPerPlayer", false, null),
 
         ITEMS_EXCLUDEFROMDROPS("items.excludeFromDrops", new ItemStack[0], null),
         ITEMS_KEEPONRESPAWN("items.keepOnRespawn", new ItemStack[0], null),
@@ -93,7 +95,6 @@ public class Config {
 
         LISTS_BLACKLIST("block.blacklist", new ArrayList<>(), null),
         LISTS_CMDWHITELIST("cmds.whitelist", new ArrayList<>(), null),
-        LISTS_GOALS("goals", new ArrayList<>(), null),
         LISTS_MODS("mods", new ArrayList<>(), null),
         LISTS_WHITELIST("block.whitelist", new ArrayList<>(), null),
 
@@ -152,8 +153,8 @@ public class Config {
         READY_MAXTEAMPLAYERS("ready.maxTeam", 0, null),
         READY_NEEDEDRATIO("ready.neededRatio", 0.5, null),
 
-        TIME_ENDCOUNTDOWN("goal.endCountDown", 5, null),
         TIME_STARTCOUNTDOWN("time.startCountDown", 10, null),
+        TIME_ENDCOUNTDOWN("time.endCountDown", 5, null),
         TIME_REGIONTIMER("time.regionTimer", 10, null),
         TIME_TELEPORTPROTECT("time.teleportProtect", 3, null),
         TIME_RESETDELAY("time.resetDelay", -1, null),
@@ -164,7 +165,7 @@ public class Config {
         TP_EXIT("tp.exit", "old", null),
         TP_LOSE("tp.lose", "old", null),
         TP_WIN("tp.win", "old", null),
-        TP_OFFSETS("tp.offsets", new ArrayList<String>(), null),
+        TP_OFFSETS("tp.offsets", new ArrayList<>(), null),
 
         USES_CLASSSIGNSDISPLAY("uses.classSignsDisplay", false, null),
         USES_DEATHMESSAGES("uses.deathMessages", true, null),
@@ -182,8 +183,6 @@ public class Config {
         USES_WOOLHEAD("uses.woolHead", false, null),
 
         // ----------
-        GOAL_ADDLIVESPERPLAYER("goal.livesPerPlayer", false, null),
-
         GOAL_BLOCKDESTROY_BLOCKTYPE("goal.blockdestroy.blocktype", Material.IRON_BLOCK, "BlockDestroy"),
         GOAL_BLOCKDESTROY_LIVES("goal.blockdestroy.bdlives", 1, "BlockDestroy"),
 
@@ -553,7 +552,7 @@ public class Config {
     }
 
     public void createDefaults(final List<String> goals, final List<String> modules) {
-        this.cfg.options().indent(4);
+        this.cfg.options().indent(2);
 
         for (final CFG cfg : CFG.getValues()) {
             if (cfg.hasModule()) {

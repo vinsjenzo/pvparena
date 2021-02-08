@@ -391,7 +391,7 @@ public class GoalPlayerKillReward extends ArenaGoal {
     }
 
     @Override
-    public void initate(final Player player) {
+    public void initiate(final Player player) {
         this.getLifeMap().put(player.getName(), this.getDefaultRemainingKills());
     }
 

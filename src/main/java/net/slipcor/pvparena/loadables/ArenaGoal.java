@@ -399,7 +399,7 @@ public class ArenaGoal implements IArenaCommandHandler {
      *
      * @param player the player being put
      */
-    public void initate(final Player player) {
+    public void initiate(final Player player) {
     }
 
     /**
@@ -521,7 +521,7 @@ public class ArenaGoal implements IArenaCommandHandler {
     }
 
     protected void updateLives(final ArenaTeam team, final int value) {
-        if (this.arena.getArenaConfig().getBoolean(CFG.GOAL_ADDLIVESPERPLAYER)) {
+        if (this.arena.getArenaConfig().getBoolean(CFG.GENERAL_ADDLIVESPERPLAYER)) {
             this.getLifeMap().put(team.getName(), team.getTeamMembers().size() * value);
         } else {
             this.getLifeMap().put(team.getName(), value);
@@ -529,7 +529,7 @@ public class ArenaGoal implements IArenaCommandHandler {
     }
 
     protected void updateLives(final Player player, final int value) {
-        if (this.arena.getArenaConfig().getBoolean(CFG.GOAL_ADDLIVESPERPLAYER)) {
+        if (this.arena.getArenaConfig().getBoolean(CFG.GENERAL_ADDLIVESPERPLAYER)) {
             this.getLifeMap().put(player.getName(), this.arena.getFighters().size() * value);
         } else {
             this.getLifeMap().put(player.getName(), value);

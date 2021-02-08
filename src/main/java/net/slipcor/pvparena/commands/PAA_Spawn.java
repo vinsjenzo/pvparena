@@ -8,7 +8,6 @@ import net.slipcor.pvparena.core.Help;
 import net.slipcor.pvparena.core.Help.HELP;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
-import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.managers.SpawnManager;
 import org.bukkit.command.CommandSender;
@@ -72,16 +71,14 @@ public class PAA_Spawn extends AbstractArenaCommand {
                 }
             }
 
-            if (arena.getGoals().isEmpty()) {
+            if (arena.getGoal() == null) {
                 arena.msg(sender, Language.parse(arena, MSG.ERROR_NO_GOAL));
                 return;
             }
 
-            for (final ArenaGoal mod : arena.getGoals()) {
-                if (mod.hasSpawn(args[0])) {
-                    this.commitSet(arena, sender, new PALocation(aPlayer.get().getLocation()), args[0]);
-                    return;
-                }
+            if (arena.getGoal().hasSpawn(args[0])) {
+                this.commitSet(arena, sender, new PALocation(aPlayer.get().getLocation()), args[0]);
+                return;
             }
 
             arena.msg(sender, Language.parse(arena, MSG.ERROR_SPAWN_UNKNOWN, args[0]));

@@ -330,7 +330,7 @@ public class GoalCheckPoints extends ArenaGoal {
     }
 
     @Override
-    public void initate(final Player player) {
+    public void initiate(final Player player) {
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
         if (!this.getLifeMap().containsKey(aPlayer.getName())) {
             this.getLifeMap().put(aPlayer.getName(), this.arena.getArenaConfig()
@@ -340,7 +340,7 @@ public class GoalCheckPoints extends ArenaGoal {
 
     @Override
     public void lateJoin(final Player player) {
-        this.initate(player);
+        this.initiate(player);
     }
 
     @Override

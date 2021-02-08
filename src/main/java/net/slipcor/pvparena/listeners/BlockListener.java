@@ -8,12 +8,10 @@ import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.PAA_Edit;
 import net.slipcor.pvparena.commands.PAA_Setup;
-import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.core.Utils;
-import net.slipcor.pvparena.loadables.ArenaGoalManager;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionProtection;
 import net.slipcor.pvparena.managers.ArenaManager;
@@ -164,7 +162,7 @@ public class BlockListener implements Listener {
             return;
         }
 
-        PACheck res = ArenaGoalManager.checkBreak(arena, event);
+        PACheck res = arena.getGoal().checkBreak(new PACheck(), arena, event);
 
         if (res.hasError()) {
             debug(event.getPlayer(), "onBlockBreak cancelled by goal: " + res.getModName());
@@ -463,7 +461,7 @@ public class BlockListener implements Listener {
             return;
         }
 
-        PACheck res = ArenaGoalManager.checkPlace(arena, event);
+        PACheck res = arena.getGoal().checkPlace(new PACheck(), arena, event);
 
         if (res.hasError()) {
             debug(player, "onBlockPlace cancelled by goal: " + res.getModName());

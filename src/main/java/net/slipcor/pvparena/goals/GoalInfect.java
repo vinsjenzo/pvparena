@@ -606,7 +606,7 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public void initate(final Player player) {
+    public void initiate(final Player player) {
         this.updateLives(player, this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_NLIVES));
     }
 

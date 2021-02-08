@@ -1,6 +1,5 @@
 package net.slipcor.pvparena.runnables;
 
-import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -63,7 +62,7 @@ public class RegionRunnable extends BukkitRunnable {
         if (this.region.getType() == RegionType.JOIN) {
             // join region
             if (this.region.getArena().isFightInProgress()) {
-                if (PVPArena.getInstance().getAgm().allowsJoinInBattle(this.region.getArena())) {
+                if (this.region.getArena().getGoal().allowsJoinInBattle()) {
                     // ingame: only tick if allowed
                     trace(this.region.getArena(), "tick 1: {}", this.region.getRegionName());
                     this.region.tick();

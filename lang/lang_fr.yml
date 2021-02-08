@@ -124,7 +124,7 @@ nulang:
     goal:
       legacyunknown: 'Objectif &a%1%&r inconnu ! Pour ajouter un objectif: &a/pa [arena]
         goal [nomdelobjectif]'
-      goalnotfound: 'Objectif &a%1%&r inconnu. Objectifs valides: &a%2%&r'
+      goalnotfound: 'Objectif &a%1%&r inconnu trouvé dans les fichiers suivants : &a%2%&r. Objectifs valides: &a%3%&r'
     install: Erreur lors de l'installation de &a%1%&r
     invalid_argument_count: '&cLe nombre d''arguments est incorrect&r (%1% au lieu
       de %2%) !'
@@ -277,9 +277,8 @@ nulang:
     place: placer
     use: utiliser des objets
   goal:
-    added: 'Objectif ajouté: &a%1%&r'
+    set: 'Objectif défini: &a%1%&r'
     installing: 'Installez des objectifs avec la commande: &a/pa install [goalname]&r'
-    removed: 'Objectif supprimé: &a%1%&r'
     blockdestroy:
       typeset: 'Blocktype configuré en: &e%1%'
       setflag: 'Bloc configuré: %1%'

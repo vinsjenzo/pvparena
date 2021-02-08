@@ -71,31 +71,20 @@ public final class ArenaManager {
      * try loading an arena
      *
      * @param name the arena name to load
-     * @return the loaded module name if something is missing, null otherwise
+     * @return the loaded module name if is missing, null otherwise
      */
-    private static String checkForMissingGoals(final String name) {
+    private static String checkIfMissingGoals(final String name) {
         debug("check for missing goals: {}", name);
-        final File file = new File(PVPArena.getInstance().getDataFolder() + "/arenas/"
-                + name + ".yml");
+        final File file = new File(String.format("%s/arenas/%s.yml", PVPArena.getInstance().getDataFolder(), name));
         if (!file.exists()) {
-            return name + " (file does not exist)";
+            return String.format("%s (file does not exist)", name);
         }
         final Config cfg = new Config(file);
 
         cfg.load();
-        final List<String> list = cfg.getStringList(CFG.LISTS_GOALS.getNode(),
-                new ArrayList<>());
-
-        if (list.size() < 1) {
-            return null;
-        }
-
-        for (final String goalName : list) {
-
-            if (!PVPArena.getInstance().getAgm().hasLoadable(goalName)) {
-                return goalName;
-            }
-
+        String goalName = cfg.getString(CFG.GENERAL_GOAL);
+        if (!PVPArena.getInstance().getAgm().hasLoadable(goalName)) {
+            return goalName;
         }
 
         return null;
@@ -301,7 +290,7 @@ public final class ArenaManager {
                 if (!arenaConfigFile.isDirectory() && arenaConfigFile.getName().contains(".yml")) {
                     String sName = arenaConfigFile.getName().replace("config_", "");
                     sName = sName.replace(".yml", "");
-                    final String missingGoal = checkForMissingGoals(sName);
+                    final String missingGoal = checkIfMissingGoals(sName);
                     if (missingGoal == null) {
                         debug("arena: {}", sName);
                         if (!ARENAS.containsKey(sName.toLowerCase())) {
@@ -421,7 +410,7 @@ public final class ArenaManager {
 
     public static Arena getAvailable() {
         for (final Arena a : getArenas()) {
-            if (!a.isLocked() && !(a.isFightInProgress() && !a.allowsJoinInBattle())) {
+            if (!a.isLocked() && !(a.isFightInProgress() && !a.getGoal().allowsJoinInBattle())) {
                 return a;
             }
         }

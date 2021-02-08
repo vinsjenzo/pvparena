@@ -8,7 +8,6 @@ import net.slipcor.pvparena.core.Help.HELP;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.core.StringParser;
-import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import org.bukkit.ChatColor;
@@ -107,8 +106,8 @@ public class PAI_Info extends AbstractArenaCommand {
 
             arena.msg(sender,
                     "gameMode: " + arena.getArenaConfig().getInt(CFG.GENERAL_GAMEMODE) + " | " +
-                            "time end: " + arena.getArenaConfig().getInt(CFG.GENERAL_TIME) + " | " +
-                            "time end winner: " + arena.getArenaConfig().getInt(CFG.GENERAL_TIME_WINNER) + " | " +
+                            "time end: " + arena.getArenaConfig().getInt(CFG.GENERAL_TIMER) + " | " +
+                            "time end winner: " + arena.getArenaConfig().getInt(CFG.GENERAL_TIMER_WINNER) + " | " +
                             "wand: " + arena.getArenaConfig().getString(CFG.GENERAL_WAND));
 
         }
@@ -116,7 +115,7 @@ public class PAI_Info extends AbstractArenaCommand {
         if (displayMode == null || "command".equals(displayMode)) {
             arena.msg(sender, Language.parse(arena, MSG.INFO_SECTION, "goal"));
             arena.msg(sender, StringParser.colorVar("addLivesPerPlayer",
-                    arena.getArenaConfig().getBoolean(CFG.GOAL_ADDLIVESPERPLAYER)));
+                    arena.getArenaConfig().getBoolean(CFG.GENERAL_ADDLIVESPERPLAYER)));
         }
 
         if (displayMode == null || "item".equals(displayMode)) {
@@ -258,10 +257,8 @@ public class PAI_Info extends AbstractArenaCommand {
 
 
         if (displayMode == null || "goal".equalsIgnoreCase(displayMode)) {
-            for (final ArenaGoal goal : arena.getGoals()) {
-                arena.msg(sender, Language.parse(arena, MSG.INFO_GOAL_ACTIVE, goal.getName()));
-                goal.displayInfo(sender);
-            }
+            arena.msg(sender, Language.parse(arena, MSG.INFO_GOAL_ACTIVE, arena.getGoal().getName()));
+            arena.getGoal().displayInfo(sender);
         }
 
         if (displayMode == null || "mod".equalsIgnoreCase(displayMode)) {

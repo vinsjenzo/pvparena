@@ -286,9 +286,8 @@ public final class Language {
         GENERAL_PLACE("nulang.general.place", "place"),
         GENERAL_USE("nulang.general.use", "use"),
 
-        GOAL_ADDED("nulang.goal.added", "Goal added: &a%1%&r"),
+        GOAL_SET("nulang.goal.added", "Goal set: &a%1%&r"),
         GOAL_INSTALLING("nulang.goal.installing", "Install goals by command: &a/pa install %1%&r"),
-        GOAL_REMOVED("nulang.goal.removed", "Goal removed: &a%1%&r"),
 
         HELP_HEADLINE("nulang.help.head", "&e--- &aPVP Arena Help&e %1% &e---"),
         HELP_ADMIN("nulang.help.admin", "&c%1% - help administrating"),

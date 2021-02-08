@@ -84,12 +84,8 @@ public final class TabManager {
         if (args.length == 1) {
             addCommandsStartingWithPrefix(matches, sender, arena, arenaCommands, args[0]);
 
-            if (arena == null) {
-                // FIXME: Never used ?!!
-//                addCommandsStartingWithPrefix(matches, sender, null, PVPArena.getInstance().getAgm().getAllGoals(), args[0]);
-//                addCommandsStartingWithPrefix(matches, sender, null, PVPArena.getInstance().getAmm().getAllMods(), args[0]);
-            } else {
-                addCommandsStartingWithPrefix(matches, sender, arena, new ArrayList<>(arena.getGoals()), args[0]);
+            if (arena != null) {
+                addCommandsStartingWithPrefix(matches, sender, arena, singletonList(arena.getGoal()), args[0]);
                 addCommandsStartingWithPrefix(matches, sender, arena, new ArrayList<>(arena.getMods()), args[0]);
             }
             return new ArrayList<>(matches);
@@ -98,12 +94,8 @@ public final class TabManager {
         final List<CommandTree<String>> commands = new ArrayList<>();
         addTreesMatchingValueInHandlerList(commands, arenaCommands, arena, args[0]);
         addTreesMatchingValueInHandlerList(commands, globalCommands, arena, args[0]);
-        if (arena == null) {
-               // FIXME: Never used ?!!
-//            addTreesMatchingValueInHandlerList(commands, PVPArena.getInstance().getAgm().getAllGoals(), null, args[0]);
-//            addTreesMatchingValueInHandlerList(commands, PVPArena.getInstance().getAmm().getAllMods(), null, args[0]);
-        } else {
-            addTreesMatchingValueInHandlerList(commands, new ArrayList<>(arena.getGoals()), arena, args[0]);
+        if (arena != null) {
+            addTreesMatchingValueInHandlerList(commands, singletonList(arena.getGoal()), arena, args[0]);
             addTreesMatchingValueInHandlerList(commands, new ArrayList<>(arena.getMods()), arena, args[0]);
         }
 

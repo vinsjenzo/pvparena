@@ -66,14 +66,14 @@ public class PAA_Create extends AbstractGlobalCommand {
         if (args.length > 1) {
             if (goalManager.hasLoadable(args[1])) {
                 ArenaGoal goal = goalManager.getNewInstance(args[1]);
-                arena.addGoal(goal, true);
+                arena.setGoal(goal, true);
             } else {
                 arena.msg(sender, Language.parse(MSG.ERROR_GOAL_NOTFOUND, args[1], String.join(",", goalManager.getAllGoalNames())));
                 return;
             }
         } else {
             ArenaGoal goal = goalManager.getNewInstance("TeamLives");
-            arena.addGoal(goal, true);
+            arena.setGoal(goal, true);
         }
 
         if (ArenaManager.loadArena(arena)) {

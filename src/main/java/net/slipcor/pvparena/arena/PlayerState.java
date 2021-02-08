@@ -153,7 +153,7 @@ public final class PlayerState {
 
         if (player == null) {
             final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(this.name);
-            PVPArena.getInstance().getAgm().disconnect(aPlayer.getArena(), aPlayer);
+            aPlayer.getArena().getGoal().disconnect(aPlayer);
             return;
         }
         debug(player, "restoring PlayerState of {}", this.name);
@@ -197,7 +197,7 @@ public final class PlayerState {
 
         if (aPlayer.getArena() != null) {
             ArenaModuleManager.unload(aPlayer.getArena(), player);
-            PVPArena.getInstance().getAgm().unload(aPlayer.getArena(), player);
+            aPlayer.getArena().getGoal().unload(player);
         }
 
 

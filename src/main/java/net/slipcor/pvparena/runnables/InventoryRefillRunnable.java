@@ -101,7 +101,7 @@ public class InventoryRefillRunnable implements Runnable {
                                         + chatColor.name());
                     this.player.getInventory().setHelmet(
                             new ItemStack(ColorUtils.getWoolMaterialFromChatColor(chatColor), 1));
-                    PVPArena.getInstance().getAgm().refillInventory(this.arena, this.player);
+                    this.arena.getGoal().refillInventory(this.player);
                 }
             } else if (this.refill && aPlayer.hasCustomClass()) {
                 ArenaPlayer.reloadInventory(this.arena, this.player, false);

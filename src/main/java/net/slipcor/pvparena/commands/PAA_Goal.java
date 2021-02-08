@@ -49,31 +49,11 @@ public class PAA_Goal extends AbstractArenaCommand {
             return;
         }
 
-        boolean addGoal = false;
-        boolean removeGoal = false;
-
         if (args.length < 2) {
             // toggle
-            if (arena.hasGoal(loadableGoal.getName())) {
-                addGoal = true;
-            } else {
-                removeGoal = true;
-            }
-        } else {
-            addGoal = StringParser.isPositiveValue(args[1]);
-            removeGoal = StringParser.isNegativeValue(args[1]);
-        }
-
-        if (addGoal) {
             ArenaGoal goal = goalManager.getNewInstance(loadableGoal.getName());
-            arena.addGoal(goal, true);
-            arena.msg(sender, Language.parse(arena, MSG.GOAL_ADDED, args[0]));
-            return;
-        }
-
-        if (removeGoal) {
-            arena.removeGoal(loadableGoal.getName());
-            arena.msg(sender, Language.parse(arena, MSG.GOAL_REMOVED, args[0]));
+            arena.setGoal(goal, true);
+            arena.msg(sender, Language.parse(arena, MSG.GOAL_SET, args[0]));
             return;
         }
 
@@ -110,9 +90,7 @@ public class PAA_Goal extends AbstractArenaCommand {
         if (arena == null) {
             return result;
         }
-        for (final ArenaGoal goal : arena.getGoals()) {
-            result.define(new String[]{goal.getName()});
-        }
+        result.define(new String[]{arena.getGoal().getName()});
         return result;
     }
 }
