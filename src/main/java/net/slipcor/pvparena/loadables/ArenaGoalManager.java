@@ -70,7 +70,6 @@ public class ArenaGoalManager {
         this.addInternalLoadable(GoalTeamDeathConfirm.class);
         this.addInternalLoadable(GoalTeamDeathMatch.class);
         this.addInternalLoadable(GoalTeamLives.class);
-        this.addInternalLoadable(GoalTime.class);
     }
 
     public boolean allowsJoinInBattle(final Arena arena) {
@@ -264,7 +263,7 @@ public class ArenaGoalManager {
         if (arena.isFreeForAll() && arena.getTeams().size() <= 1) {
             winners.add("free");
             debug(arena, "adding FREE");
-        } else if ("none".equals(arena.getArenaConfig().getString(CFG.GOAL_TIME_WINNER))) {
+        } else if ("none".equals(arena.getArenaConfig().getString(CFG.GENERAL_TIME_WINNER))) {
             // check all teams
             double maxScore = 0;
 
@@ -304,7 +303,7 @@ public class ArenaGoalManager {
                 winners.clear(); // noone wins.
             }
         } else {
-            winners.add(arena.getArenaConfig().getString(CFG.GOAL_TIME_WINNER));
+            winners.add(arena.getArenaConfig().getString(CFG.GENERAL_TIME_WINNER));
             debug(arena, "added winner!");
         }
 
@@ -329,12 +328,12 @@ public class ArenaGoalManager {
 
                 if (sum == maxSum) {
                     preciseWinners.add(team.getName());
-                    debug(arena, "adddding " + team.getName());
+                    debug(arena, "adding " + team.getName());
                 } else if (sum > maxSum) {
                     maxSum = sum;
                     preciseWinners.clear();
                     preciseWinners.add(team.getName());
-                    debug(arena, "clearing and adddding + " + team.getName());
+                    debug(arena, "clearing and adding + " + team.getName());
                 }
             }
 
@@ -345,7 +344,7 @@ public class ArenaGoalManager {
         }
 
         if (arena.isFreeForAll() && arena.getTeams().size() <= 1) {
-            debug(arena, "FFAAA");
+            debug(arena, "FFA");
             final Set<String> preciseWinners = new HashSet<>();
 
             for (final ArenaTeam team : arena.getTeams()) {
@@ -383,10 +382,7 @@ public class ArenaGoalManager {
         if (arena.isFreeForAll() && arena.getTeams().size() <= 1) {
             debug(arena, "FFA and <= 1!");
             for (final ArenaTeam team : arena.getTeams()) {
-                final Set<ArenaPlayer> apSet = new HashSet<>();
-                for (final ArenaPlayer p : team.getTeamMembers()) {
-                    apSet.add(p);
-                }
+                final Set<ArenaPlayer> apSet = new HashSet<>(team.getTeamMembers());
 
                 for (final ArenaPlayer p : apSet) {
                     if (winners.isEmpty()) {
@@ -432,10 +428,7 @@ public class ArenaGoalManager {
                     }
                 } else {
 
-                    final Set<ArenaPlayer> apSet = new HashSet<>();
-                    for (final ArenaPlayer p : team.getTeamMembers()) {
-                        apSet.add(p);
-                    }
+                    final Set<ArenaPlayer> apSet = new HashSet<>(team.getTeamMembers());
                     for (final ArenaPlayer p : apSet) {
                         if (p.getStatus() != Status.FIGHT) {
                             continue;

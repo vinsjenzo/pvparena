@@ -2,6 +2,7 @@ package net.slipcor.pvparena.arena;
 
 import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
+import net.slipcor.pvparena.arena.ArenaTimer;
 import net.slipcor.pvparena.classes.*;
 import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.ArrowHack;
@@ -105,6 +106,8 @@ public class Arena {
     private long startTime;
     private Scoreboard scoreboard = null;
 
+    private ArenaTimer timer;
+
     public Arena(final String name) {
         this.name = name;
 
@@ -182,7 +185,7 @@ public class Arena {
                 prefix = "";
                 suffix = "";
             } else {
-                String[] split = StringParser.splitForScoreBoard(key);
+                String[] split  = StringParser.splitForScoreBoard(key);
                 prefix = split[0];
                 string = split[1];
                 suffix = split[2];
@@ -1388,7 +1391,10 @@ public class Arena {
             this.pvpRunner.cancel();
         }
         this.pvpRunner = null;
-
+        if (timer != null) {
+            timer.stop();
+            timer = null;
+        }
         ArenaModuleManager.reset(this, force);
         ArenaManager.advance(Arena.this);
         this.clearRegions();
@@ -1815,25 +1821,18 @@ public class Arena {
         if (overRide || errror == null || errror.isEmpty()) {
             final Boolean handle = PACheck.handleStart(this, null, forceStart);
 
-            if (overRide || handle) {
+            if (overRide || Boolean.TRUE.equals(handle)) {
                 debug(this, "START!");
                 this.setFightInProgress(true);
+
+                timer = new ArenaTimer(this);
+                timer.start();
 
                 if (this.getArenaConfig().getBoolean(CFG.USES_SCOREBOARD)) {
                     Objective obj = this.getSpecialScoreboard().getObjective("lives");
                     obj.setDisplaySlot(DisplaySlot.SIDEBAR);
                 }
 
-            } else if (handle) {
-                if (errror != null) {
-                    PVPArena.getInstance().getLogger().info(errror);
-                }
-				/*
-				for (ArenaPlayer ap : getFighters()) {
-					getDebugger().i("removing player " + ap.getName());
-					playerLeave(ap.get(), CFG.TP_EXIT, false);
-				}
-				reset(false);*/
             } else {
 
                 // false
