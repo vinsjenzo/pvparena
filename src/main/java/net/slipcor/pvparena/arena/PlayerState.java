@@ -32,7 +32,6 @@ public final class PlayerState {
 
     private int fireticks;
     private int foodlevel;
-    private int gamemode;
     private double health;
     private double maxhealth;
     private int explevel;
@@ -45,6 +44,7 @@ public final class PlayerState {
 
     private String displayname;
     private Collection<PotionEffect> potionEffects;
+    private GameMode gamemode;
 
     public PlayerState(final Player player) {
         this.name = player.getName();
@@ -52,7 +52,7 @@ public final class PlayerState {
 
         this.fireticks = player.getFireTicks();
         this.foodlevel = player.getFoodLevel();
-        this.gamemode = player.getGameMode().getValue();
+        this.gamemode = player.getGameMode();
         this.health = player.getHealth();
         this.maxhealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
 
@@ -128,8 +128,8 @@ public final class PlayerState {
         player.setExhaustion((float) arena.getArenaConfig().getDouble(CFG.PLAYER_EXHAUSTION));
         player.setLevel(0);
         player.setExp(0);
-        if (arena.getArenaConfig().getInt(CFG.GENERAL_GAMEMODE) > -1) {
-            player.setGameMode(GameMode.getByValue(arena.getArenaConfig().getInt(CFG.GENERAL_GAMEMODE)));
+        if (arena.getArenaConfig().getGameMode(CFG.GENERAL_GAMEMODE) != null) {
+            player.setGameMode(arena.getArenaConfig().getGameMode(CFG.GENERAL_GAMEMODE));
         }
         player.setCollidable(arena.getArenaConfig().getBoolean(CFG.PLAYER_COLLISION));
         PlayerState.removeEffects(player);
@@ -163,8 +163,8 @@ public final class PlayerState {
 
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
         player.setFoodLevel(this.foodlevel);
-        if (aPlayer.getArena().getArenaConfig().getInt(CFG.GENERAL_GAMEMODE) > -1) {
-            player.setGameMode(GameMode.getByValue(this.gamemode));
+        if (aPlayer.getArena().getArenaConfig().getGameMode(CFG.GENERAL_GAMEMODE) != null) {
+            player.setGameMode(this.gamemode);
         }
 
         if (aPlayer.getArena().getArenaConfig().getInt(CFG.PLAYER_MAXHEALTH) > 0) {
@@ -183,9 +183,6 @@ public final class PlayerState {
 
         }
         player.setSaturation(this.saturation);
-        if (aPlayer.getArena().getArenaConfig().getInt(CFG.GENERAL_GAMEMODE) > -1) {
-            player.setGameMode(GameMode.getByValue(this.gamemode));
-        }
         player.setLevel(this.explevel);
         player.setExp(this.experience);
         player.setExhaustion(this.exhaustion);
@@ -253,7 +250,7 @@ public final class PlayerState {
         debug("clearing PlayerState of {}", this.name);
         this.fireticks = 0;
         this.foodlevel = 0;
-        this.gamemode = 0;
+        this.gamemode = GameMode.SURVIVAL;
         this.health = 0;
         this.maxhealth = -1;
 
@@ -292,7 +289,7 @@ public final class PlayerState {
 
         pState.fireticks = cfg.getInt("state.fireticks", 0);
         pState.foodlevel = cfg.getInt("state.foodlevel", 0);
-        pState.gamemode = cfg.getInt("state.gamemode", 0);
+        pState.gamemode = GameMode.valueOf(cfg.getString("state.gamemode", GameMode.SURVIVAL.name()));
         pState.health = cfg.getInt("state.health", 1);
         pState.maxhealth = cfg.getInt("state.maxhealth", -1);
         pState.exhaustion = (float) cfg.getDouble("state.exhaustion", 1);

@@ -10,6 +10,7 @@ import net.slipcor.pvparena.commands.PAA_Edit;
 import net.slipcor.pvparena.core.StringParser;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
@@ -344,6 +345,8 @@ public final class TabManager {
             } else if ("{EntityType}".equals(definition)) {
                 final EntityType[] entityTypes = EntityType.values();
                 return getOverrideKey(key, definition, asList(entityTypes));
+            } else if ("{GameMode}".equals(definition)) {
+                return getOverrideKey(key, definition, asList(GameMode.values()));
             }
         }
         return key;

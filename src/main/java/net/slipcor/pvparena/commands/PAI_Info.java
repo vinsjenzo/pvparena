@@ -105,7 +105,7 @@ public class PAI_Info extends AbstractArenaCommand {
                             arena.getArenaConfig().getBoolean(CFG.GENERAL_SMARTSPAWN)));
 
             arena.msg(sender,
-                    "gameMode: " + arena.getArenaConfig().getInt(CFG.GENERAL_GAMEMODE) + " | " +
+                    "gameMode: " + arena.getArenaConfig().getGameMode(CFG.GENERAL_GAMEMODE) + " | " +
                             "time end: " + arena.getArenaConfig().getInt(CFG.GENERAL_TIMER) + " | " +
                             "time end winner: " + arena.getArenaConfig().getInt(CFG.GENERAL_TIMER_WINNER) + " | " +
                             "wand: " + arena.getArenaConfig().getString(CFG.GENERAL_WAND));

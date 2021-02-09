@@ -11,6 +11,7 @@ import net.slipcor.pvparena.loadables.ArenaRegion.RegionProtection;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
 import net.slipcor.pvparena.loadables.ArenaRegionShape;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -65,7 +66,7 @@ public class Config {
         GENERAL_CLASSSWITCH_AFTER_RESPAWN("general.classSwitchAfterRespawn", false, null),
         GENERAL_CUSTOMRETURNSGEAR("general.customReturnsGear", false, null),
         GENERAL_ENABLED("general.enabled", true, null),
-        GENERAL_GAMEMODE("general.gm", 0, null),
+        GENERAL_GAMEMODE("general.gamemode", GameMode.SURVIVAL, null),
         GENERAL_LEAVEDEATH("general.leavedeath", false, null),
         GENERAL_LANG("general.lang", "none", null),
         GENERAL_OWNER("general.owner", "server", null),
@@ -471,6 +472,13 @@ public class Config {
             this.module = source;
         }
 
+        CFG(final String node, final GameMode value, final String source) {
+            this.node = node;
+            this.value = value.name();
+            this.type = "gamemode";
+            this.module = source;
+        }
+
         CFG(final String node, final List<String> value, String source) {
             this.node = node;
             this.value = value;
@@ -497,6 +505,9 @@ public class Config {
                 } else if ("items".equals(cfg.type)) {
                     result.define(new String[]{cfg.node, "inventory"});
                     result.define(new String[]{ending, "inventory"});
+                } else if ("gamemode".equals(cfg.type)) {
+                    result.define(new String[]{cfg.node, "{GameMode}"});;
+                    result.define(new String[]{ending, "{GameMode}"});
                 } else if ("boolean".equals(cfg.type)) {
                     result.define(new String[]{cfg.node, "true"});
                     result.define(new String[]{cfg.node, "false"});
@@ -732,7 +743,7 @@ public class Config {
      * @return the string value of the path if the path exists, null otherwise
      */
     public String getString(final CFG cfg) {
-        return this.getString(cfg, (String) cfg.getValue());
+        return this.strings.get(cfg.getNode());
     }
 
     /**
@@ -743,9 +754,19 @@ public class Config {
      * @return the string value of the path if it exists, def otherwise
      */
     public String getString(final CFG cfg, final String def) {
-        final String path = cfg.getNode();
-        final String result = this.strings.get(path);
+        String result = this.getString(cfg);
         return result == null ? def : result;
+    }
+
+    /**
+     * Retrieve a string from the value maps and return null is value is "none".
+     *
+     * @param cfg the node of the value
+     * @return the string value of the path if the path exists, null otherwise or if value equals "none"
+     */
+    public String getDefinedString(final CFG cfg) {
+        String result = this.getString(cfg);
+        return "none".equalsIgnoreCase(result) ? null : result;
     }
 
     public Material getMaterial(final CFG cfg) {
@@ -759,6 +780,11 @@ public class Config {
             return def;
         }
         return Material.valueOf(result);
+    }
+
+    public GameMode getGameMode(final CFG cfg) {
+        final String result = this.getDefinedString(cfg);
+        return GameMode.valueOf(result);
     }
 
     public ItemStack[] getItems(final CFG cfg) {

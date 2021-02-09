@@ -44,3 +44,11 @@ general:
 player:
   time: -1
 ```
+
+```yaml
+general:
+  gm: 0
+#becomes
+general:
+  gamemode: SURVIVAL
+```
