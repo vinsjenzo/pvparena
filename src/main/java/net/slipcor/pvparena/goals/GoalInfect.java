@@ -1,7 +1,6 @@
 package net.slipcor.pvparena.goals;
 
 import net.slipcor.pvparena.PVPArena;
-import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaClass;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
@@ -138,22 +137,22 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkBreak(PACheck result, Arena arena, BlockBreakEvent event) {
+    public PACheck checkBreak(PACheck result, BlockBreakEvent event) {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(event.getPlayer().getName());
-        if (arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
+        if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
                 if (ArenaPlayer.PlayerPrevention.has(
-                        arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.BREAK
+                        this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.BREAK
                 )) {
                     event.setCancelled(true);
-                    arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_BREAK));
+                    this.arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_BREAK));
                     result.setError(this, "BREAK not allowed");
                 } else if (event.getBlock().getType() == Material.TNT &&
                         ArenaPlayer.PlayerPrevention.has(
-                                arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.TNTBREAK
+                                this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.TNTBREAK
                         )) {
                     event.setCancelled(true);
-                    arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_TNTBREAK));
+                    this.arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_TNTBREAK));
                     result.setError(this, "TNTBREAK not allowed");
                 }
             }
@@ -162,15 +161,15 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkCraft(PACheck result, Arena arena, CraftItemEvent event) {
+    public PACheck checkCraft(PACheck result, CraftItemEvent event) {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(((Player) event.getInventory().getHolder()).getName());
-        if (arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
+        if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
                 if (ArenaPlayer.PlayerPrevention.has(
-                        arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.CRAFT
+                        this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.CRAFT
                 )) {
                     event.setCancelled(true);
-                    arena.msg(event.getWhoClicked(), Language.parse(arena, MSG.PLAYER_PREVENTED_CRAFT));
+                    this.arena.msg(event.getWhoClicked(), Language.parse(arena, MSG.PLAYER_PREVENTED_CRAFT));
                     result.setError(this, "CRAFT not allowed");
                 }
             }
@@ -179,15 +178,15 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkDrop(PACheck result, Arena arena, PlayerDropItemEvent event) {
+    public PACheck checkDrop(PACheck result, PlayerDropItemEvent event) {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(event.getPlayer().getName());
-        if (arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
+        if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
                 if (ArenaPlayer.PlayerPrevention.has(
-                        arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.DROP
+                        this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.DROP
                 )) {
                     event.setCancelled(true);
-                    arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_DROP));
+                    this.arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_DROP));
                     result.setError(this, "DROP not allowed");
                 }
             }
@@ -196,16 +195,16 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkInventory(PACheck result, Arena arena, InventoryClickEvent event) {
+    public PACheck checkInventory(PACheck result, InventoryClickEvent event) {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(event.getWhoClicked().getName());
-        if (arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
+        if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
                 if (ArenaPlayer.PlayerPrevention.has(
-                        arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.INVENTORY
+                        this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.INVENTORY
                 )) {
                     event.setCancelled(true);
                     event.getWhoClicked().closeInventory();
-                    arena.msg(event.getWhoClicked(), Language.parse(arena, MSG.PLAYER_PREVENTED_INVENTORY));
+                    this.arena.msg(event.getWhoClicked(), Language.parse(arena, MSG.PLAYER_PREVENTED_INVENTORY));
                     result.setError(this, "INVENTORY not allowed");
                 }
             }
@@ -214,12 +213,12 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkPickup(PACheck result, Arena arena, EntityPickupItemEvent event) {
+    public PACheck checkPickup(PACheck result, EntityPickupItemEvent event) {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(event.getEntity().getName());
-        if (arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
+        if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
                 if (ArenaPlayer.PlayerPrevention.has(
-                        arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.PICKUP
+                        this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.PICKUP
                 )) {
                     event.setCancelled(true);
                     result.setError(this, "PICKUP not allowed");
@@ -230,22 +229,22 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkPlace(PACheck result, Arena arena, BlockPlaceEvent event) {
+    public PACheck checkPlace(PACheck result, BlockPlaceEvent event) {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(event.getPlayer().getName());
-        if (arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
+        if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
                 if (ArenaPlayer.PlayerPrevention.has(
-                        arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.PLACE
+                        this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.PLACE
                 )) {
                     event.setCancelled(true);
-                    arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_PLACE));
+                    this.arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_PLACE));
                     result.setError(this, "PLACE not allowed");
                 } else if (event.getBlock().getType() == Material.TNT &&
                         ArenaPlayer.PlayerPrevention.has(
-                                arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.TNT
+                                this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.TNT
                         )) {
                     event.setCancelled(true);
-                    arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_TNT));
+                    this.arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_TNT));
                     result.setError(this, "TNT not allowed");
                 }
             }

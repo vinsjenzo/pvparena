@@ -54,7 +54,7 @@ public class InventoryListener implements Listener {
         }
 
 
-        PACheck res = arena.getGoal().checkInventory(new PACheck(), arena, event);
+        PACheck res = arena.getGoal().checkInventory(new PACheck(), event);
 
         if (res.hasError()) {
             debug(player, "onInventoryClick cancelled by goal: " + res.getModName());

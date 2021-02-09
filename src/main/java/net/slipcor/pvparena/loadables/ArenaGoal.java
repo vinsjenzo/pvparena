@@ -106,27 +106,27 @@ public class ArenaGoal implements IArenaCommandHandler {
         return "outdated";
     }
 
-    public PACheck checkBreak(PACheck result, Arena arena, BlockBreakEvent event) {
+    public PACheck checkBreak(PACheck result, BlockBreakEvent event) {
         return result;
     }
 
-    public PACheck checkCraft(PACheck result, Arena arena, CraftItemEvent event) {
+    public PACheck checkCraft(PACheck result, CraftItemEvent event) {
         return result;
     }
 
-    public PACheck checkDrop(PACheck result, Arena arena, PlayerDropItemEvent event) {
+    public PACheck checkDrop(PACheck result, PlayerDropItemEvent event) {
         return result;
     }
 
-    public PACheck checkInventory(PACheck result, Arena arena, InventoryClickEvent event) {
+    public PACheck checkInventory(PACheck result, InventoryClickEvent event) {
         return result;
     }
 
-    public PACheck checkPickup(PACheck result, Arena arena, EntityPickupItemEvent event) {
+    public PACheck checkPickup(PACheck result, EntityPickupItemEvent event) {
         return result;
     }
 
-    public PACheck checkPlace(PACheck result, Arena arena, BlockPlaceEvent event) {
+    public PACheck checkPlace(PACheck result, BlockPlaceEvent event) {
         return result;
     }
 

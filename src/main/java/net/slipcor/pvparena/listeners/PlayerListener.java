@@ -270,7 +270,7 @@ public class PlayerListener implements Listener {
             return; // no fighting player => OUT
         }
 
-        PACheck res = arena.getGoal().checkCraft(new PACheck(), arena, event);
+        PACheck res = arena.getGoal().checkCraft(new PACheck(), event);
 
         if (res.hasError()) {
             debug(player, "onPlayerCraft cancelled by goal: " + res.getModName());
@@ -306,7 +306,7 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        PACheck res = arena.getGoal().checkDrop(new PACheck(), arena, event);
+        PACheck res = arena.getGoal().checkDrop(new PACheck(), event);
 
         if (res.hasError()) {
             debug(player, "onPlayerDropItem cancelled by goal: " + res.getModName());
@@ -812,7 +812,7 @@ public class PlayerListener implements Listener {
 
         if (arena != null) {
 
-            PACheck res = arena.getGoal().checkPickup(new PACheck(), arena, event);
+            PACheck res = arena.getGoal().checkPickup(new PACheck(), event);
 
             if (res.hasError()) {
                 debug(player, "onPlayerPickupItem cancelled by goal: " + res.getModName());

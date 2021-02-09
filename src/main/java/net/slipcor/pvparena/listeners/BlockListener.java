@@ -162,7 +162,7 @@ public class BlockListener implements Listener {
             return;
         }
 
-        PACheck res = arena.getGoal().checkBreak(new PACheck(), arena, event);
+        PACheck res = arena.getGoal().checkBreak(new PACheck(), event);
 
         if (res.hasError()) {
             debug(event.getPlayer(), "onBlockBreak cancelled by goal: " + res.getModName());
@@ -461,7 +461,7 @@ public class BlockListener implements Listener {
             return;
         }
 
-        PACheck res = arena.getGoal().checkPlace(new PACheck(), arena, event);
+        PACheck res = arena.getGoal().checkPlace(new PACheck(), event);
 
         if (res.hasError()) {
             debug(player, "onBlockPlace cancelled by goal: " + res.getModName());
