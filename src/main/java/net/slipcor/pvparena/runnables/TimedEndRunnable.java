@@ -73,7 +73,7 @@ public class TimedEndRunnable extends ArenaRunnable {
         if (this.arena.isFreeForAll() && this.arena.getTeams().size() <= 1) {
             winners.add("free");
             debug(this.arena, "adding FREE");
-        } else if ("none".equals(this.arena.getArenaConfig().getString(Config.CFG.GENERAL_TIMER_WINNER))) {
+        } else if (this.arena.getArenaConfig().getDefinedString(Config.CFG.GENERAL_TIMER_WINNER) == null) {
             // check all teams
             double maxScore = 0;
 

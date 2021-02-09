@@ -10,7 +10,6 @@ import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.CommandTree;
 import net.slipcor.pvparena.commands.PAA_Region;
-import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.ColorUtils;
 import net.slipcor.pvparena.core.Config;
 import net.slipcor.pvparena.core.Config.CFG;
@@ -279,9 +278,9 @@ public class GoalPhysicalFlags extends ArenaGoal implements Listener {
     }
 
     private void applyEffects(final Player player) {
-        final String value = this.arena.getArenaConfig().getString(CFG.GOAL_PFLAGS_FLAGEFFECT);
+        final String value = this.arena.getArenaConfig().getDefinedString(CFG.GOAL_PFLAGS_FLAGEFFECT);
 
-        if ("none".equalsIgnoreCase(value)) {
+        if (value == null) {
             return;
         }
 
@@ -835,10 +834,9 @@ public class GoalPhysicalFlags extends ArenaGoal implements Listener {
     }
 
     private void removeEffects(final Player player) {
-        final String value = this.arena.getArenaConfig().getString(
-                CFG.GOAL_PFLAGS_FLAGEFFECT);
+        final String value = this.arena.getArenaConfig().getDefinedString(CFG.GOAL_PFLAGS_FLAGEFFECT);
 
-        if ("none".equalsIgnoreCase(value)) {
+        if (value == null) {
             return;
         }
 

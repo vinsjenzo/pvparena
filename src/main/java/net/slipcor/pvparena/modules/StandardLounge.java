@@ -114,11 +114,11 @@ public class StandardLounge extends ArenaModule {
         }
 
         if (aPlayer.getArenaClass() == null) {
-            final String autoClass =
-                    this.arena.getArenaConfig().getBoolean(CFG.USES_PLAYERCLASSES) ?
-                            this.arena.getClass(player.getName()) != null ? player.getName() : this.arena.getArenaConfig().getString(CFG.READY_AUTOCLASS)
-                            : this.arena.getArenaConfig().getString(CFG.READY_AUTOCLASS);
-            if (autoClass != null && !"none".equals(autoClass) && this.arena.getClass(autoClass) == null) {
+            String autoClass = this.arena.getArenaConfig().getDefinedString(CFG.READY_AUTOCLASS);
+            if(this.arena.getArenaConfig().getBoolean(CFG.USES_PLAYERCLASSES) && this.arena.getClass(player.getName()) != null) {
+                autoClass = player.getName();
+            }
+            if (autoClass != null && this.arena.getClass(autoClass) == null) {
                 result.setError(this, Language.parse(this.arena,
                         MSG.ERROR_CLASS_NOT_FOUND, "autoClass"));
                 return result;
@@ -128,28 +128,7 @@ public class StandardLounge extends ArenaModule {
         result.setPriority(this, PRIORITY);
         return result;
     }
-/*
-    @Override
-    public PACheck checkStart(final ArenaPlayer player, final PACheck result) {
-        if (result.getPriority() > PRIORITY) {
-            return result; // Something already is of higher priority, ignore!
-        }
 
-        if (arena == null) {
-            return result; // arena is null - maybe some other mod wants to
-            // handle that? ignore!
-        }
-
-        final String error = String.valueOf(arena.ready());
-
-        if (error != null) {
-            result.setError(this, error);
-            return result;
-        }
-        result.setPriority(this, PRIORITY);
-        return result;
-    }
-*/
     @Override
     public boolean hasSpawn(final String spawnName) {
         if (this.arena.isFreeForAll()) {
@@ -223,12 +202,9 @@ public class StandardLounge extends ArenaModule {
 
 
             if (player.getArenaTeam() != null && player.getArenaClass() == null) {
-                final String autoClass = arena.getArenaConfig().getString(CFG.READY_AUTOCLASS);
-                if (autoClass != null && !"none".equals(autoClass) && arena.getClass(autoClass) != null) {
+                final String autoClass = arena.getArenaConfig().getDefinedString(CFG.READY_AUTOCLASS);
+                if (autoClass != null && arena.getClass(autoClass) != null) {
                     arena.chooseClass(player.get(), null, autoClass);
-                }
-                if (autoClass == null) {
-                    arena.msg(player.get(), Language.parse(arena, MSG.ERROR_CLASS_NOT_FOUND, "autoClass"));
                 }
             }
         } else {

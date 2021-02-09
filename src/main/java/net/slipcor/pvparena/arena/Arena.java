@@ -125,8 +125,8 @@ public class Arena {
             StatisticsManager.loadStatistics(this);
             SpawnManager.loadSpawns(this, this.cfg);
 
-            final String langName = (String) this.cfg.getUnsafe("general.lang");
-            if (langName == null || "none".equals(langName)) {
+            final String langName = this.cfg.getDefinedString(CFG.GENERAL_LANG);
+            if (langName == null) {
                 return;
             }
 
@@ -2048,10 +2048,10 @@ public class Arena {
         }
 
         if (aPlayer.getArenaClass() == null) {
-            String autoClass =
-                    this.cfg.getBoolean(CFG.USES_PLAYERCLASSES) ?
-                            this.getClass(player.getName()) != null ? player.getName() : this.cfg.getString(CFG.READY_AUTOCLASS)
-                            : this.cfg.getString(CFG.READY_AUTOCLASS);
+            String autoClass = this.cfg.getDefinedString(CFG.READY_AUTOCLASS);
+            if(this.cfg.getBoolean(CFG.USES_PLAYERCLASSES) && this.getClass(player.getName()) != null) {
+                autoClass = player.getName();
+            }
 
             if (autoClass != null && autoClass.contains(":") && autoClass.contains(";")) {
                 final String[] definitions = autoClass.split(";");
@@ -2075,8 +2075,7 @@ public class Arena {
                 }
             }
 
-            if (autoClass != null && !"none".equals(autoClass)
-                    && this.getClass(autoClass) == null) {
+            if (autoClass != null && this.getClass(autoClass) == null) {
                 this.msg(player, Language.parse(this, MSG.ERROR_CLASS_NOT_FOUND,
                         "autoClass"));
                 return false;
@@ -2124,16 +2123,12 @@ public class Arena {
 
 
             if (aPlayer.getArenaTeam() != null && aPlayer.getArenaClass() == null) {
-                final String autoClass =
-                        arena.cfg.getBoolean(CFG.USES_PLAYERCLASSES) ?
-                                arena.getClass(player.getName()) != null ? player.getName() : arena.cfg.getString(CFG.READY_AUTOCLASS)
-                                : arena.cfg.getString(CFG.READY_AUTOCLASS);
-                if (autoClass != null && !"none".equals(autoClass) && arena.getClass(autoClass) != null) {
-                    arena.chooseClass(player, null, autoClass);
+                String autoClass = arena.cfg.getDefinedString(CFG.READY_AUTOCLASS);
+                if (arena.cfg.getBoolean(CFG.USES_PLAYERCLASSES) && arena.getClass(player.getName()) != null) {
+                    autoClass = player.getName();
                 }
-                if (autoClass == null) {
-                    arena.msg(player, Language.parse(this, MSG.ERROR_CLASS_NOT_FOUND, "autoClass"));
-                    return true;
+                if (autoClass != null && arena.getClass(autoClass) != null) {
+                    arena.chooseClass(player, null, autoClass);
                 }
             }
         }

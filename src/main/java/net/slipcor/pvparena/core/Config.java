@@ -743,7 +743,7 @@ public class Config {
      * @return the string value of the path if the path exists, null otherwise
      */
     public String getString(final CFG cfg) {
-        return this.strings.get(cfg.getNode());
+        return this.getString(cfg, (String) cfg.getValue());
     }
 
     /**
@@ -754,7 +754,7 @@ public class Config {
      * @return the string value of the path if it exists, def otherwise
      */
     public String getString(final CFG cfg, final String def) {
-        String result = this.getString(cfg);
+        String result = this.strings.get(cfg.getNode());
         return result == null ? def : result;
     }
 
@@ -774,9 +774,8 @@ public class Config {
     }
 
     public Material getMaterial(final CFG cfg, final Material def) {
-        final String path = cfg.getNode();
-        final String result = this.strings.get(path);
-        if (result == null || "none".equals(result)) {
+        final String result = this.getDefinedString(cfg);
+        if (result == null) {
             return def;
         }
         return Material.valueOf(result);
@@ -790,11 +789,11 @@ public class Config {
     public ItemStack[] getItems(final CFG cfg) {
         final String path = cfg.getNode();
         try {
-            String test = this.cfg.getString(path);
-            if ("none".equalsIgnoreCase(test)) {
+            String test = this.getDefinedString(cfg);
+            if (test == null) {
                 return new ItemStack[0];
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         try {
             return getItemStacksFromConfig(this.cfg.getList(path));
