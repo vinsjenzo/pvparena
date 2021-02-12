@@ -90,7 +90,10 @@ public class PAA_Goal extends AbstractArenaCommand {
         if (arena == null) {
             return result;
         }
-        result.define(new String[]{arena.getGoal().getName()});
+
+        PVPArena.getInstance().getAgm().getAllGoalNames().forEach(goalName -> {
+            result.define(new String[]{goalName});
+        });
         return result;
     }
 }
