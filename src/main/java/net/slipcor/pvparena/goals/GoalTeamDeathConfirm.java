@@ -2,7 +2,6 @@ package net.slipcor.pvparena.goals;
 
 import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.Arena;
-import net.slipcor.pvparena.arena.ArenaClass;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
@@ -11,15 +10,9 @@ import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
-import net.slipcor.pvparena.loadables.ArenaGoal;
-import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.managers.InventoryManager;
-import net.slipcor.pvparena.managers.TeamManager;
-import net.slipcor.pvparena.runnables.EndRunnable;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -28,10 +21,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static net.slipcor.pvparena.config.Debugger.debug;
 
 /**
  * <pre>
@@ -44,7 +33,7 @@ import static net.slipcor.pvparena.config.Debugger.debug;
  * @author slipcor
  */
 
-public class GoalTeamDeathConfirm extends ArenaGoal {
+public class GoalTeamDeathConfirm extends AbstractTeamKillGoal {
     public GoalTeamDeathConfirm() {
         super("TeamDeathConfirm");
     }
@@ -54,66 +43,19 @@ public class GoalTeamDeathConfirm extends ArenaGoal {
         return PVPArena.getInstance().getDescription().getVersion();
     }
 
-    private static final int PRIORITY = 8;
-
     @Override
     public boolean allowsJoinInBattle() {
         return this.arena.getArenaConfig().getBoolean(CFG.PERMS_JOININBATTLE);
     }
 
     @Override
-    public PACheck checkEnd(final PACheck res) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
-        final int count = TeamManager.countActiveTeams(this.arena);
-
-        if (count == 1) {
-            res.setPriority(this, PRIORITY); // yep. only one team left. go!
-        } else if (count == 0) {
-            res.setError(this, MSG.ERROR_NOTEAMFOUND.toString());
-        }
-
-        return res;
+    protected double getScore(ArenaTeam team) {
+        return this.getTeamLivesCfg() - (this.getLifeMap().getOrDefault(team.getName(), 0));
     }
 
     @Override
-    public String checkForMissingSpawns(final Set<String> list) {
-        return this.checkForMissingTeamSpawn(list);
-    }
-
-    @Override
-    public PACheck checkJoin(final CommandSender sender, final PACheck res, final String[] args) {
-        if (res.getPriority() >= PRIORITY) {
-            return res;
-        }
-
-        final int maxPlayers = this.arena.getArenaConfig().getInt(CFG.READY_MAXPLAYERS);
-        final int maxTeamPlayers = this.arena.getArenaConfig().getInt(
-                CFG.READY_MAXTEAMPLAYERS);
-
-        if (maxPlayers > 0 && this.arena.getFighters().size() >= maxPlayers) {
-            res.setError(this, Language.parse(this.arena, MSG.ERROR_JOIN_ARENA_FULL));
-            return res;
-        }
-
-        if (args == null || args.length < 1) {
-            return res;
-        }
-
-        if (!this.arena.isFreeForAll()) {
-            final ArenaTeam team = this.arena.getTeam(args[0]);
-
-            if (team != null && maxTeamPlayers > 0
-                    && team.getTeamMembers().size() >= maxTeamPlayers) {
-                res.setError(this, Language.parse(this.arena, MSG.ERROR_JOIN_TEAM_FULL, team.getName()));
-                return res;
-            }
-        }
-
-        res.setPriority(this, PRIORITY);
-        return res;
+    protected int getTeamLivesCfg() {
+        return this.arena.getArenaConfig().getInt(CFG.GOAL_TDC_LIVES);
     }
 
     @Override
@@ -123,47 +65,6 @@ public class GoalTeamDeathConfirm extends ArenaGoal {
             res.setPriority(this, PRIORITY);
         }
         return res;
-    }
-
-    @Override
-    public void commitEnd(final boolean force) {
-        if (this.arena.realEndRunner != null) {
-            debug(this.arena, "[TDC] already ending");
-            return;
-        }
-        debug(this.arena, "[TDC]");
-        final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "");
-        Bukkit.getPluginManager().callEvent(gEvent);
-
-        ArenaTeam aTeam = null;
-
-        for (final ArenaTeam team : this.arena.getTeams()) {
-            for (final ArenaPlayer ap : team.getTeamMembers()) {
-                if (ap.getStatus() == Status.FIGHT) {
-                    aTeam = team;
-                    break;
-                }
-            }
-        }
-
-        if (aTeam != null && !force) {
-            ArenaModuleManager.announce(
-                    this.arena,
-                    Language.parse(this.arena, MSG.TEAM_HAS_WON, aTeam.getColor()
-                            + aTeam.getName() + ChatColor.YELLOW), "END");
-            ArenaModuleManager.announce(
-                    this.arena,
-                    Language.parse(this.arena, MSG.TEAM_HAS_WON, aTeam.getColor()
-                            + aTeam.getName() + ChatColor.YELLOW), "WINNER");
-            this.arena.broadcast(Language.parse(this.arena, MSG.TEAM_HAS_WON, aTeam.getColor()
-                    + aTeam.getName() + ChatColor.YELLOW));
-        }
-
-        if (ArenaModuleManager.commitEnd(this.arena, aTeam)) {
-            return;
-        }
-        new EndRunnable(this.arena, this.arena.getArenaConfig().getInt(
-                CFG.TIME_ENDCOUNTDOWN));
     }
 
     @Override
@@ -200,16 +101,11 @@ public class GoalTeamDeathConfirm extends ArenaGoal {
         PACheck.handleRespawn(this.arena, ArenaPlayer.parsePlayer(respawnPlayer.getName()), returned);
     }
 
-    @Override
-    public void displayInfo(final CommandSender sender) {
-        sender.sendMessage("lives: "
-                + this.arena.getArenaConfig().getInt(CFG.GOAL_TDC_LIVES));
-    }
-
     private void drop(final Player player, final ArenaTeam team) {
-        final ItemStack item = this.arena.getArenaConfig().getItems(CFG.GOAL_TDC_ITEM)[0];
+        Material material = this.arena.getArenaConfig().getMaterial(CFG.GOAL_TDC_ITEM);
+        ItemStack item = new ItemStack(material);
 
-        final ItemMeta meta = item.getItemMeta();
+        ItemMeta meta = item.getItemMeta();
 
         meta.setDisplayName(team.getColoredName());
         item.setItemMeta(meta);
@@ -218,52 +114,14 @@ public class GoalTeamDeathConfirm extends ArenaGoal {
     }
 
     @Override
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            res.setError(
-                    this,
-                    String.valueOf(this.arena.getArenaConfig()
-                            .getInt(CFG.GOAL_TDC_LIVES) - (this.getLifeMap()
-                            .getOrDefault(aPlayer.getArenaTeam().getName(), 0))));
-        }
-        return res;
-    }
-
-    @Override
-    public boolean hasSpawn(final String string) {
-        for (final String teamName : this.arena.getTeamNames()) {
-            if (string.toLowerCase().startsWith(
-                    teamName.toLowerCase() + "spawn")) {
-                return true;
-            }
-            if (this.arena.getArenaConfig().getBoolean(CFG.GENERAL_CLASSSPAWN)) {
-                for (final ArenaClass aClass : this.arena.getClasses()) {
-                    if (string.toLowerCase().startsWith(teamName.toLowerCase() +
-                            aClass.getName().toLowerCase() + "spawn")) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public void initiate(final Player player) {
-        final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
-        this.updateLives(aPlayer.getArenaTeam(), this.arena.getArenaConfig()
-                .getInt(CFG.GOAL_TDC_LIVES));
-    }
-
-    @Override
     public void onPlayerPickUp(final EntityPickupItemEvent event) {
         final ItemStack item = event.getItem().getItemStack();
 
-        final ItemStack check = this.arena.getArenaConfig().getItems(CFG.GOAL_TDC_ITEM)[0];
+        final Material check = this.arena.getArenaConfig().getMaterial(CFG.GOAL_TDC_ITEM);
 
         final ArenaPlayer player = ArenaPlayer.parsePlayer(event.getEntity().getName());
 
-        if (item.getType() == check.getType() && item.hasItemMeta()) {
+        if (item.getType().equals(check) && item.hasItemMeta()) {
             for (final ArenaTeam team : this.arena.getTeams()) {
                 if (item.getItemMeta().getDisplayName().equals(team.getColoredName())) {
                     // it IS an item !!!!
@@ -304,9 +162,6 @@ public class GoalTeamDeathConfirm extends ArenaGoal {
                 for (final ArenaPlayer ap : otherTeam.getTeamMembers()) {
                     if (ap.getStatus() == Status.FIGHT) {
                         ap.setStatus(Status.LOST);
-                        /*
-						arena.removePlayer(ap.get(), CFG.TP_LOSE.toString(),
-								true, false);*/
                     }
                 }
             }
@@ -316,52 +171,8 @@ public class GoalTeamDeathConfirm extends ArenaGoal {
         arena.broadcast(Language.parse(arena, MSG.GOAL_TEAMDEATHCONFIRM_REMAINING, String.valueOf(iLives - 1), team.getColoredName()));
 
         this.getLifeMap().put(team.getName(), iLives - 1);
+        arena.updateScoreboards();
         return false;
-    }
-
-    @Override
-    public void reset(final boolean force) {
-        this.getLifeMap().clear();
-    }
-
-    @Override
-    public void setDefaults(final YamlConfiguration config) {
-        if (this.arena.isFreeForAll()) {
-            return;
-        }
-
-        if (config.get("teams.free") != null) {
-            config.set("teams", null);
-        }
-        if (config.get("teams") == null) {
-            debug(this.arena, "no teams defined, adding custom red and blue!");
-            config.addDefault("teams.red", ChatColor.RED.name());
-            config.addDefault("teams.blue", ChatColor.BLUE.name());
-        }
-    }
-
-    @Override
-    public void parseStart() {
-        for (final ArenaTeam team : this.arena.getTeams()) {
-            this.updateLives(team, this.arena.getArenaConfig().getInt(CFG.GOAL_TDC_LIVES));
-        }
-    }
-
-    @Override
-    public Map<String, Double> timedEnd(final Map<String, Double> scores) {
-
-        for (final ArenaTeam team : this.arena.getTeams()) {
-            double score = this.arena.getArenaConfig().getInt(CFG.GOAL_TDC_LIVES)
-                    - (this.getLifeMap().containsKey(team.getName()) ? this.getLifeMap().get(team
-                    .getName()) : 0);
-            if (scores.containsKey(team.getName())) {
-                scores.put(team.getName(), scores.get(team.getName()) + score);
-            } else {
-                scores.put(team.getName(), score);
-            }
-        }
-
-        return scores;
     }
 
     @Override
