@@ -66,12 +66,11 @@ public class ArenaGoal implements IArenaCommandHandler {
     /**
      * check if the goal should commit a command
      *
-     * @param res    the PACheck instance
      * @param string the command argument
-     * @return the PACheck instance
+     * @return true if the goal commits the command
      */
-    public PACheck checkCommand(final PACheck res, final String string) {
-        return res;
+    public boolean checkCommand(final String string) {
+        return false;
     }
 
     @Override
@@ -245,10 +244,10 @@ public class ArenaGoal implements IArenaCommandHandler {
      * check if the goal should commit a player death
      *
      * @param player the dying player
-     * @return the PACheck instance
+     * @return true if player should respawn, false otherwise, null if goal doesn't handle respawn
      */
-    public PACheck checkPlayerDeath(final PACheck res, final Player player) {
-        return res;
+    public Boolean checkPlayerDeath(final Player player) {
+        return null;
     }
 
     /**
@@ -305,14 +304,12 @@ public class ArenaGoal implements IArenaCommandHandler {
 
     /**
      * commit a player death
-     *
-     * @param player      the dying player
+     *  @param player      the dying player
      * @param doesRespawn true if the player will respawn
-     * @param error       an optional error string
      * @param event       the causing death event
      */
     public void commitPlayerDeath(final Player player,
-                                  final boolean doesRespawn, final String error,
+                                  final boolean doesRespawn,
                                   final PlayerDeathEvent event) {
         throw new IllegalStateException(this.getName());
     }
@@ -374,13 +371,12 @@ public class ArenaGoal implements IArenaCommandHandler {
     /**
      * Get a player's remaining lives
      *
-     * @param res    the PACheck instance
      * @param player the player to check
      * @return the PACheck instance for more information, eventually an ERROR
      * containing the lives
      */
-    public PACheck getLives(final PACheck res, final ArenaPlayer player) {
-        return res;
+    public int getLives(ArenaPlayer player) {
+        return 0;
     }
 
     /**

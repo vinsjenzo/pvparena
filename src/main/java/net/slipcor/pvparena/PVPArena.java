@@ -3,10 +3,9 @@ package net.slipcor.pvparena;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaClass;
 import net.slipcor.pvparena.arena.ArenaPlayer;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.*;
-import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.config.Debugger;
+import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Help;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
@@ -20,6 +19,7 @@ import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.loadables.ArenaRegionShapeManager;
 import net.slipcor.pvparena.managers.ArenaManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import net.slipcor.pvparena.managers.StatisticsManager;
 import net.slipcor.pvparena.managers.TabManager;
 import net.slipcor.pvparena.updater.UpdateChecker;
@@ -329,7 +329,7 @@ public class PVPArena extends JavaPlugin {
                 break;
             }
         }
-        if (paacmd == null && PACheck.handleCommand(tempArena, sender, newArgs)) {
+        if (paacmd == null && PriorityManager.handleCommand(tempArena, sender, newArgs)) {
             return true;
         }
 

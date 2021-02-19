@@ -56,16 +56,8 @@ public class GoalCheckPoints extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkCommand(final PACheck res, final String string) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
-        if ("checkpoint".equalsIgnoreCase(string)) {
-            res.setPriority(this, PRIORITY);
-        }
-
-        return res;
+    public boolean checkCommand(final String string) {
+        return "checkpoint".equalsIgnoreCase(string);
     }
 
     @Override
@@ -304,14 +296,8 @@ public class GoalCheckPoints extends ArenaGoal {
     }
 
     @Override
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            res.setError(
-                    this,
-                    String.valueOf(this.getLifeMap().getOrDefault(aPlayer.getArenaTeam().getName(), 0))
-            );
-        }
-        return res;
+    public int getLives(ArenaPlayer aPlayer) {
+        return this.getLifeMap().getOrDefault(aPlayer.getArenaTeam().getName(), 0);
     }
 
     @Override

@@ -70,23 +70,12 @@ public abstract class AbstractFlagGoal extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck checkCommand(final PACheck res, final String string) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
+    public boolean checkCommand(final String string) {
         if ("flagtype".equalsIgnoreCase(string) || "flageffect".equalsIgnoreCase(string) || TOUCHDOWN.equalsIgnoreCase(string)) {
-            res.setPriority(this, PRIORITY);
+            return true;
         }
 
-        for (final ArenaTeam team : this.arena.getTeams()) {
-            final String sTeam = team.getName();
-            if (string.contains(sTeam + "flag")) {
-                res.setPriority(this, PRIORITY);
-            }
-        }
-
-        return res;
+        return this.arena.getTeams().stream().anyMatch(team -> string.contains(team.getName() + "flag"));
     }
 
     @Override
@@ -423,14 +412,8 @@ public abstract class AbstractFlagGoal extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            res.setError(
-                    this,
-                    String.valueOf(this.getLifeMap().getOrDefault(aPlayer.getArenaTeam().getName(), 0))
-            );
-        }
-        return res;
+    public int getLives(ArenaPlayer aPlayer) {
+        return this.getLifeMap().getOrDefault(aPlayer.getArenaTeam().getName(), 0);
     }
 
     protected Map<String, ItemStack> getHeadGearMap() {

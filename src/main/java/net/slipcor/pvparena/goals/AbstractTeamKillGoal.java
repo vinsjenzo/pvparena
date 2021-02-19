@@ -31,10 +31,10 @@ public abstract class AbstractTeamKillGoal extends ArenaGoal {
 
     protected static final int PRIORITY = 5;
 
-    protected abstract double getScore(ArenaTeam team);
+    protected abstract int getScore(ArenaTeam team);
     protected abstract int getTeamLivesCfg();
 
-    @Override //mcl
+    @Override
     public PACheck checkEnd(final PACheck res) {
         if (res.getPriority() > PRIORITY) {
             return res;
@@ -51,12 +51,12 @@ public abstract class AbstractTeamKillGoal extends ArenaGoal {
         return res;
     }
 
-    @Override //mcl
+    @Override
     public String checkForMissingSpawns(final Set<String> list) {
         return this.checkForMissingTeamSpawn(list);
     }
 
-    @Override //mcl
+    @Override
     public PACheck checkJoin(final CommandSender sender, final PACheck res, final String[] args) {
         if (res.getPriority() >= PRIORITY) {
             return res;
@@ -89,7 +89,7 @@ public abstract class AbstractTeamKillGoal extends ArenaGoal {
         return res;
     }
 
-    @Override //mcl
+    @Override
     public void commitEnd(final boolean force) {
         if (this.arena.realEndRunner != null) {
             debug(this.arena, "already ending");
@@ -130,15 +130,12 @@ public abstract class AbstractTeamKillGoal extends ArenaGoal {
                 CFG.TIME_ENDCOUNTDOWN));
     }
 
-    @Override //mc l?
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            res.setError(this, String.valueOf(this.getScore(aPlayer.getArenaTeam())));
-        }
-        return res;
+    @Override
+    public int getLives(ArenaPlayer aPlayer) {
+        return this.getScore(aPlayer.getArenaTeam());
     }
 
-    @Override //mcl
+    @Override
     public boolean hasSpawn(final String string) {
         for (final String teamName : this.arena.getTeamNames()) {
             if (string.toLowerCase().startsWith(
@@ -157,7 +154,7 @@ public abstract class AbstractTeamKillGoal extends ArenaGoal {
         return false;
     }
 
-    @Override //mcl
+    @Override
     public void initiate(final Player player) {
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
         this.updateLives(aPlayer.getArenaTeam(), this.getTeamLivesCfg());
@@ -168,12 +165,12 @@ public abstract class AbstractTeamKillGoal extends ArenaGoal {
         sender.sendMessage("lives: " + this.getTeamLivesCfg());
     }
 
-    @Override //mcl
+    @Override
     public void reset(final boolean force) {
         this.getLifeMap().clear();
     }
 
-    @Override //mcl
+    @Override
     public void setDefaults(final YamlConfiguration config) {
         if (this.arena.isFreeForAll()) {
             return;
@@ -190,14 +187,14 @@ public abstract class AbstractTeamKillGoal extends ArenaGoal {
         }
     }
 
-    @Override //mcl
+    @Override
     public void parseStart() {
         for (final ArenaTeam team : this.arena.getTeams()) {
             this.updateLives(team, this.getTeamLivesCfg());
         }
     }
 
-    @Override //mc l?
+    @Override
     public Map<String, Double> timedEnd(final Map<String, Double> scores) {
 
         for (final ArenaTeam team : this.arena.getTeams()) {

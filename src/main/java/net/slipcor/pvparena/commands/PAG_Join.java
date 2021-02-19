@@ -3,7 +3,6 @@ package net.slipcor.pvparena.commands;
 import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Help;
 import net.slipcor.pvparena.core.Help.HELP;
@@ -12,6 +11,7 @@ import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import net.slipcor.pvparena.managers.ArenaManager;
 import net.slipcor.pvparena.managers.ConfigurationManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -88,7 +88,7 @@ public class PAG_Join extends AbstractArenaCommand {
                 debug(arena, sender, "Join_2");
                 arena.msg(sender, Language.parse(arena, MSG.ERROR_ARENA_ALREADY_PART_OF, ArenaManager.getIndirectArenaName(arena)));
             } else {
-                PACheck.handleJoin(arena, sender, args);
+                PriorityManager.handleJoin(arena, sender, args);
             }
         } else {
             final Arena pArena = aPlayer.getArena();

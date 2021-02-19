@@ -21,10 +21,7 @@ import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionProtection;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
-import net.slipcor.pvparena.managers.ArenaManager;
-import net.slipcor.pvparena.managers.InventoryManager;
-import net.slipcor.pvparena.managers.SpawnManager;
-import net.slipcor.pvparena.managers.TeamManager;
+import net.slipcor.pvparena.managers.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -100,7 +97,7 @@ public class PlayerListener implements Listener {
             debug(arena, player, "arena != null and fight not in progress => cancel");
             debug(arena, player, "> true");
 
-            PACheck.handleInteract(arena, player, pie, pie.getClickedBlock());
+            PriorityManager.handleInteract(arena, player, pie, pie.getClickedBlock());
             event.setCancelled(true);
             return true;
         }
@@ -358,7 +355,7 @@ public class PlayerListener implements Listener {
         if (arena == null) {
             return;
         }
-        PACheck.handlePlayerDeath(arena, player, event);
+        PriorityManager.handlePlayerDeath(arena, player, event);
     }
 
     /**
@@ -479,7 +476,7 @@ public class PlayerListener implements Listener {
                     event.getClickedBlock().getLocation()));
             if (this.checkAndCommitCancel(arena, event.getPlayer(), event)) {
                 if (arena != null) {
-                    PACheck.handleInteract(arena, player, event, event.getClickedBlock());
+                    PriorityManager.handleInteract(arena, player, event, event.getClickedBlock());
                 }
                 return;
             }
@@ -490,7 +487,7 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        if (PACheck.handleSetFlag(player, event.getClickedBlock())) {
+        if (PriorityManager.handleSetFlag(player, event.getClickedBlock())) {
             debug(player, "returning: #2");
             event.setCancelled(true);
             return;
@@ -508,7 +505,7 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        PACheck.handleInteract(arena, player, event, event.getClickedBlock());
+        PriorityManager.handleInteract(arena, player, event, event.getClickedBlock());
 
         debug(arena, player, "event post cancelled: " + event.isCancelled());
 

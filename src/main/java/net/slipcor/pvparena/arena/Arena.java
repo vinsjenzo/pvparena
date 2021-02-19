@@ -1806,7 +1806,7 @@ public class Arena {
         }
 
         if (overRide || errror == null || errror.isEmpty()) {
-            final Boolean handle = PACheck.handleStart(this, null, forceStart);
+            final Boolean handle = PriorityManager.handleStart(this, null, forceStart);
 
             if (overRide || Boolean.TRUE.equals(handle)) {
                 debug(this, "START!");
@@ -2157,7 +2157,7 @@ public class Arena {
                 final Scoreboard currentScoreboard = this.getSpecialScoreboard();
                 if (this.isFreeForAll()) {
                     for (ArenaPlayer ap : this.getEveryone()) {
-                        int value = PACheck.handleGetLives(this, ap);
+                        int value = PriorityManager.handleGetLives(this, ap);
                         if (value >= 0) {
                             currentScoreboard.getObjective("lives").getScore(ap.getName()).setScore(value);
                         }
@@ -2171,7 +2171,7 @@ public class Arena {
                         team.getTeamMembers().stream().findFirst().ifPresent(randomTeamPlayer ->
                                 currentScoreboard.getObjective("lives")
                                         .getScore(team.getName())
-                                        .setScore(PACheck.handleGetLives(this, randomTeamPlayer))
+                                        .setScore(PriorityManager.handleGetLives(this, randomTeamPlayer))
                         );
                     }
                     for (ArenaPlayer ap : this.getEveryone()) {
@@ -2194,7 +2194,7 @@ public class Arena {
             if (ap.getArenaTeam() != null) {
                 currentScoreboard.getObjective("lives")
                         .getScore(this.isFreeForAll() ? player.getName() : ap.getArenaTeam().getName())
-                        .setScore(PACheck.handleGetLives(this, ap));
+                        .setScore(PriorityManager.handleGetLives(this, ap));
             }
 
             player.setScoreboard(currentScoreboard);

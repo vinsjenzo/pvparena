@@ -15,6 +15,7 @@ import net.slipcor.pvparena.listeners.PlayerListener;
 import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.managers.InventoryManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import net.slipcor.pvparena.managers.TeamManager;
 import net.slipcor.pvparena.runnables.EndRunnable;
 import org.bukkit.Bukkit;
@@ -129,17 +130,10 @@ public class GoalPlayerLives extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkPlayerDeath(final PACheck res, final Player player) {
-        if (res.getPriority() <= PRIORITY) {
-            res.setPriority(this, PRIORITY);
-
-            final int pos = this.getLifeMap().get(player.getName());
-            debug(this.arena, player, "lives before death: " + pos);
-            if (pos <= 1) {
-                res.setError(this, "0");
-            }
-        }
-        return res;
+    public Boolean checkPlayerDeath(Player player) {
+        final int pos = this.getLifeMap().get(player.getName());
+        debug(this.arena, player, "lives before death: " + pos);
+        return pos > 1;
     }
 
     @Override
@@ -200,7 +194,7 @@ public class GoalPlayerLives extends ArenaGoal {
 
     @Override
     public void commitPlayerDeath(final Player player, final boolean doesRespawn,
-                                  final String error, final PlayerDeathEvent event) {
+                                  final PlayerDeathEvent event) {
         if (!this.getLifeMap().containsKey(player.getName())) {
             return;
         }
@@ -221,7 +215,7 @@ public class GoalPlayerLives extends ArenaGoal {
                 PlayerListener.finallyKillPlayer(this.arena, player, event);
             }
             // player died => commit death!
-            PACheck.handleEnd(this.arena, false);
+            PriorityManager.handleEnd(this.arena, false);
         } else {
             pos--;
             this.getLifeMap().put(player.getName(), pos);
@@ -244,7 +238,7 @@ public class GoalPlayerLives extends ArenaGoal {
                 returned.addAll(event.getDrops());
             }
 
-            PACheck.handleRespawn(this.arena, ArenaPlayer.parsePlayer(player.getName()), returned);
+            PriorityManager.handleRespawn(this.arena, ArenaPlayer.parsePlayer(player.getName()), returned);
 
         }
     }
@@ -256,38 +250,18 @@ public class GoalPlayerLives extends ArenaGoal {
     }
 
     @Override
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-
-            if (this.arena.isFreeForAll()) {
-                res.setError(
-                        this,
-                        String.valueOf(this.getLifeMap().getOrDefault(aPlayer.getName(), 0))
-                );
-            } else {
-
-                if (this.getLifeMap().containsKey(aPlayer.getArenaTeam().getName())) {
-                    res.setError(this, String.valueOf(
-                            this.getLifeMap().get(aPlayer.getName())));
-                } else {
-
-                    int sum = 0;
-
-                    for (final ArenaPlayer player : aPlayer.getArenaTeam().getTeamMembers()) {
-                        if (this.getLifeMap().containsKey(player.getName())) {
-                            sum += this.getLifeMap().get(player.getName());
-                        }
-                    }
-
-                    res.setError(
-                            this,
-                            String.valueOf(sum));
-                }
-            }
-
-
+    public int getLives(ArenaPlayer aPlayer) {
+        if (this.arena.isFreeForAll()) {
+            return this.getLifeMap().getOrDefault(aPlayer.getName(), 0);
         }
-        return res;
+
+        if (this.getLifeMap().containsKey(aPlayer.getArenaTeam().getName())) {
+            return this.getLifeMap().get(aPlayer.getName());
+        }
+
+        return aPlayer.getArenaTeam().getTeamMembers().stream()
+                .mapToInt(ap -> this.getLifeMap().getOrDefault(ap.getName(), 0))
+                .sum();
     }
 
     @Override

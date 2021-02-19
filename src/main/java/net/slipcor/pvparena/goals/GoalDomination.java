@@ -92,16 +92,8 @@ public class GoalDomination extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkCommand(final PACheck res, final String string) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
-        if ("flag".equals(string)) {
-            res.setPriority(this, PRIORITY);
-        }
-
-        return res;
+    public boolean checkCommand(final String string) {
+        return "flag".equalsIgnoreCase(string);
     }
 
     @Override
@@ -612,14 +604,8 @@ public class GoalDomination extends ArenaGoal {
     }
 
     @Override
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            res.setError(
-                    this,
-                    String.valueOf(this.getLifeMap().getOrDefault(aPlayer.getArenaTeam().getName(), 0))
-            );
-        }
-        return res;
+    public int getLives(ArenaPlayer aPlayer) {
+        return this.getLifeMap().getOrDefault(aPlayer.getArenaTeam().getName(), 0);
     }
 
     private Map<Location, DominationRunnable> getRunnerMap() {

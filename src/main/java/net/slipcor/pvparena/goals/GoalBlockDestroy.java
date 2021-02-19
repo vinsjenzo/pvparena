@@ -20,6 +20,7 @@ import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.loadables.ArenaRegion;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
+import net.slipcor.pvparena.managers.PriorityManager;
 import net.slipcor.pvparena.managers.SpawnManager;
 import net.slipcor.pvparena.managers.TeamManager;
 import net.slipcor.pvparena.runnables.EndRunnable;
@@ -75,23 +76,12 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck checkCommand(final PACheck res, final String string) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
+    public boolean checkCommand(final String string) {
         if ("blocktype".equalsIgnoreCase(string)) {
-            res.setPriority(this, PRIORITY);
+            return true;
         }
 
-        for (final ArenaTeam team : this.arena.getTeams()) {
-            final String sTeam = team.getName();
-            if (string.contains(sTeam + "block")) {
-                res.setPriority(this, PRIORITY);
-            }
-        }
-
-        return res;
+        return this.arena.getTeams().stream().anyMatch(team -> string.contains(team.getName() + "block"));
     }
 
     @Override
@@ -257,7 +247,7 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
 		new EndRunnable(arena, arena.getArenaConfig().getInt(
 				CFG.TIME_ENDCOUNTDOWN));
 				*/
-        PACheck.handleEnd(arena, false);
+        PriorityManager.handleEnd(arena, false);
     }
 
     @Override
@@ -372,14 +362,8 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            res.setError(
-                    this,
-                    String.valueOf(this.getLifeMap().getOrDefault(aPlayer.getArenaTeam().getName(), 0))
-            );
-        }
-        return res;
+    public int getLives(ArenaPlayer aPlayer) {
+        return this.getLifeMap().getOrDefault(aPlayer.getArenaTeam().getName(), 0);
     }
 
     @Override

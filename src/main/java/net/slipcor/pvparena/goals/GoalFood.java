@@ -17,6 +17,7 @@ import net.slipcor.pvparena.events.PAGoalEvent;
 import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.managers.InventoryManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import net.slipcor.pvparena.managers.SpawnManager;
 import net.slipcor.pvparena.managers.TeamManager;
 import net.slipcor.pvparena.runnables.EndRunnable;
@@ -86,19 +87,10 @@ public class GoalFood extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck checkCommand(final PACheck res, final String string) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
-        for (final ArenaTeam team : this.arena.getTeams()) {
-            final String sTeam = team.getName();
-            if (string.contains(sTeam + "foodchest") || string.contains(sTeam + "foodfurnace")) {
-                res.setPriority(this, PRIORITY);
-            }
-        }
-
-        return res;
+    public boolean checkCommand(final String string) {
+        return this.arena.getTeams().stream()
+                .map(ArenaTeam::getName)
+                .anyMatch(sTeam -> string.contains(sTeam + "foodchest") || string.contains(sTeam + "foodfurnace"));
     }
 
     @Override
@@ -174,11 +166,8 @@ public class GoalFood extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck checkPlayerDeath(final PACheck res, final Player player) {
-        if (res.getPriority() <= PRIORITY) {
-            res.setPriority(this, PRIORITY);
-        }
-        return res;
+    public Boolean checkPlayerDeath(Player player) {
+        return true;
     }
 
     @Override
@@ -275,7 +264,7 @@ public class GoalFood extends ArenaGoal implements Listener {
 
     @Override
     public void commitPlayerDeath(final Player respawnPlayer, final boolean doesRespawn,
-                                  final String error, final PlayerDeathEvent event) {
+                                  final PlayerDeathEvent event) {
 
         if (this.arena.getArenaConfig().getBoolean(CFG.USES_DEATHMESSAGES)) {
             this.broadcastSimpleDeathMessage(respawnPlayer, event);
@@ -291,7 +280,7 @@ public class GoalFood extends ArenaGoal implements Listener {
             returned = new ArrayList<>(event.getDrops());
         }
 
-        PACheck.handleRespawn(this.arena, ArenaPlayer.parsePlayer(respawnPlayer.getName()), returned);
+        PriorityManager.handleRespawn(this.arena, ArenaPlayer.parsePlayer(respawnPlayer.getName()), returned);
 
     }
 
@@ -350,16 +339,8 @@ public class GoalFood extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            res.setError(
-                    this,
-                    String.valueOf(this.arena.getArenaConfig()
-                            .getInt(CFG.GOAL_FOOD_FMAXITEMS) - (this.getLifeMap()
-                            .containsKey(aPlayer.getArenaTeam().getName()) ? this.getLifeMap()
-                            .get(aPlayer.getArenaTeam().getName()) : 0)));
-        }
-        return res;
+    public int getLives(ArenaPlayer aPlayer) {
+        return this.getLifeMap().getOrDefault(aPlayer.getArenaTeam().getName(), 0);
     }
 
     @Override
@@ -577,7 +558,7 @@ public class GoalFood extends ArenaGoal implements Listener {
                     }
                 }
             }
-            PACheck.handleEnd(arena, false);
+            PriorityManager.handleEnd(arena, false);
             return;
         }
 

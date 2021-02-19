@@ -15,6 +15,7 @@ import net.slipcor.pvparena.events.PAGoalEvent;
 import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.managers.InventoryManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import net.slipcor.pvparena.managers.SpawnManager;
 import net.slipcor.pvparena.managers.TeamManager;
 import net.slipcor.pvparena.runnables.EndRunnable;
@@ -65,19 +66,8 @@ public class GoalLiberation extends ArenaGoal {
     private static final int PRIORITY = 10;
 
     @Override
-    public PACheck checkCommand(final PACheck res, final String string) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
-        for (final ArenaTeam team : this.arena.getTeams()) {
-            final String sTeam = team.getName();
-            if (string.contains(sTeam + "button")) {
-                res.setPriority(this, PRIORITY);
-            }
-        }
-
-        return res;
+    public boolean checkCommand(final String string) {
+        return this.arena.getTeams().stream().anyMatch(team -> string.contains(team.getName() + "button"));
     }
 
     @Override
@@ -284,34 +274,26 @@ public class GoalLiberation extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkPlayerDeath(final PACheck res, final Player player) {
-        if (res.getPriority() <= PRIORITY) {
-            res.setPriority(this, PRIORITY);
-            final int pos = this.getLifeMap().get(player.getName());
-            debug(this.arena, player, "lives before death: " + pos);
-            if (pos <= 1) {
-                this.getLifeMap().put(player.getName(), 1);
+    public Boolean checkPlayerDeath(Player player) {
+        final int pos = this.getLifeMap().get(player.getName());
+        debug(this.arena, player, "lives before death: " + pos);
+        if (pos <= 1) {
+            this.getLifeMap().put(player.getName(), 1);
 
-                final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
+            final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
+            final ArenaTeam team = aPlayer.getArenaTeam();
+            boolean someoneAlive = false;
 
-                final ArenaTeam team = aPlayer.getArenaTeam();
-
-                boolean someoneAlive = false;
-
-                for (final ArenaPlayer temp : team.getTeamMembers()) {
-                    if (temp.getStatus() == Status.FIGHT) {
-                        someoneAlive = true;
-                        break;
-                    }
+            for (final ArenaPlayer temp : team.getTeamMembers()) {
+                if (temp.getStatus() == Status.FIGHT) {
+                    someoneAlive = true;
+                    break;
                 }
-
-                if (!someoneAlive) {
-                    res.setError(this, "0");
-                }
-
             }
+
+            return someoneAlive;
         }
-        return res;
+        return true;
     }
 
     @Override
@@ -382,7 +364,7 @@ public class GoalLiberation extends ArenaGoal {
 
     @Override
     public void commitPlayerDeath(final Player player, final boolean doesRespawn,
-                                  final String error, final PlayerDeathEvent event) {
+                                  final PlayerDeathEvent event) {
 
         if (!this.getLifeMap().containsKey(player.getName())) {
             debug(this.arena, player, "cmd: not in life map!");
@@ -449,7 +431,7 @@ public class GoalLiberation extends ArenaGoal {
                     returned = new ArrayList<>(event.getDrops());
                 }
 
-                PACheck.handleRespawn(this.arena,
+                PriorityManager.handleRespawn(this.arena,
                         ArenaPlayer.parsePlayer(player.getName()), returned);
 
                 ArenaPlayer.parsePlayer(player.getName()).setStatus(Status.LOST);
@@ -460,7 +442,7 @@ public class GoalLiberation extends ArenaGoal {
                     this.broadcastSimpleDeathMessage(player, event);
                 }
 
-                PACheck.handleEnd(this.arena, false);
+                PriorityManager.handleEnd(this.arena, false);
             }
 
         } else {
@@ -483,7 +465,7 @@ public class GoalLiberation extends ArenaGoal {
                 returned = new ArrayList<>(event.getDrops());
             }
 
-            PACheck.handleRespawn(this.arena,
+            PriorityManager.handleRespawn(this.arena,
                     ArenaPlayer.parsePlayer(player.getName()), returned);
 
         }
@@ -515,14 +497,8 @@ public class GoalLiberation extends ArenaGoal {
     }
 
     @Override
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            res.setError(
-                    this,
-                    String.valueOf(this.getLifeMap().getOrDefault(aPlayer.getName(), 0))
-            );
-        }
-        return res;
+    public int getLives(ArenaPlayer aPlayer) {
+        return this.getLifeMap().getOrDefault(aPlayer.getName(), 0);
     }
 
     @Override

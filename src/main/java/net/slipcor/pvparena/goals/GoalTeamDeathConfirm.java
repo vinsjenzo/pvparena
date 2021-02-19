@@ -5,12 +5,12 @@ import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
 import net.slipcor.pvparena.managers.InventoryManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -49,7 +49,7 @@ public class GoalTeamDeathConfirm extends AbstractTeamKillGoal {
     }
 
     @Override
-    protected double getScore(ArenaTeam team) {
+    protected int getScore(ArenaTeam team) {
         return this.getTeamLivesCfg() - (this.getLifeMap().getOrDefault(team.getName(), 0));
     }
 
@@ -59,17 +59,16 @@ public class GoalTeamDeathConfirm extends AbstractTeamKillGoal {
     }
 
     @Override
-    public PACheck checkPlayerDeath(final PACheck res, final Player player) {
-        if (res.getPriority() <= PRIORITY && player.getKiller() != null
-                && this.arena.hasPlayer(player.getKiller())) {
-            res.setPriority(this, PRIORITY);
+    public Boolean checkPlayerDeath(Player player) {
+        if (player.getKiller() != null && this.arena.hasPlayer(player.getKiller())) {
+            return true;
         }
-        return res;
+        return null;
     }
 
     @Override
     public void commitPlayerDeath(final Player respawnPlayer, final boolean doesRespawn,
-                                  final String error, final PlayerDeathEvent event) {
+                                  final PlayerDeathEvent event) {
 
         if (respawnPlayer.getKiller() == null) {
             final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "playerDeath:" + respawnPlayer.getName());
@@ -98,7 +97,7 @@ public class GoalTeamDeathConfirm extends AbstractTeamKillGoal {
             returned = new ArrayList<>(event.getDrops());
         }
 
-        PACheck.handleRespawn(this.arena, ArenaPlayer.parsePlayer(respawnPlayer.getName()), returned);
+        PriorityManager.handleRespawn(this.arena, ArenaPlayer.parsePlayer(respawnPlayer.getName()), returned);
     }
 
     private void drop(final Player player, final ArenaTeam team) {
@@ -165,7 +164,7 @@ public class GoalTeamDeathConfirm extends AbstractTeamKillGoal {
                     }
                 }
             }
-            PACheck.handleEnd(arena, false);
+            PriorityManager.handleEnd(arena, false);
             return true;
         }
         arena.broadcast(Language.parse(arena, MSG.GOAL_TEAMDEATHCONFIRM_REMAINING, String.valueOf(iLives - 1), team.getColoredName()));

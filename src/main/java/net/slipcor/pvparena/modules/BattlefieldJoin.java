@@ -13,6 +13,7 @@ import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.managers.ArenaManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import net.slipcor.pvparena.managers.SpawnManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -145,7 +146,7 @@ public class BattlefieldJoin extends ArenaModule {
 
             @Override
             public void run() {
-                Boolean check = PACheck.handleStart(BattlefieldJoin.this.arena, sender, true);
+                Boolean check = PriorityManager.handleStart(BattlefieldJoin.this.arena, sender, true);
                 if (check == null || !check) {
                     Bukkit.getScheduler().runTaskLater(PVPArena.getInstance(), this, 10L);
                 }

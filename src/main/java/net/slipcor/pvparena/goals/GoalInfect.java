@@ -18,6 +18,7 @@ import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.managers.InventoryManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import net.slipcor.pvparena.managers.SpawnManager;
 import net.slipcor.pvparena.runnables.EndRunnable;
 import org.bukkit.Bukkit;
@@ -123,17 +124,8 @@ public class GoalInfect extends ArenaGoal {
         return count > 3 ? null : "need more spawns! (" + count + "/4)";
     }
     @Override
-    public PACheck checkCommand(final PACheck res, final String string) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
-        if ("getprotect".equalsIgnoreCase(string)
-                || "setprotect".equalsIgnoreCase(string)) {
-            res.setPriority(this, PRIORITY);
-        }
-
-        return res;
+    public boolean checkCommand(final String string) {
+        return "getprotect".equalsIgnoreCase(string) || "setprotect".equalsIgnoreCase(string);
     }
 
     @Override
@@ -286,21 +278,13 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkPlayerDeath(final PACheck res, final Player player) {
-        if (res.getPriority() <= PRIORITY) {
-            res.setPriority(this, PRIORITY);
-
-            if (!this.getLifeMap().containsKey(player.getName())) {
-                return res;
-            }
+    public Boolean checkPlayerDeath(final Player player) {
+        if (this.getLifeMap().containsKey(player.getName())) {
             final int iLives = this.getLifeMap().get(player.getName());
             debug(this.arena, player, "lives before death: " + iLives);
-            if (iLives <= 1 && "infected".equals(ArenaPlayer.parsePlayer(player.getName()).getArenaTeam().getName())) {
-                res.setError(this, "0");
-            }
-
+            return iLives > 1 || !"infected".equals(ArenaPlayer.parsePlayer(player.getName()).getArenaTeam().getName());
         }
-        return res;
+        return true;
     }
 
     @Override
@@ -437,7 +421,7 @@ public class GoalInfect extends ArenaGoal {
 
     @Override
     public void commitPlayerDeath(final Player player, final boolean doesRespawn,
-                                  final String error, final PlayerDeathEvent event) {
+                                  final PlayerDeathEvent event) {
         if (!this.getLifeMap().containsKey(player.getName())) {
             return;
         }
@@ -496,11 +480,11 @@ public class GoalInfect extends ArenaGoal {
                     returned = new ArrayList<>(event.getDrops());
                 }
 
-                PACheck.handleRespawn(this.arena,
+                PriorityManager.handleRespawn(this.arena,
                         aPlayer, returned);
 
                 if (this.anyTeamEmpty()) {
-                    PACheck.handleEnd(this.arena, false);
+                    PriorityManager.handleEnd(this.arena, false);
                 }
                 return;
             }
@@ -526,12 +510,12 @@ public class GoalInfect extends ArenaGoal {
                 returned = new ArrayList<>(event.getDrops());
             }
 
-            PACheck.handleRespawn(this.arena,
+            PriorityManager.handleRespawn(this.arena,
                     aPlayer, returned);
 
 
             // player died => commit death!
-            PACheck.handleEnd(this.arena, false);
+            PriorityManager.handleEnd(this.arena, false);
         } else {
             iLives--;
             this.getLifeMap().put(player.getName(), iLives);
@@ -550,7 +534,7 @@ public class GoalInfect extends ArenaGoal {
                 returned = new ArrayList<>(event.getDrops());
             }
 
-            PACheck.handleRespawn(this.arena,
+            PriorityManager.handleRespawn(this.arena,
                     aPlayer, returned);
         }
     }
@@ -577,14 +561,8 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            res.setError(
-                    this,
-                    String.valueOf(this.getLifeMap().getOrDefault(aPlayer.getName(), 0))
-            );
-        }
-        return res;
+    public int getLives(ArenaPlayer aPlayer) {
+        return this.getLifeMap().getOrDefault(aPlayer.getName(), 0);
     }
 
     @Override

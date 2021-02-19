@@ -1,12 +1,12 @@
 package net.slipcor.pvparena.commands;
 
 import net.slipcor.pvparena.arena.Arena;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Help;
 import net.slipcor.pvparena.core.Help.HELP;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.managers.ConfigurationManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -49,7 +49,7 @@ public class PAG_Spectate extends AbstractArenaCommand {
             return;
         }
 
-        PACheck.handleSpectate(arena, sender);
+        PriorityManager.handleSpectate(arena, sender);
     }
 
     @Override

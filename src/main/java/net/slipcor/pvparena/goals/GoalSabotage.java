@@ -9,7 +9,6 @@ import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PABlockLocation;
 import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.PAA_Region;
-import net.slipcor.pvparena.config.Debugger;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
@@ -73,19 +72,8 @@ public class GoalSabotage extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck checkCommand(final PACheck res, final String string) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
-        for (final ArenaTeam team : this.arena.getTeams()) {
-            final String sTeam = team.getName();
-            if (string.contains(sTeam + "tnt")) {
-                res.setPriority(this, PRIORITY);
-            }
-        }
-
-        return res;
+    public boolean checkCommand(final String string) {
+        return this.arena.getTeams().stream().anyMatch(team -> string.contains(team.getName() + "tnt"));
     }
 
     @Override

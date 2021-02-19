@@ -18,6 +18,7 @@ import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.managers.InventoryManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import net.slipcor.pvparena.managers.SpawnManager;
 import net.slipcor.pvparena.runnables.EndRunnable;
 import org.bukkit.Bukkit;
@@ -124,20 +125,13 @@ public class GoalTank extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkPlayerDeath(final PACheck res, final Player player) {
-        if (res.getPriority() <= PRIORITY) {
-            res.setPriority(this, PRIORITY);
-
-            if (!this.getLifeMap().containsKey(player.getName())) {
-                return res;
-            }
+    public Boolean checkPlayerDeath(final Player player) {
+        if (this.getLifeMap().containsKey(player.getName())) {
             final int iLives = this.getLifeMap().get(player.getName());
             debug(this.arena, player, "lives before death: " + iLives);
-            if (iLives <= 1 || tanks.get(this.arena).equals(player.getName())) {
-                res.setError(this, "0");
-            }
+            return iLives > 1 && !tanks.get(this.arena).equals(player.getName());
         }
-        return res;
+        return true;
     }
 
     @Override
@@ -193,7 +187,7 @@ public class GoalTank extends ArenaGoal {
 
     @Override
     public void commitPlayerDeath(final Player player, final boolean doesRespawn,
-                                  final String error, final PlayerDeathEvent event) {
+                                  final PlayerDeathEvent event) {
         if (!this.getLifeMap().containsKey(player.getName())) {
             return;
         }
@@ -224,7 +218,7 @@ public class GoalTank extends ArenaGoal {
 
             ArenaPlayer.parsePlayer(player.getName()).setStatus(Status.LOST);
             // player died => commit death!
-            PACheck.handleEnd(this.arena, false);
+            PriorityManager.handleEnd(this.arena, false);
         } else {
             final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "doesRespawn", "playerDeath:" + player.getName());
             Bukkit.getPluginManager().callEvent(gEvent);
@@ -244,7 +238,7 @@ public class GoalTank extends ArenaGoal {
                 returned = new ArrayList<>(event.getDrops());
             }
 
-            PACheck.handleRespawn(this.arena, ArenaPlayer.parsePlayer(player.getName()), returned);
+            PriorityManager.handleRespawn(this.arena, ArenaPlayer.parsePlayer(player.getName()), returned);
         }
     }
 
@@ -263,14 +257,8 @@ public class GoalTank extends ArenaGoal {
     }
 
     @Override
-    public PACheck getLives(final PACheck res, final ArenaPlayer aPlayer) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            res.setError(
-                    this,
-                    String.valueOf(this.getLifeMap().getOrDefault(aPlayer.getName(), 0))
-            );
-        }
-        return res;
+    public int getLives(ArenaPlayer aPlayer) {
+        return this.getLifeMap().getOrDefault(aPlayer.getName(), 0);
     }
 
     @Override

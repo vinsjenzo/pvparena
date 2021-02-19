@@ -3,7 +3,6 @@ package net.slipcor.pvparena.managers;
 import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.classes.PABlockLocation;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.AbstractArenaCommand;
 import net.slipcor.pvparena.commands.PAA_Edit;
 import net.slipcor.pvparena.commands.PAA_Setup;
@@ -64,7 +63,7 @@ public final class ArenaManager {
             return false;
         }
 
-        return PACheck.handleEnd(arena, force);
+        return PriorityManager.handleEnd(arena, force);
     }
 
     /**

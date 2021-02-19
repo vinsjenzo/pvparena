@@ -5,12 +5,12 @@ import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
 import net.slipcor.pvparena.managers.InventoryManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -48,7 +48,7 @@ public class GoalTeamDeathMatch extends AbstractTeamKillGoal {
     }
 
     @Override
-    protected double getScore(ArenaTeam team) {
+    protected int getScore(ArenaTeam team) {
         return this.getTeamLivesCfg() - (this.getLifeMap().getOrDefault(team.getName(), 0));
     }
 
@@ -58,16 +58,13 @@ public class GoalTeamDeathMatch extends AbstractTeamKillGoal {
     }
 
     @Override
-    public PACheck checkPlayerDeath(final PACheck res, final Player player) {
-        if (res.getPriority() <= PRIORITY) {
-            res.setPriority(this, PRIORITY);
-        }
-        return res;
+    public Boolean checkPlayerDeath(Player player) {
+        return true;
     }
 
     @Override
     public void commitPlayerDeath(final Player respawnPlayer, final boolean doesRespawn,
-                                  final String error, final PlayerDeathEvent event) {
+                                  final PlayerDeathEvent event) {
 
         Player killer = respawnPlayer.getKiller();
 
@@ -129,7 +126,7 @@ public class GoalTeamDeathMatch extends AbstractTeamKillGoal {
             returned = new ArrayList<>(event.getDrops());
         }
 
-        PACheck.handleRespawn(this.arena, ArenaPlayer.parsePlayer(player.getName()), returned);
+        PriorityManager.handleRespawn(this.arena, ArenaPlayer.parsePlayer(player.getName()), returned);
     }
 
     private void makePlayerLose(Player respawnPlayer, PlayerDeathEvent event) {
@@ -166,7 +163,7 @@ public class GoalTeamDeathMatch extends AbstractTeamKillGoal {
                             respawnPlayer, event.getEntity()
                                     .getLastDamageCause().getCause(), event
                                     .getEntity().getKiller())));
-            PACheck.handleEnd(arena, false);
+            PriorityManager.handleEnd(arena, false);
             return true;
         }
 

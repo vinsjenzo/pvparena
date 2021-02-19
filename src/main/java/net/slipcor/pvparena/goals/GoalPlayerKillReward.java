@@ -17,6 +17,7 @@ import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.managers.ArenaManager;
 import net.slipcor.pvparena.managers.InventoryManager;
+import net.slipcor.pvparena.managers.PriorityManager;
 import net.slipcor.pvparena.managers.TeamManager;
 import net.slipcor.pvparena.runnables.EndRunnable;
 import org.bukkit.Bukkit;
@@ -68,13 +69,8 @@ public class GoalPlayerKillReward extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkCommand(final PACheck res, final String string) {
-        if (res.getPriority() < PRIORITY
-                && "killrewards".equalsIgnoreCase(string)
-                || "!kr".equalsIgnoreCase(string)) {
-            res.setPriority(this, PRIORITY);
-        }
-        return res;
+    public boolean checkCommand(final String string) {
+        return "killrewards".equalsIgnoreCase(string) || "!kr".equalsIgnoreCase(string);
     }
 
     @Override
@@ -340,7 +336,7 @@ public class GoalPlayerKillReward extends ArenaGoal {
             if (ArenaManager.checkAndCommit(this.arena, false)) {
                 return;
             }
-            PACheck.handleEnd(this.arena, false);
+            PriorityManager.handleEnd(this.arena, false);
         } else {
             final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "playerKill:" + killer.getName() + ':' + player.getName(), "playerDeath:" + player.getName());
             Bukkit.getPluginManager().callEvent(gEvent);
@@ -550,6 +546,20 @@ public class GoalPlayerKillReward extends ArenaGoal {
     }
 
     @Override
+    public int getLives(ArenaPlayer aPlayer) {
+        if (this.arena.isFreeForAll()) {
+            return this.getLifeMap().getOrDefault(aPlayer.getName(), 0);
+        }
+
+        if (this.getLifeMap().containsKey(aPlayer.getArenaTeam().getName())) {
+            return this.getLifeMap().get(aPlayer.getName());
+        }
+
+        return aPlayer.getArenaTeam().getTeamMembers().stream()
+                .mapToInt(ap -> this.getLifeMap().getOrDefault(ap.getName(), 0))
+                .sum();
+    }
+
     public PACheck getLives(PACheck res, ArenaPlayer player) {
         if (res.getPriority() <= PRIORITY + 1000) {
             if (this.arena.isFreeForAll()) {
