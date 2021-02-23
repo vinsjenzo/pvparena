@@ -8,7 +8,7 @@
 </p>
 
 ***
-[What is PVP Arena?](#What-is-PVP-Arena?) | [Dependencies](#Dependencies) | [Downloads](#Downloads) | 
+[What is PVP Arena?](#what-is-pvp-arena) | [Dependencies](#Dependencies) | [Downloads](#Downloads) | 
 [Installation](#Installation) | [Documentation](#Documentation) | [Support](#Support) | 
 [Telemetry](#Telemetry) | [Credits](#Credits)
 ***
