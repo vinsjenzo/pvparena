@@ -9,6 +9,7 @@ import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.CommandTree;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
+import net.slipcor.pvparena.exceptions.GameplayException;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -75,12 +76,12 @@ public class ArenaGoal implements IArenaCommandHandler {
 
     @Override
     public List<String> getMain() {
-        return Arrays.asList(new String[0]);
+        return Collections.emptyList();
     }
 
     @Override
     public List<String> getShort() {
-        return Arrays.asList(new String[0]);
+        return Collections.emptyList();
     }
 
     @Override
@@ -105,38 +106,31 @@ public class ArenaGoal implements IArenaCommandHandler {
         return "outdated";
     }
 
-    public PACheck checkBreak(PACheck result, BlockBreakEvent event) {
-        return result;
+    public void checkBreak(BlockBreakEvent event) throws GameplayException {
     }
 
-    public PACheck checkCraft(PACheck result, CraftItemEvent event) {
-        return result;
+    public void checkCraft(CraftItemEvent result) throws GameplayException {
     }
 
-    public PACheck checkDrop(PACheck result, PlayerDropItemEvent event) {
-        return result;
+    public void checkDrop(PlayerDropItemEvent event) throws GameplayException {
     }
 
-    public PACheck checkInventory(PACheck result, InventoryClickEvent event) {
-        return result;
+    public void checkInventory(InventoryClickEvent event) throws GameplayException {
     }
 
-    public PACheck checkPickup(PACheck result, EntityPickupItemEvent event) {
-        return result;
+    public void checkPickup(EntityPickupItemEvent event) throws GameplayException {
     }
 
-    public PACheck checkPlace(PACheck result, BlockPlaceEvent event) {
-        return result;
+    public void checkPlace(BlockPlaceEvent event) throws GameplayException {
     }
 
     /**
      * check if the goal should commit the end
      *
-     * @param res the PACheck instance
-     * @return the PACheck instance
+     * @return true if the goal handles the end
      */
-    public PACheck checkEnd(final PACheck res) {
-        return res;
+    public boolean checkEnd() throws GameplayException {
+        return false;
     }
 
     /**
@@ -194,8 +188,7 @@ public class ArenaGoal implements IArenaCommandHandler {
      *
      * @return null if ready, error message otherwise
      */
-    protected String checkForMissingTeamCustom(final Set<String> list,
-                                               final String custom) {
+    protected String checkForMissingTeamCustom(final Set<String> list, final String custom) {
         for (final ArenaTeam team : this.arena.getTeams()) {
             final String sTeam = team.getName();
             if (!list.contains(sTeam + custom)) {
@@ -217,14 +210,12 @@ public class ArenaGoal implements IArenaCommandHandler {
     /**
      * hook into an interacting player
      *
-     * @param res          the PACheck instance
      * @param player       the interacting player
      * @param clickedBlock the block being clicked
-     * @return the PACheck instance
+     * @return true if the goals handle the event
      */
-    public PACheck checkInteract(final PACheck res, final Player player,
-                                 final Block clickedBlock) {
-        return res;
+    public boolean checkInteract(final Player player, final Block clickedBlock) {
+        return false;
     }
 
     /**
@@ -235,8 +226,7 @@ public class ArenaGoal implements IArenaCommandHandler {
      * @param args   command arguments
      * @return the PACheck instance
      */
-    public PACheck checkJoin(final CommandSender sender, final PACheck res,
-                             final String[] args) {
+    public PACheck checkJoin(final CommandSender sender, final PACheck res, final String[] args) {
         return res;
     }
 
@@ -253,24 +243,21 @@ public class ArenaGoal implements IArenaCommandHandler {
     /**
      * check if the goal should set a block
      *
-     * @param res    the PACheck instance
      * @param player the setting player
      * @param block  the block being set
-     * @return the PACheck instance
+     * @return true if the handling is successful
      */
-    public PACheck checkSetBlock(final PACheck res, final Player player,
-                                 final Block block) {
-        return res;
+    public boolean checkSetBlock(final Player player, final Block block) {
+        return false;
     }
 
     /**
      * check if the goal should start the game
      *
-     * @param res the PACheck instance
-     * @return the PACheck instance
+     * @return true if the goal overrides default starting
      */
-    public PACheck checkStart(final PACheck res) {
-        return res;
+    public boolean overridesStart() {
+        return false;
     }
 
     /**
@@ -429,8 +416,7 @@ public class ArenaGoal implements IArenaCommandHandler {
      * @param player          the dying player
      * @param lastDamageCause the last damage cause
      */
-    public void parsePlayerDeath(final Player player,
-                                 final EntityDamageEvent lastDamageCause) {
+    public void parsePlayerDeath(final Player player, final EntityDamageEvent lastDamageCause) {
     }
 
     /**

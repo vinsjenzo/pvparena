@@ -83,27 +83,20 @@ public class GoalLiberation extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkEnd(final PACheck res) {
+    public boolean checkEnd() {
         debug(this.arena, "checkEnd - " + this.arena.getName());
-        if (res.getPriority() > PRIORITY) {
-            debug(this.arena, res.getPriority() + ">" + PRIORITY);
-            return res;
-        }
 
         if (!this.arena.isFreeForAll()) {
             debug(this.arena, "TEAMS!");
             final int count = TeamManager.countActiveTeams(this.arena);
             debug(this.arena, "count: " + count);
 
-            if (count <= 1) {
-                res.setPriority(this, PRIORITY); // yep. only one team left. go!
-            }
-            return res;
+            return count <= 1; // yep. only one team left. go!
         }
 
         PVPArena.getInstance().getLogger().warning("Liberation goal running in FFA mode: " + this.arena.getName());
 
-        return res;
+        return false;
     }
 
     @Override
@@ -123,21 +116,20 @@ public class GoalLiberation extends ArenaGoal {
     /**
      * hook into an interacting player
      *
-     * @param res    the PACheck instance
      * @param player the interacting player
      * @param block  the block being clicked
-     * @return the PACheck instance
+     * @return true if event has been handled
      */
     @Override
-    public PACheck checkInteract(final PACheck res, final Player player, final Block block) {
-        if (block == null || res.getPriority() > PRIORITY) {
-            return res;
+    public boolean checkInteract(final Player player, final Block block) {
+        if (block == null) {
+            return false;
         }
         debug(this.arena, player, "checking interact");
 
         if (block.getType() != Material.STONE_BUTTON) {
             debug(this.arena, player, "block, but not button");
-            return res;
+            return false;
         }
         debug(this.arena, player, "button click!");
 
@@ -145,7 +137,7 @@ public class GoalLiberation extends ArenaGoal {
 
         final ArenaTeam pTeam = aPlayer.getArenaTeam();
         if (pTeam == null) {
-            return res;
+            return false;
         }
         final Set<ArenaTeam> setTeam = new HashSet<>();
 
@@ -212,11 +204,11 @@ public class GoalLiberation extends ArenaGoal {
                     Bukkit.getPluginManager().callEvent(gEvent);
                 }
 
-                return res;
+                return true;
             }
         }
 
-        return res;
+        return false;
     }
 
     @Override
@@ -253,24 +245,17 @@ public class GoalLiberation extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkSetBlock(final PACheck res, final Player player, final Block block) {
+    public boolean checkSetBlock(final Player player, final Block block) {
 
-        if (res.getPriority() > PRIORITY
-                || !PAA_Region.activeSelections.containsKey(player.getName())) {
-            return res;
-        }
-        if (block == null
-                || block.getType() != Material.STONE_BUTTON) {
-            return res;
+        if (!PAA_Region.activeSelections.containsKey(player.getName())) {
+            return false;
         }
 
-        if (!PVPArena.hasAdminPerms(player)
-                && !PVPArena.hasCreatePerms(player, this.arena)) {
-            return res;
+        if (block == null || block.getType() != Material.STONE_BUTTON) {
+            return false;
         }
-        res.setPriority(this, PRIORITY); // success :)
 
-        return res;
+        return PVPArena.hasAdminPerms(player) || PVPArena.hasCreatePerms(player, this.arena);
     }
 
     @Override

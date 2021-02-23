@@ -4,7 +4,6 @@ import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PABlockLocation;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.ColorUtils;
 import net.slipcor.pvparena.core.Config;
 import net.slipcor.pvparena.core.Config.CFG;
@@ -70,26 +69,25 @@ public class GoalFlags extends AbstractFlagGoal implements Listener {
     /**
      * hook into an interacting player
      *
-     * @param res    the PACheck instance
      * @param player the interacting player
      * @param block  the block being clicked
-     * @return the PACheck instance
+     * @return true if event has been handled
      */
     @Override
-    public PACheck checkInteract(final PACheck res, final Player player, final Block block) {
-        if (block == null || res.getPriority() > PRIORITY) {
-            return res;
+    public boolean checkInteract(final Player player, final Block block) {
+        if (block == null) {
+            return false;
         }
         debug(this.arena, player, "checking interact");
         if (this.arena.realEndRunner != null) {
             debug(this.arena, "[CTF] already ending!!");
-            return res;
+            return false;
         }
 
         Material flagType = this.getFlagType();
         if (!ColorUtils.isSubType(block.getType(), flagType)) {
             debug(this.arena, player, "block, but not flag");
-            return res;
+            return false;
         }
         debug(this.arena, player, "flag click!");
 
@@ -127,7 +125,7 @@ public class GoalFlags extends AbstractFlagGoal implements Listener {
 
                         this.arena.msg(player,
                                 Language.parse(this.arena, MSG.GOAL_FLAGS_NOTSAFE));
-                        return res;
+                        return false;
                     }
                 }
 
@@ -183,11 +181,12 @@ public class GoalFlags extends AbstractFlagGoal implements Listener {
 
                 final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "trigger:" + aPlayer.getName());
                 Bukkit.getPluginManager().callEvent(gEvent);
+                return true;
             }
         } else {
             final ArenaTeam pTeam = aPlayer.getArenaTeam();
             if (pTeam == null) {
-                return res;
+                return false;
             }
 
             final Set<ArenaTeam> setTeam = new HashSet<>(this.arena.getTeams());
@@ -256,12 +255,11 @@ public class GoalFlags extends AbstractFlagGoal implements Listener {
                     this.takeFlag(new PABlockLocation(vFlag.toLocation(block.getWorld())));
                     this.getFlagMap().put(aTeam, player.getName());
 
-                    return res;
+                    return true;
                 }
             }
         }
-
-        return res;
+        return false;
     }
 
     @Override

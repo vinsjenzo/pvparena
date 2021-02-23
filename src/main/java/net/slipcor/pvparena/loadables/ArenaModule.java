@@ -6,8 +6,8 @@ import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaClass;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaTeam;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.CommandTree;
+import net.slipcor.pvparena.exceptions.GameplayException;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionType;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -48,6 +48,10 @@ public abstract class ArenaModule implements IArenaCommandHandler {
 
     public String getName() {
         return this.name;
+    }
+
+    public int getPriority(){
+        return 0;
     }
 
     /**
@@ -110,14 +114,37 @@ public abstract class ArenaModule implements IArenaCommandHandler {
     /**
      * check if the module should commit a player join
      *
-     * @param sender       the player trying to join
-     * @param res          the PACheck instance
-     * @param joining true if the player wants to join (false => spectating)
-     * @return true if the module will commit the join
+     * @param player       the player trying to join
      */
-    public PACheck checkJoin(final CommandSender sender, final PACheck res,
-                             final boolean joining) {
-        return res;
+    public void checkJoin(Player player) throws GameplayException {
+    }
+
+    /**
+     * check if the module should commit a player spectate
+     *
+     * @param player       the player trying to spectate
+     */
+    public void checkSpectate(Player player) throws GameplayException {
+    }
+
+    /**
+     * Handle player join
+     * @param player the player trying to join
+     * @return true if modules add player to arena (no need to handle join in other modules)
+     * @throws GameplayException Exception if arena can't start for gameplay reasons
+     */
+    public boolean handleJoin(Player player) throws GameplayException {
+        return false;
+    }
+
+    /**
+     * Handle player spectate
+     * @param player the player trying to spectate
+     * @return true if modules add player to arena (no need to handle spectate in other modules)
+     * @throws GameplayException Exception if arena can't start for gameplay reasons
+     */
+    public boolean handleSpectate(Player player) throws GameplayException {
+        return false;
     }
 
     /**

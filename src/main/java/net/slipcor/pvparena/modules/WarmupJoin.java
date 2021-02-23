@@ -4,10 +4,10 @@ import net.slipcor.pvparena.PVPArena;
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaTeam;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
+import net.slipcor.pvparena.exceptions.GameplayException;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.managers.ArenaManager;
 import net.slipcor.pvparena.runnables.ArenaWarmupRunnable;
@@ -54,39 +54,31 @@ public class WarmupJoin extends ArenaModule {
     }
 
     @Override
-    public PACheck checkJoin(final CommandSender sender, final PACheck result, final boolean join) {
+    public int getPriority() {
+        return PRIORITY;
+    }
 
-        if (result.getPriority() > PRIORITY) {
-            return result; // Something already is of higher priority, ignore!
+    @Override
+    public boolean handleJoin(Player player) throws GameplayException {
+        if (this.arena.isLocked() && !player.hasPermission("pvparena.admin")
+                && !(player.hasPermission("pvparena.create") && this.arena.getOwner().equals(player.getName()))) {
+            throw new GameplayException(Language.parse(this.arena, MSG.ERROR_DISABLED));
         }
 
-        final Player player = (Player) sender;
-
-        if (this.arena == null) {
-            return result; // arena is null - maybe some other mod wants to handle that? ignore!
-        }
-
-
-        if (this.arena.isLocked() && !player.hasPermission("pvparena.admin") && !(player.hasPermission("pvparena.create") && this.arena.getOwner().equals(player.getName()))) {
-            result.setError(this, Language.parse(this.arena, MSG.ERROR_DISABLED));
-            return result;
-        }
-
-        final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(sender.getName());
+        final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
 
         if (this.getPlayerSet().contains(aPlayer)) {
-            return result;
+            return false;
         }
 
         if (aPlayer.getArena() != null) {
-            debug(aPlayer.getArena(), sender, this.getName());
-            result.setError(this, Language.parse(this.arena, MSG.ERROR_ARENA_ALREADY_PART_OF, ArenaManager.getIndirectArenaName(aPlayer.getArena())));
-            return result;
+            debug(aPlayer.getArena(), player, this.getName());
+            throw new GameplayException(Language.parse(this.arena,
+                    MSG.ERROR_ARENA_ALREADY_PART_OF, ArenaManager.getIndirectArenaName(aPlayer.getArena())));
         }
         this.getPlayerSet().add(aPlayer);
 
-        result.setPriority(this, PRIORITY);
-        return result;
+        return true;
     }
 
     @Override

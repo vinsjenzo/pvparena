@@ -9,6 +9,7 @@ import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
+import net.slipcor.pvparena.exceptions.GameplayException;
 import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.managers.TeamManager;
@@ -35,20 +36,16 @@ public abstract class AbstractTeamKillGoal extends ArenaGoal {
     protected abstract int getTeamLivesCfg();
 
     @Override
-    public PACheck checkEnd(final PACheck res) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
+    public boolean checkEnd() throws GameplayException {
         final int count = TeamManager.countActiveTeams(this.arena);
 
         if (count == 1) {
-            res.setPriority(this, PRIORITY); // yep. only one team left. go!
+            return true; // yep. only one team left. go!
         } else if (count == 0) {
-            res.setError(this, MSG.ERROR_NOTEAMFOUND.toString());
+            throw new GameplayException(MSG.ERROR_TEAMNOTFOUND);
         }
 
-        return res;
+        return false;
     }
 
     @Override

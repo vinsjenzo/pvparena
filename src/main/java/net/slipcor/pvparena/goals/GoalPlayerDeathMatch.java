@@ -58,21 +58,10 @@ public class GoalPlayerDeathMatch extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkEnd(final PACheck res) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
+    public boolean checkEnd() {
         final int count = this.getLifeMap().size();
 
-        if (count <= 1) {
-            res.setPriority(this, PRIORITY); // yep. only one player left. go!
-        }
-        if (count == 0) {
-            res.setError(this, "");
-        }
-
-        return res;
+        return count <= 1; // yep. only one player left. go!
     }
 
     @Override

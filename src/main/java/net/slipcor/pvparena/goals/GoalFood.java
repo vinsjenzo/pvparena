@@ -14,6 +14,7 @@ import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
+import net.slipcor.pvparena.exceptions.GameplayException;
 import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.managers.InventoryManager;
@@ -107,20 +108,16 @@ public class GoalFood extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck checkEnd(final PACheck res) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
+    public boolean checkEnd() throws GameplayException {
         final int count = TeamManager.countActiveTeams(this.arena);
 
         if (count == 1) {
-            res.setPriority(this, PRIORITY); // yep. only one team left. go!
+            return true; // yep. only one team left. go!
         } else if (count == 0) {
-            res.setError(this, MSG.ERROR_NOTEAMFOUND.toString());
+            throw new GameplayException(MSG.ERROR_TEAMNOTFOUND);
         }
 
-        return res;
+        return false;
     }
 
     @Override
@@ -171,24 +168,18 @@ public class GoalFood extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck checkSetBlock(final PACheck res, final Player player, final Block block) {
+    public boolean checkSetBlock(final Player player, final Block block) {
 
-        if (res.getPriority() > PRIORITY
-                || !PAA_Region.activeSelections.containsKey(player.getName())) {
-            return res;
+        if (!PAA_Region.activeSelections.containsKey(player.getName())) {
+            return false;
         }
+
         if (this.flagName == null || block == null
                 || block.getType() != Material.CHEST && block.getType() != Material.FURNACE) {
-            return res;
+            return false;
         }
 
-        if (!PVPArena.hasAdminPerms(player)
-                && !PVPArena.hasCreatePerms(player, this.arena)) {
-            return res;
-        }
-        res.setPriority(this, PRIORITY); // success :)
-
-        return res;
+        return PVPArena.hasAdminPerms(player) || PVPArena.hasCreatePerms(player, this.arena);
     }
 
     private String flagName;

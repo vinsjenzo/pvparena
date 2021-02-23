@@ -60,22 +60,9 @@ public class GoalTank extends ArenaGoal {
     private static final int PRIORITY = 8;
 
     @Override
-    public PACheck checkEnd(final PACheck res) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
+    public boolean checkEnd() {
         final int count = this.getLifeMap().size();
-
-        if (count <= 1
-                || ArenaPlayer.parsePlayer(tanks.get(this.arena)).getStatus() != Status.FIGHT) {
-            res.setPriority(this, PRIORITY); // yep. only one player left. go!
-        }
-        if (count == 0) {
-            res.setError(this, "");
-        }
-
-        return res;
+        return (count <= 1 || ArenaPlayer.parsePlayer(tanks.get(this.arena)).getStatus() != Status.FIGHT);
     }
 
     @Override
@@ -135,11 +122,8 @@ public class GoalTank extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkStart(final PACheck res) {
-        if (res.getPriority() < PRIORITY) {
-            res.setPriority(this, PRIORITY);
-        }
-        return res;
+    public boolean overridesStart() {
+        return true;
     }
 
     @Override

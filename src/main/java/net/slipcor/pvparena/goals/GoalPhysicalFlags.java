@@ -5,7 +5,6 @@ import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.classes.PABlockLocation;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.commands.PAA_Region;
 import net.slipcor.pvparena.core.ColorUtils;
 import net.slipcor.pvparena.core.Config;
@@ -79,22 +78,21 @@ public class GoalPhysicalFlags extends AbstractFlagGoal implements Listener {
     /**
      * hook into an interacting player
      *
-     * @param res    the PACheck instance
      * @param player the interacting player
      * @param block  the block being clicked
-     * @return the PACheck instance
+     * @return true if event has been handled
      */
     @Override
-    public PACheck checkInteract(final PACheck res, final Player player, final Block block) {
-        if (block == null || res.getPriority() > PRIORITY) {
-            return res;
+    public boolean checkInteract(final Player player, final Block block) {
+        if (block == null) {
+            return false;
         }
         debug(this.arena, player, "checking interact");
 
         Material flagType = this.arena.getArenaConfig().getMaterial(CFG.GOAL_PFLAGS_FLAGTYPE);
         if (!ColorUtils.isSubType(block.getType(), flagType)) {
             debug(this.arena, player, "block, but not flag");
-            return res;
+            return false;
         }
         debug(this.arena, player, "flag click!");
 
@@ -126,7 +124,7 @@ public class GoalPhysicalFlags extends AbstractFlagGoal implements Listener {
                         debug(this.arena, player, "cancelling");
 
                         this.arena.msg(player, Language.parse(this.arena, MSG.GOAL_FLAGS_NOTSAFE));
-                        return res;
+                        return false;
                     }
                 }
 
@@ -138,7 +136,7 @@ public class GoalPhysicalFlags extends AbstractFlagGoal implements Listener {
                 if (!ColorUtils.isSubType(mainHandItem.getType(), flagType)) {
                     debug(this.arena, player, "player " + player.getName() + " is not holding the flag");
                     this.arena.msg(player, Language.parse(this.arena, MSG.GOAL_PHYSICALFLAGS_HOLDFLAG));
-                    return res;
+                    return false;
                 }
 
                 player.getInventory().remove(mainHandItem);
@@ -189,12 +187,11 @@ public class GoalPhysicalFlags extends AbstractFlagGoal implements Listener {
                 final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "trigger:" + player.getName());
                 Bukkit.getPluginManager().callEvent(gEvent);
 
-                // used to cancel block put event
-                res.setPriority(this, PRIORITY);
+                return true;
             }
         }
 
-        return res;
+        return false;
     }
 
     @Override

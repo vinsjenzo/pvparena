@@ -100,35 +100,34 @@ public class GoalSabotage extends ArenaGoal implements Listener {
     /**
      * hook into an interacting player
      *
-     * @param res    the PACheck instance
      * @param player the interacting player
      * @param block  the block being clicked
-     * @return the PACheck instance
+     * @return true if event has been handled
      */
     @Override
-    public PACheck checkInteract(final PACheck res, final Player player, final Block block) {
-        if (block == null || res.getPriority() > PRIORITY) {
-            return res;
+    public boolean checkInteract(final Player player, final Block block) {
+        if (block == null) {
+            return false;
         }
         debug(this.arena, player, "checking interact");
 
         if (block.getType() != Material.TNT) {
             debug(this.arena, player, "block, but not flag");
-            return res;
+            return false;
         }
         debug(this.arena, player, "flag click!");
 
         if (player.getEquipment().getItemInMainHand() == null
                 || player.getEquipment().getItemInMainHand().getType() != Material.FLINT_AND_STEEL) {
             debug(this.arena, player, "block, but no sabotage items");
-            return res;
+            return false;
         }
 
         final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
 
         final ArenaTeam pTeam = aPlayer.getArenaTeam();
         if (pTeam == null) {
-            return res;
+            return false;
         }
         Vector vFlag = null;
         for (final ArenaTeam team : this.arena.getTeams()) {
@@ -152,7 +151,7 @@ public class GoalSabotage extends ArenaGoal implements Listener {
                 debug(this.arena, player, "vFlag: " + vFlag);
 
                 if (aTeam.equals(pTeam.getName())) {
-                    res.setError(this, Language.parse(MSG.GOAL_SABOTAGE_YOUCANNOTSELFDESTROY));
+                    this.arena.msg(aPlayer.get(), Language.parse(arena, MSG.ERROR_ERROR));
                     continue;
                 }
 
@@ -162,14 +161,12 @@ public class GoalSabotage extends ArenaGoal implements Listener {
 
                 final PAGoalEvent gEvent = new PAGoalEvent(this.arena, this, "trigger:" + player.getName());
                 Bukkit.getPluginManager().callEvent(gEvent);
-                this.takeFlag(team.getName(), true,
-                        new PABlockLocation(block.getLocation()));
-                res.setPriority(this, PRIORITY);
-                return res;
+                this.takeFlag(team.getName(), true, new PABlockLocation(block.getLocation()));
+                return true;
             }
         }
 
-        return res;
+        return false;
     }
 
     @Override
@@ -206,23 +203,16 @@ public class GoalSabotage extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck checkSetBlock(final PACheck res, final Player player, final Block block) {
+    public boolean checkSetBlock(final Player player, final Block block) {
 
-        if (res.getPriority() > PRIORITY
-                || !PAA_Region.activeSelections.containsKey(player.getName())) {
-            return res;
+        if (!PAA_Region.activeSelections.containsKey(player.getName())) {
+            return false;
         }
         if (block == null || block.getType() != Material.TNT) {
-            return res;
+            return false;
         }
 
-        if (!PVPArena.hasAdminPerms(player)
-                && !PVPArena.hasCreatePerms(player, this.arena)) {
-            return res;
-        }
-        res.setPriority(this, PRIORITY); // success :)
-
-        return res;
+        return PVPArena.hasAdminPerms(player) || PVPArena.hasCreatePerms(player, this.arena);
     }
 
     private void commit(final Arena arena, final String sTeam) {

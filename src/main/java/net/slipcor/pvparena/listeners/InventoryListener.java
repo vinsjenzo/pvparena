@@ -2,8 +2,8 @@ package net.slipcor.pvparena.listeners;
 
 import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.core.Config.CFG;
+import net.slipcor.pvparena.exceptions.GameplayException;
 import net.slipcor.pvparena.loadables.ArenaRegion.RegionProtection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -54,13 +54,12 @@ public class InventoryListener implements Listener {
         }
 
 
-        PACheck res = arena.getGoal().checkInventory(new PACheck(), event);
-
-        if (res.hasError()) {
-            debug(player, "onInventoryClick cancelled by goal: " + res.getModName());
+        try {
+            arena.getGoal().checkInventory(event);
+        } catch (GameplayException e) {
+            debug(player, "onInventoryClick cancelled by goal: " + arena.getGoal().getName());
             return;
         }
-
 
         if (!BlockListener.isProtected(event.getWhoClicked().getLocation(), event, RegionProtection.INVENTORY)) {
             // we don't need no protection => out!

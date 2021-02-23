@@ -5,11 +5,11 @@ import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.arena.ArenaPlayer;
 import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.classes.PALocation;
 import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
+import net.slipcor.pvparena.exceptions.GameplayException;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.managers.ArenaManager;
 import org.bukkit.ChatColor;
@@ -42,6 +42,11 @@ public class StandardLounge extends ArenaModule {
     @Override
     public String version() {
         return PVPArena.getInstance().getDescription().getVersion();
+    }
+
+    @Override
+    public int getPriority() {
+        return PRIORITY;
     }
 
     @Override
@@ -81,36 +86,18 @@ public class StandardLounge extends ArenaModule {
     }
 
     @Override
-    public PACheck checkJoin(final CommandSender sender, final PACheck result, final boolean join) {
-        if (!join) {
-            return result; // we only care about joining, ignore spectators
-        }
-        if (result.getPriority() > PRIORITY) {
-            return result; // Something already is of higher priority, ignore!
+    public boolean handleJoin(Player player) throws GameplayException {
+        if (this.arena.isLocked() && !player.hasPermission("pvparena.admin")
+                && !(player.hasPermission("pvparena.create") && this.arena.getOwner().equals(player.getName()))) {
+            throw new GameplayException(Language.parse(this.arena, MSG.ERROR_DISABLED));
         }
 
-        final Player player = (Player) sender;
-
-        if (this.arena == null) {
-            return result; // arena is null - maybe some other mod wants to
-            // handle that? ignore!
-        }
-
-        if (this.arena.isLocked()
-                && !player.hasPermission("pvparena.admin")
-                && !(player.hasPermission("pvparena.create") && this.arena.getOwner()
-                .equals(player.getName()))) {
-            result.setError(this, Language.parse(this.arena, MSG.ERROR_DISABLED));
-            return result;
-        }
-
-        final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(sender.getName());
+        final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(player.getName());
 
         if (aPlayer.getArena() != null) {
-            debug(aPlayer.getArena(), sender, this.getName());
-            result.setError(this, Language.parse(this.arena,
+            debug(aPlayer.getArena(), player, this.getName());
+            throw new GameplayException(Language.parse(this.arena,
                     MSG.ERROR_ARENA_ALREADY_PART_OF, ArenaManager.getIndirectArenaName(aPlayer.getArena())));
-            return result;
         }
 
         if (aPlayer.getArenaClass() == null) {
@@ -119,14 +106,11 @@ public class StandardLounge extends ArenaModule {
                 autoClass = player.getName();
             }
             if (autoClass != null && this.arena.getClass(autoClass) == null) {
-                result.setError(this, Language.parse(this.arena,
-                        MSG.ERROR_CLASS_NOT_FOUND, "autoClass"));
-                return result;
+                throw new GameplayException(Language.parse(this.arena, MSG.ERROR_CLASS_NOT_FOUND, "autoClass"));
             }
         }
 
-        result.setPriority(this, PRIORITY);
-        return result;
+        return true;
     }
 
     @Override

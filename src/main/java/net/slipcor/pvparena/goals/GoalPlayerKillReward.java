@@ -91,30 +91,15 @@ public class GoalPlayerKillReward extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkEnd(final PACheck res) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
+    public boolean checkEnd() {
         if (!this.arena.isFreeForAll()) {
             final int count = TeamManager.countActiveTeams(this.arena);
 
-            if (count <= 1) {
-                res.setPriority(this, PRIORITY); // yep. only one team left. go!
-            }
-            return res;
+            return (count <= 1); // yep. only one team left. go!
         }
 
         final int count = this.getLifeMap().size();
-
-        if (count <= 1) {
-            res.setPriority(this, PRIORITY); // yep. only one player left. go!
-        }
-        if (count == 0) {
-            res.setError(this, "");
-        }
-
-        return res;
+        return (count <= 1); // yep. only one team left. go!
     }
 
     @Override
@@ -558,32 +543,6 @@ public class GoalPlayerKillReward extends ArenaGoal {
         return aPlayer.getArenaTeam().getTeamMembers().stream()
                 .mapToInt(ap -> this.getLifeMap().getOrDefault(ap.getName(), 0))
                 .sum();
-    }
-
-    public PACheck getLives(PACheck res, ArenaPlayer player) {
-        if (res.getPriority() <= PRIORITY + 1000) {
-            if (this.arena.isFreeForAll()) {
-                res.setError(
-                        this, String.valueOf(this.getLifeMap().getOrDefault(player.getName(), 0))
-                );
-            } else {
-                if (this.getLifeMap().containsKey(player.getArenaTeam().getName())) {
-                    res.setError(this, String.valueOf(this.getLifeMap().get(player.getName())));
-                } else {
-
-                    int sum = 0;
-
-                    for (final ArenaPlayer ap : player.getArenaTeam().getTeamMembers()) {
-                        if (this.getLifeMap().containsKey(ap.getName())) {
-                            sum += this.getLifeMap().get(ap.getName());
-                        }
-                    }
-
-                    res.setError(this, String.valueOf(sum));
-                }
-            }
-        }
-        return res;
     }
 
     @Override

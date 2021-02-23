@@ -56,36 +56,20 @@ public class GoalPlayerLives extends ArenaGoal {
     private static final int PRIORITY = 2;
 
     @Override
-    public PACheck checkEnd(final PACheck res) {
+    public boolean checkEnd() {
         debug(this.arena, "checkEnd - " + this.arena.getName());
-        if (res.getPriority() > PRIORITY) {
-            debug(this.arena, res.getPriority() + ">" + PRIORITY);
-            return res;
-        }
 
         if (!this.arena.isFreeForAll()) {
             debug(this.arena, "TEAMS!");
             final int count = TeamManager.countActiveTeams(this.arena);
             debug(this.arena, "count: " + count);
 
-            if (count <= 1) {
-                res.setPriority(this, PRIORITY); // yep. only one team left. go!
-            }
-            return res;
+            return (count <= 1); // yep. only one team left. go!
         }
-
-        final int count = this.getLifeMap().size();
 
         debug(this.arena, "lives: " + StringParser.joinSet(this.getLifeMap().keySet(), "|"));
-
-        if (count <= 1) {
-            res.setPriority(this, PRIORITY); // yep. only one player left. go!
-        }
-        if (count == 0) {
-            res.setError(this, "");
-        }
-
-        return res;
+        final int count = this.getLifeMap().size();
+        return (count <= 1); // yep. only one team left. go!
     }
 
     @Override

@@ -105,21 +105,16 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck checkEnd(final PACheck res) {
-
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
+    public boolean checkEnd() {
         final int count = TeamManager.countActiveTeams(this.arena);
 
         if (count == 1) {
-            res.setPriority(this, PRIORITY); // yep. only one team left. go!
+            return true; // yep. only one team left. go!
         } else if (count == 0) {
             debug(this.arena, "No teams playing!");
         }
 
-        return res;
+        return false;
     }
 
     @Override
@@ -165,28 +160,17 @@ public class GoalBlockDestroy extends ArenaGoal implements Listener {
     }
 
     @Override
-    public PACheck checkSetBlock(final PACheck res, final Player player, final Block block) {
+    public boolean checkSetBlock(final Player player, final Block block) {
 
-        if (res.getPriority() > PRIORITY
-                || !PAA_Region.activeSelections.containsKey(player.getName())) {
-            return res;
-        }
-        if (block == null
-                || !block
-                .getType()
-                .name()
-                .equals(this.arena.getArenaConfig().getString(
-                        CFG.GOAL_BLOCKDESTROY_BLOCKTYPE))) {
-            return res;
+        if (!PAA_Region.activeSelections.containsKey(player.getName())) {
+            return false;
         }
 
-        if (!PVPArena.hasAdminPerms(player)
-                && !PVPArena.hasCreatePerms(player, this.arena)) {
-            return res;
+        if (block == null || block.getType() != this.arena.getArenaConfig().getMaterial(CFG.GOAL_BLOCKDESTROY_BLOCKTYPE)) {
+            return false;
         }
-        res.setPriority(this, PRIORITY); // success :)
 
-        return res;
+        return PVPArena.hasAdminPerms(player) || PVPArena.hasCreatePerms(player, this.arena);
     }
 
     private void commit(final Arena arena, final String sTeam) {

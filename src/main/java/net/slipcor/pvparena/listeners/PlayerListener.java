@@ -7,7 +7,6 @@ import net.slipcor.pvparena.arena.ArenaPlayer.Status;
 import net.slipcor.pvparena.arena.ArenaTeam;
 import net.slipcor.pvparena.arena.PlayerState;
 import net.slipcor.pvparena.classes.PABlockLocation;
-import net.slipcor.pvparena.classes.PACheck;
 import net.slipcor.pvparena.classes.PASpawn;
 import net.slipcor.pvparena.commands.PAA_Setup;
 import net.slipcor.pvparena.commands.PAG_Arenaclass;
@@ -16,6 +15,7 @@ import net.slipcor.pvparena.core.Config.CFG;
 import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAGoalEvent;
+import net.slipcor.pvparena.exceptions.GameplayException;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
 import net.slipcor.pvparena.loadables.ArenaRegion;
@@ -97,7 +97,7 @@ public class PlayerListener implements Listener {
             debug(arena, player, "arena != null and fight not in progress => cancel");
             debug(arena, player, "> true");
 
-            PriorityManager.handleInteract(arena, player, pie, pie.getClickedBlock());
+            PriorityManager.handleInteract(arena, player, pie);
             event.setCancelled(true);
             return true;
         }
@@ -267,15 +267,14 @@ public class PlayerListener implements Listener {
             return; // no fighting player => OUT
         }
 
-        PACheck res = arena.getGoal().checkCraft(new PACheck(), event);
-
-        if (res.hasError()) {
-            debug(player, "onPlayerCraft cancelled by goal: " + res.getModName());
+        try {
+            arena.getGoal().checkCraft(event);
+        } catch (GameplayException e) {
+            debug(player, "onPlayerCraft cancelled by goal: " + arena.getGoal().getName());
             return;
         }
 
-        if (!BlockListener.isProtected(player.getLocation(), event,
-                RegionProtection.CRAFT)) {
+        if (!BlockListener.isProtected(player.getLocation(), event, RegionProtection.CRAFT)) {
             return; // no craft protection
         }
 
@@ -303,10 +302,10 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        PACheck res = arena.getGoal().checkDrop(new PACheck(), event);
-
-        if (res.hasError()) {
-            debug(player, "onPlayerDropItem cancelled by goal: " + res.getModName());
+        try {
+            arena.getGoal().checkDrop(event);
+        } catch (GameplayException e) {
+            debug(player, "onPlayerDropItem cancelled by goal: " + arena.getGoal().getName());
             return;
         }
 
@@ -476,7 +475,7 @@ public class PlayerListener implements Listener {
                     event.getClickedBlock().getLocation()));
             if (this.checkAndCommitCancel(arena, event.getPlayer(), event)) {
                 if (arena != null) {
-                    PriorityManager.handleInteract(arena, player, event, event.getClickedBlock());
+                    PriorityManager.handleInteract(arena, player, event);
                 }
                 return;
             }
@@ -505,7 +504,7 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        PriorityManager.handleInteract(arena, player, event, event.getClickedBlock());
+        PriorityManager.handleInteract(arena, player, event);
 
         debug(arena, player, "event post cancelled: " + event.isCancelled());
 
@@ -809,16 +808,15 @@ public class PlayerListener implements Listener {
 
         if (arena != null) {
 
-            PACheck res = arena.getGoal().checkPickup(new PACheck(), event);
-
-            if (res.hasError()) {
-                debug(player, "onPlayerPickupItem cancelled by goal: " + res.getModName());
+            try {
+                arena.getGoal().checkPickup(event);
+            } catch (GameplayException e) {
+                debug(player, "onPlayerPickupItem cancelled by goal: " + arena.getGoal().getName());
                 return;
             }
         }
-        if (arena == null
-                || !BlockListener.isProtected(player.getLocation(), event,
-                RegionProtection.PICKUP)) {
+
+        if (arena == null || !BlockListener.isProtected(player.getLocation(), event, RegionProtection.PICKUP)) {
             return; // no fighting player or no powerups => OUT
         }
         arena.getGoal().onPlayerPickUp(event);

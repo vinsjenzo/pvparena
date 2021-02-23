@@ -13,6 +13,7 @@ import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.core.StringParser;
 import net.slipcor.pvparena.events.PAGoalEvent;
 import net.slipcor.pvparena.events.PATeamChangeEvent;
+import net.slipcor.pvparena.exceptions.GameplayException;
 import net.slipcor.pvparena.listeners.PlayerListener;
 import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModule;
@@ -54,7 +55,6 @@ public class GoalInfect extends ArenaGoal {
     public GoalInfect() {
         super("Infect");
     }
-// BREAK, PLACE, TNT, TNTBREAK, DROP, INVENTORY, PICKUP, CRAFT;
     private EndRunnable endRunner;
 
     @Override
@@ -65,22 +65,10 @@ public class GoalInfect extends ArenaGoal {
     private static final int PRIORITY = 9;
 
     @Override
-    public PACheck checkEnd(final PACheck res) {
-        if (res.getPriority() > PRIORITY) {
-            return res;
-        }
-
+    public boolean checkEnd() {
         final int count = this.getLifeMap().size();
 
-        if (count <= 1
-                || this.anyTeamEmpty()) {
-            res.setPriority(this, PRIORITY); // yep. only one player left. go!
-        }
-        if (count == 0) {
-            res.setError(this, "");
-        }
-
-        return res;
+        return count <= 1 || this.anyTeamEmpty(); // yep. only one player left. go!
     }
 
     private boolean anyTeamEmpty() {
@@ -129,7 +117,7 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkBreak(PACheck result, BlockBreakEvent event) {
+    public void checkBreak(BlockBreakEvent event) throws GameplayException {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(event.getPlayer().getName());
         if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
@@ -138,22 +126,21 @@ public class GoalInfect extends ArenaGoal {
                 )) {
                     event.setCancelled(true);
                     this.arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_BREAK));
-                    result.setError(this, "BREAK not allowed");
+                    throw new GameplayException("BREAK not allowed");
                 } else if (event.getBlock().getType() == Material.TNT &&
                         ArenaPlayer.PlayerPrevention.has(
                                 this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.TNTBREAK
                         )) {
                     event.setCancelled(true);
                     this.arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_TNTBREAK));
-                    result.setError(this, "TNTBREAK not allowed");
+                    throw new GameplayException("TNTBREAK not allowed");
                 }
             }
         }
-        return result;
     }
 
     @Override
-    public PACheck checkCraft(PACheck result, CraftItemEvent event) {
+    public void checkCraft(CraftItemEvent event) throws GameplayException {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(((Player) event.getInventory().getHolder()).getName());
         if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
@@ -162,15 +149,14 @@ public class GoalInfect extends ArenaGoal {
                 )) {
                     event.setCancelled(true);
                     this.arena.msg(event.getWhoClicked(), Language.parse(arena, MSG.PLAYER_PREVENTED_CRAFT));
-                    result.setError(this, "CRAFT not allowed");
+                    throw new GameplayException("CRAFT not allowed");
                 }
             }
         }
-        return result;
     }
 
     @Override
-    public PACheck checkDrop(PACheck result, PlayerDropItemEvent event) {
+    public void checkDrop(PlayerDropItemEvent event) throws GameplayException {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(event.getPlayer().getName());
         if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
@@ -179,15 +165,14 @@ public class GoalInfect extends ArenaGoal {
                 )) {
                     event.setCancelled(true);
                     this.arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_DROP));
-                    result.setError(this, "DROP not allowed");
+                    throw new GameplayException("DROP not allowed");
                 }
             }
         }
-        return result;
     }
 
     @Override
-    public PACheck checkInventory(PACheck result, InventoryClickEvent event) {
+    public void checkInventory(InventoryClickEvent event) throws GameplayException {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(event.getWhoClicked().getName());
         if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
@@ -197,15 +182,14 @@ public class GoalInfect extends ArenaGoal {
                     event.setCancelled(true);
                     event.getWhoClicked().closeInventory();
                     this.arena.msg(event.getWhoClicked(), Language.parse(arena, MSG.PLAYER_PREVENTED_INVENTORY));
-                    result.setError(this, "INVENTORY not allowed");
+                    throw new GameplayException("INVENTORY not allowed");
                 }
             }
         }
-        return result;
     }
 
     @Override
-    public PACheck checkPickup(PACheck result, EntityPickupItemEvent event) {
+    public void checkPickup(EntityPickupItemEvent event) throws GameplayException {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(event.getEntity().getName());
         if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
@@ -213,15 +197,14 @@ public class GoalInfect extends ArenaGoal {
                         this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.PICKUP
                 )) {
                     event.setCancelled(true);
-                    result.setError(this, "PICKUP not allowed");
+                    throw new GameplayException("PICKUP not allowed");
                 }
             }
         }
-        return result;
     }
 
     @Override
-    public PACheck checkPlace(PACheck result, BlockPlaceEvent event) {
+    public void checkPlace(BlockPlaceEvent event) throws GameplayException {
         ArenaPlayer ap = ArenaPlayer.parsePlayer(event.getPlayer().getName());
         if (this.arena.equals(ap.getArena()) && ap.getStatus() == Status.FIGHT) {
             if ("infected".equals(ap.getArenaTeam().getName())) {
@@ -230,18 +213,17 @@ public class GoalInfect extends ArenaGoal {
                 )) {
                     event.setCancelled(true);
                     this.arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_PLACE));
-                    result.setError(this, "PLACE not allowed");
+                    throw new GameplayException("PLACE not allowed");
                 } else if (event.getBlock().getType() == Material.TNT &&
                         ArenaPlayer.PlayerPrevention.has(
                                 this.arena.getArenaConfig().getInt(CFG.GOAL_INFECTED_PPROTECTS), ArenaPlayer.PlayerPrevention.TNT
                         )) {
                     event.setCancelled(true);
                     this.arena.msg(event.getPlayer(), Language.parse(arena, MSG.PLAYER_PREVENTED_TNT));
-                    result.setError(this, "TNT not allowed");
+                    throw new GameplayException("TNT not allowed");
                 }
             }
         }
-        return result;
     }
 
     @Override
@@ -288,11 +270,8 @@ public class GoalInfect extends ArenaGoal {
     }
 
     @Override
-    public PACheck checkStart(final PACheck res) {
-        if (res.getPriority() < PRIORITY) {
-            res.setPriority(this, PRIORITY);
-        }
-        return res;
+    public boolean overridesStart() {
+        return true;
     }
 
     @Override

@@ -13,6 +13,8 @@ import net.slipcor.pvparena.core.Language;
 import net.slipcor.pvparena.core.Language.MSG;
 import net.slipcor.pvparena.events.PAJoinEvent;
 import net.slipcor.pvparena.events.PAStartEvent;
+import net.slipcor.pvparena.exceptions.GameplayException;
+import net.slipcor.pvparena.exceptions.GameplayExceptionNotice;
 import net.slipcor.pvparena.loadables.ArenaGoal;
 import net.slipcor.pvparena.loadables.ArenaModule;
 import net.slipcor.pvparena.loadables.ArenaModuleManager;
@@ -28,14 +30,12 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static net.slipcor.pvparena.config.Debugger.debug;
 
@@ -75,35 +75,19 @@ public class PriorityManager {
     public static boolean handleEnd(final Arena arena, final boolean force) {
         debug(arena, "handleEnd: " + arena.getName() + "; force: " + force);
 
-        ArenaGoal commit = arena.getGoal();
-        PACheck res = commit.checkEnd(new PACheck());
-        if (res.getPriority() <= 0) {
-            // fail
-            commit = null;
-        }
-
-        if (res.hasError()) {
-            if (res.getError() != null && res.getError().length() > 1) {
-                arena.msg(Bukkit.getConsoleSender(),
-                        Language.parse(arena, MSG.ERROR_ERROR, res.getError()));
-            }
-            if (commit != null) {
-                debug(arena, "error; committing end: " + commit.getName());
-                commit.commitEnd(force);
+        try {
+            ArenaGoal goal = arena.getGoal();
+            if(goal.checkEnd()) {
+                debug(arena, "committing end: " + goal.getName());
+                goal.commitEnd(force);
                 return true;
             }
-            debug(arena, "error; FALSE!");
-            return false;
-        }
-
-        if (commit == null) {
             debug(arena, "FALSE");
-            return false;
+        } catch (GameplayException e) {
+            arena.msg(Bukkit.getConsoleSender(), Language.parse(arena, MSG.ERROR_ERROR, e.getMessage()));
         }
 
-        debug(arena, "committing end: " + commit.getName());
-        commit.commitEnd(force);
-        return true;
+        return false;
     }
 
     public static int handleGetLives(final Arena arena, final ArenaPlayer aPlayer) {
@@ -115,84 +99,57 @@ public class PriorityManager {
         return arena.getGoal().getLives(aPlayer);
     }
 
-    public static void handleInteract(final Arena arena, final Player player,
-                                      final Cancellable event, final Block clickedBlock) {
-
-        ArenaGoal commit = arena.getGoal();
-        PACheck res = commit.checkInteract(new PACheck(), player, clickedBlock);
-        if (res.getPriority() <= 0) {
-            // fail
-            commit = null;
+    public static void handleInteract(final Arena arena, final Player player, final PlayerInteractEvent event) {
+        ArenaGoal goal = arena.getGoal();
+        if (goal.checkInteract(player, event.getClickedBlock())) {
+            goal.commitInteract(player, event.getClickedBlock());
+            event.setCancelled(true);
         }
-
-        if (res.hasError()) {
-            arena.msg(Bukkit.getConsoleSender(),
-                    Language.parse(arena, MSG.ERROR_ERROR, res.getError()));
-            return;
-        }
-
-        if (commit == null) {
-            return;
-        }
-
-        event.setCancelled(true);
-
-        commit.commitInteract(player, clickedBlock);
     }
 
-    public static boolean handleJoin(final Arena arena,
-                                  final CommandSender sender, final String[] args) {
+    public static boolean handleJoin(final Arena arena, final Player player, final String[] args) {
         debug(arena, "handleJoin!");
-        int priority = 0;
         PACheck res = new PACheck();
 
         ArenaModule commModule = null;
 
-        for (final ArenaModule mod : arena.getMods()) {
-            res = mod.checkJoin(sender, res, true);
-            if (res.getPriority() > priority && priority >= 0) {
-                // success and higher priority
-                debug(arena, "higher priority, commModule := "+mod.getName());
-                priority = res.getPriority();
-                commModule = mod;
-            } else if (res.getPriority() < 0 || priority < 0) {
-                // fail
-                priority = res.getPriority();
-                commModule = null;
+        List<ArenaModule> sortedModules = arena.getMods().stream()
+                .sorted(Comparator.comparingInt(ArenaModule::getPriority).reversed())
+                .collect(Collectors.toList());
+
+        try {
+            for(ArenaModule mod : sortedModules) {
+                mod.checkJoin(player);
             }
+
+            boolean handled = false;
+            for(int i = 0; i < sortedModules.size() && !handled; i++) {
+                handled = sortedModules.get(i).handleJoin(player);
+            }
+
+            if(!handled && !ArenaManager.checkJoin(player, arena)) {
+                throw new GameplayException(Language.parse(arena, MSG.ERROR_JOIN_REGION));
+            }
+        } catch (GameplayExceptionNotice e) {
+            arena.msg(player, Language.parse(arena, MSG.NOTICE_NOTICE, e.getMessage()));
+        } catch (GameplayException e) {
+            arena.msg(player, Language.parse(arena, MSG.ERROR_ERROR, e.getMessage()));
         }
 
-        if (commModule != null
-                && !ArenaManager.checkJoin((Player) sender, arena)) {
-            res.setError(commModule,
-                    Language.parse(arena, MSG.ERROR_JOIN_REGION));
-        }
-
-        if (res.hasError() && !"LateLounge".equals(res.getModName())) {
-            arena.msg(sender,
-                    Language.parse(arena, MSG.ERROR_ERROR, res.getError()));
-            return false;
-        }
-
-        if (res.hasError()) {
-            arena.msg(sender,
-                    Language.parse(arena, MSG.NOTICE_NOTICE, res.getError()));
-            return false;
-        }
-
+        //TODO
         ArenaGoal commGoal = arena.getGoal();
-        res = commGoal.checkJoin(sender, res, args);
+        res = commGoal.checkJoin(player, res, args);
         if (res.getPriority() <= 0) {
             // fail
             commGoal = null;
         }
 
-        if (commGoal != null && !ArenaManager.checkJoin((Player) sender, arena)) {
+        if (commGoal != null && !ArenaManager.checkJoin((Player) player, arena)) {
             res.setError(commGoal, Language.parse(arena, MSG.ERROR_JOIN_REGION));
         }
 
         if (res.hasError()) {
-            arena.msg(sender,
+            arena.msg(player,
                     Language.parse(arena, MSG.ERROR_ERROR, res.getError()));
             return false;
         }
@@ -204,7 +161,7 @@ public class PriorityManager {
 
             team = arena.getTeam(TeamManager.calcFreeTeam(arena));
         } else if(arena.getTeam(args[0]) == null) {
-            arena.msg(sender, Language.parse(arena, MSG.ERROR_TEAMNOTFOUND, args[0]));
+            arena.msg(player, Language.parse(arena, MSG.ERROR_TEAMNOTFOUND, args[0]));
             return false;
         } else {
             ArenaTeam aTeam = arena.getTeam(args[0]);
@@ -213,10 +170,10 @@ public class PriorityManager {
             int maxTeamPlayers = arena.getArenaConfig().getInt(CFG.READY_MAXTEAMPLAYERS);
 
             if (maxPlayers > 0 && arena.getFighters().size() > maxPlayers) {
-                arena.msg(sender, Language.parse(arena, MSG.ERROR_JOIN_ARENA_FULL));
+                arena.msg(player, Language.parse(arena, MSG.ERROR_JOIN_ARENA_FULL));
                 return false;
             } else if (maxTeamPlayers > 0 && aTeam.getTeamMembers().size() > maxTeamPlayers) {
-                arena.msg(sender, Language.parse(arena, MSG.ERROR_JOIN_TEAM_FULL, aTeam.getColoredName()));
+                arena.msg(player, Language.parse(arena, MSG.ERROR_JOIN_TEAM_FULL, aTeam.getColoredName()));
                 return false;
             } else {
                 team = aTeam;
@@ -224,16 +181,16 @@ public class PriorityManager {
         }
 
         if (team == null) {
-            arena.msg(sender, Language.parse(arena, MSG.ERROR_JOIN_ARENA_FULL));
+            arena.msg(player, Language.parse(arena, MSG.ERROR_JOIN_ARENA_FULL));
             return false;
         }
 
-        final ArenaPlayer player = ArenaPlayer.parsePlayer(sender.getName());
+        final ArenaPlayer player = ArenaPlayer.parsePlayer(player.getName());
 
-        ArenaModuleManager.choosePlayerTeam(arena, (Player) sender,
+        ArenaModuleManager.choosePlayerTeam(arena, (Player) player,
                 team.getColoredName());
 
-        arena.markPlayedPlayer(sender.getName());
+        arena.markPlayedPlayer(player.getName());
 
         player.setPublicChatting(!arena.getArenaConfig().getBoolean(
                 CFG.CHAT_DEFAULTTEAM));
@@ -243,46 +200,46 @@ public class PriorityManager {
             if (commModule != null) {
                 debug(arena, "calling event #1");
 
-                final PAJoinEvent event = new PAJoinEvent(arena, (Player) sender, false);
+                final PAJoinEvent event = new PAJoinEvent(arena, (Player) player, false);
                 Bukkit.getPluginManager().callEvent(event);
                 if (event.isCancelled()) {
                     debug(arena, "! Join event cancelled by plugin !");
                     return false;
                 }
-                commModule.commitJoin((Player) sender, team);
+                commModule.commitJoin((Player) player, team);
 
-                ArenaModuleManager.parseJoin(arena, (Player) sender, team);
+                ArenaModuleManager.parseJoin(arena, (Player) player, team);
                 return true;
             }
-            if (!ArenaManager.checkJoin((Player) sender, arena)) {
-                arena.msg(sender, Language.parse(arena, MSG.ERROR_JOIN_REGION));
+            if (!ArenaManager.checkJoin((Player) player, arena)) {
+                arena.msg(player, Language.parse(arena, MSG.ERROR_JOIN_REGION));
                 return false;
             }
             // both null, just put the joiner to some spawn
 
             debug(arena, "calling event #2");
 
-            final PAJoinEvent event = new PAJoinEvent(arena, (Player) sender, false);
+            final PAJoinEvent event = new PAJoinEvent(arena, (Player) player, false);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
                 debug(arena, "! Join event cancelled by plugin !");
                 return false;
             }
 
-            if (!arena.tryJoin((Player) sender, team)) {
+            if (!arena.tryJoin((Player) player, team)) {
                 return false;
             }
 
             if (arena.isFreeForAll()) {
-                arena.msg(sender,
+                arena.msg(player,
                         arena.getArenaConfig().getString(CFG.MSG_YOUJOINED));
                 arena.broadcastExcept(
-                        sender,
+                        player,
                         Language.parse(arena, CFG.MSG_PLAYERJOINED,
-                                sender.getName()));
+                                player.getName()));
             } else {
                 arena.msg(
-                        sender,
+                        player,
                         arena.getArenaConfig()
                                 .getString(CFG.MSG_YOUJOINEDTEAM)
                                 .replace(
@@ -290,15 +247,15 @@ public class PriorityManager {
                                         team.getColoredName()
                                                 + ChatColor.COLOR_CHAR + 'r'));
                 arena.broadcastExcept(
-                        sender,
+                        player,
                         Language.parse(arena, CFG.MSG_PLAYERJOINEDTEAM,
-                                sender.getName(), team.getColoredName()
+                                player.getName(), team.getColoredName()
                                         + ChatColor.COLOR_CHAR + 'r'));
             }
-            ArenaModuleManager.parseJoin(arena, (Player) sender, team);
+            ArenaModuleManager.parseJoin(arena, (Player) player, team);
 
-            arena.getGoal().initiate(((Player) sender));
-            ArenaModuleManager.initiate(arena, (Player) sender);
+            arena.getGoal().initiate(((Player) player));
+            ArenaModuleManager.initiate(arena, (Player) player);
 
             if (arena.getFighters().size() > 1
                     && arena.getFighters().size() >= arena.getArenaConfig()
@@ -324,16 +281,16 @@ public class PriorityManager {
 
         debug(arena, "calling event #3");
 
-        final PAJoinEvent event = new PAJoinEvent(arena, (Player) sender, false);
+        final PAJoinEvent event = new PAJoinEvent(arena, (Player) player, false);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) {
             debug(arena, "! Join event cancelled by plugin !");
             return false;
         }
 
-        commModule.commitJoin((Player) sender, team);
+        commModule.commitJoin((Player) player, team);
 
-        ArenaModuleManager.parseJoin(arena, (Player) sender, team);
+        ArenaModuleManager.parseJoin(arena, (Player) player, team);
 
         if (player.getArenaClass() != null && arena.startRunner != null) {
             player.setStatus(Status.READY);
@@ -457,8 +414,7 @@ public class PriorityManager {
         }
     }
 
-    public static void handleRespawn(final Arena arena,
-                                     final ArenaPlayer aPlayer, final List<ItemStack> drops) {
+    public static void handleRespawn(final Arena arena, final ArenaPlayer aPlayer, final List<ItemStack> drops) {
 
         for (final ArenaModule mod : arena.getMods()) {
             if (mod.tryDeathOverride(aPlayer, drops)) {
@@ -490,29 +446,18 @@ public class PriorityManager {
             return false;
         }
 
-        ArenaGoal commit = arena.getGoal();
-        PACheck res = commit.checkSetBlock(new PACheck(), player, block);
-        if (res.getPriority() <= 0) {
-            // fail
-            commit = null;
+        ArenaGoal goal = arena.getGoal();
+        if (goal.checkSetBlock(player, block)) {
+            return goal.commitSetFlag(player, block);
         }
 
-        if (res.hasError()) {
-            arena.msg(Bukkit.getConsoleSender(),
-                    Language.parse(arena, MSG.ERROR_ERROR, res.getError()));
-            return false;
-        }
-
-        if (commit == null) {
-            return false;
-        }
-
-        return commit.commitSetFlag(player, block);
+        return false;
     }
 
-    public static boolean handleSpectate(final Arena arena,
-                                      final CommandSender sender) {
+    public static boolean handleSpectate(final Arena arena, final CommandSender sender) {
         PACheck res = new PACheck();
+
+        //TODO
 
         debug(arena, sender, "handling spectator");
 
@@ -527,10 +472,6 @@ public class PriorityManager {
                 debug(arena, sender, "success and higher priority");
                 priority = res.getPriority();
                 commit = mod;
-            } else if (res.getPriority() < 0 || priority < 0) {
-                debug(arena, sender, "fail");
-                priority = res.getPriority();
-                commit = null;
             }
         }
 
@@ -556,35 +497,10 @@ public class PriorityManager {
         return true;
     }
 
-    public static Boolean handleStart(final Arena arena,
-                                      final CommandSender sender) {
-        return handleStart(arena, sender, false);
-    }
-
     public static Boolean handleStart(final Arena arena, final CommandSender sender, final boolean force) {
         debug(arena, "handling start!");
 
-        ArenaGoal commit = arena.getGoal();
-        PACheck res = commit.checkStart(new PACheck());
-        if (res.getPriority() <= 0) {
-            // fail
-            commit = null;
-        }
-
-        if (!force && res.hasError()) {
-            debug(arena, "not forcing and we have error: " + res.getError());
-            if (sender == null) {
-                arena.msg(Bukkit.getConsoleSender(),
-                        Language.parse(arena, MSG.ERROR_ERROR, res.getError()));
-            } else {
-                arena.msg(sender,
-                        Language.parse(arena, MSG.ERROR_ERROR, res.getError()));
-            }
-            return null;
-        }
-
-        if (!force && arena.getFighters().size() < 2
-                || arena.getFighters().size() < arena.getArenaConfig().getInt(
+        if (!force && arena.getFighters().size() < 2 || arena.getFighters().size() < arena.getArenaConfig().getInt(
                 CFG.READY_MINPLAYERS)) {
             debug(arena, "not forcing and we have less than minplayers");
             return null;
@@ -599,12 +515,13 @@ public class PriorityManager {
 
         debug(arena, sender, "teleporting all players to their spawns");
 
-        if (commit == null) {
+        ArenaGoal goal = arena.getGoal();
+        if (goal.overridesStart()) {
+            goal.commitStart(); // override spawning
+        } else {
             for (final ArenaTeam team : arena.getTeams()) {
                 SpawnManager.distribute(arena, team);
             }
-        } else {
-            commit.commitStart(); // override spawning
         }
 
         debug(arena, sender, "teleported everyone!");
@@ -612,7 +529,7 @@ public class PriorityManager {
         arena.broadcast(Language.parse(arena, MSG.FIGHT_BEGINS));
         arena.setFightInProgress(true);
 
-        arena.getGoal().parseStart();
+        goal.parseStart();
 
         for (final ArenaModule x : arena.getMods()) {
             x.parseStart();
